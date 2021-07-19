@@ -28,7 +28,7 @@ local cs = {
                 doc="Name of timing master device to be monitored"),
         s.field("uhal_log_level", self.uhal_log_level, "notice",
                 doc="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug."),
-    ], doc="HSIReadout configuration"),
+    ], doc="HSIReadout init"),
 
 };
 

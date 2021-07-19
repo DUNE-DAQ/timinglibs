@@ -66,7 +66,8 @@ HSIController::init(const nlohmann::json& init_data)
 void
 HSIController::do_configure(const nlohmann::json& data)
 {
-  do_hsi_endpoint_enable(data);
+  do_hsi_reset(data);
+  do_hsi_endpoint_reset(data);
   do_hsi_configure(data);
 }
 

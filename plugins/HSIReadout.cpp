@@ -34,6 +34,7 @@ HSIReadout::HSIReadout(const std::string& name)
   , m_hsievent_sink(nullptr)
   , m_queue_timeout(1)
   , m_readout_period(1000)
+  , m_uhal_log_level("notice")
   , m_connections_file("")
   , m_connection_manager(nullptr)
   , m_hsi_device(nullptr)
@@ -57,10 +58,22 @@ HSIReadout::init(const nlohmann::json& init_data)
 
   auto ini = init_data.get<hsireadout::InitParams>();
 
-  m_hsievent_sink.reset(new appfwk::DAQSink<dfmessages::HSIEvent>(appfwk::queue_inst(ini.qinfos, "hsievent_sink")));
+  for (const auto& qi : ini.qinfos) {
+    if (!qi.name.compare("hsievent_sink")) {
+      try {
+        m_hsievent_sink.reset(new sink_t(qi.inst));
+      } catch (const ers::Issue& excpt) {
+        throw InvalidQueueFatalError(ERS_HERE, get_name(), qi.name, excpt);
+      }
+    }
+  }
 
+  //m_hsievent_sink.reset(new appfwk::DAQSink<dfmessages::HSIEvent>(appfwk::queue_inst(ini.qinfos, "hsievent_sink")));
+
+  m_uhal_log_level = ini.uhal_log_level;
   m_connections_file = ini.connections_file;
   m_readout_period = ini.readout_period;
+  m_hsi_device_name = ini.hsi_device_name;
 
   TLOG_DEBUG(0) << get_name() << "conf: con. file before env var expansion: " << m_connections_file;
   resolve_environment_variables(m_connections_file);
@@ -89,8 +102,6 @@ HSIReadout::init(const nlohmann::json& init_data)
     message << m_connections_file << " not found. Has TIMING_SHARE been set?";
     throw UHALConnectionsFileIssue(ERS_HERE, message.str(), excpt);
   }
-
-  m_hsi_device_name = ini.hsi_device_name;
 
   try {
     m_hsi_device = std::make_unique<uhal::HwInterface>(m_connection_manager->getDevice(m_hsi_device_name));
