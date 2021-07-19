@@ -42,18 +42,27 @@ TimingFanoutController::TimingFanoutController(const std::string& name)
 }
 
 void
+TimingFanoutController::init(const nlohmann::json& init_data)
+{
+  // set up queues
+  TimingController::init(init_data["qinfos"]);
+
+  auto ini = init_data.get<timingfanoutcontroller::InitParams>();
+  m_timing_device = ini.device;
+
+  TLOG() << get_name() << "conf: fanout device: " << m_timing_device;
+}
+
+void
 TimingFanoutController::do_configure(const nlohmann::json& obj)
 {
-  timingfanoutcontroller::from_json(obj, m_cfg);
-
-  TLOG() << get_name() << "conf: managed device: " << m_cfg.device;
 }
 
 void
 TimingFanoutController::construct_fanout_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id)
 {
   hw_cmd.id = cmd_id;
-  hw_cmd.device = m_cfg.device;
+  hw_cmd.device = m_timing_device;
 }
 
 void

@@ -104,9 +104,14 @@ protected:
   using source_t = dunedaq::appfwk::DAQSource<timingcmd::TimingHwCmd>;
   std::unique_ptr<source_t> m_hw_command_in_queue;
   std::chrono::milliseconds m_queue_timeout;
+  
+  // hardware polling intervals [us]
+  uint m_gather_interval;
+  uint m_gather_interval_debug;
 
   // uhal members
   std::string m_connections_file;
+  std::string m_uhal_log_level;
   std::unique_ptr<uhal::ConnectionManager> m_connection_manager;
   std::map<std::string, std::unique_ptr<uhal::HwInterface>> m_hw_device_map;
   std::mutex m_hw_device_map_mutex;

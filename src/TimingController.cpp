@@ -32,6 +32,7 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
   : dunedaq::appfwk::DAQModule(name)
   , m_hw_command_out_queue(nullptr)
   , m_hw_cmd_out_queue_timeout(100)
+  , m_timing_device("")
   , m_number_hw_commands(number_hw_commands)
   , m_sent_hw_command_counters(m_number_hw_commands)
 {
@@ -44,8 +45,8 @@ void
 TimingController::init(const nlohmann::json& init_data)
 {
   // set up queues
-  auto ini = init_data.get<appfwk::app::ModInit>();
-  for (const auto& qi : ini.qinfos) {
+  auto qinfos = init_data.get<appfwk::app::QueueInfos>();
+  for (const auto& qi : qinfos) {
     if (!qi.name.compare("hardware_commands_out")) {
       try {
         m_hw_command_out_queue.reset(new sink_t(qi.inst));

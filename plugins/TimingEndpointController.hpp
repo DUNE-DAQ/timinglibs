@@ -59,9 +59,12 @@ public:
   TimingEndpointController& operator=(TimingEndpointController&&) =
     delete; ///< TimingEndpointController is not move-assignable
 
+  void init(const nlohmann::json& init_data) override;
 private:
+  uint m_managed_endpoint_id;
+
   // Commands
-  void do_configure(const nlohmann::json& obj) override;
+  void do_configure(const nlohmann::json& data) override;
 
   void construct_endpoint_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
 
@@ -72,9 +75,6 @@ private:
   void do_endpoint_reset(const nlohmann::json& data);
   void do_endpoint_print_status(const nlohmann::json&);
   void do_endpoint_print_timestamp(const nlohmann::json&);
-
-  // Configuration
-  timingendpointcontroller::ConfParams m_cfg;
 
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;

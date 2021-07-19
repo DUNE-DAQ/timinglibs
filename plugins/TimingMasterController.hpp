@@ -58,6 +58,7 @@ public:
   TimingMasterController& operator=(TimingMasterController&&) =
     delete; ///< TimingMasterController is not move-assignable
 
+  void init(const nlohmann::json& init_data) override;
 private:
   // Commands
   void do_configure(const nlohmann::json& obj) override;
@@ -68,9 +69,6 @@ private:
   void do_master_io_reset(const nlohmann::json& data);
   void do_master_set_timestamp(const nlohmann::json&);
   void do_master_print_status(const nlohmann::json&);
-
-  // Configuration
-  timingmastercontroller::ConfParams m_cfg;
 
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;

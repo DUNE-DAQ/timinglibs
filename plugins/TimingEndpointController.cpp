@@ -49,18 +49,34 @@ TimingEndpointController::TimingEndpointController(const std::string& name)
 }
 
 void
-TimingEndpointController::do_configure(const nlohmann::json& obj)
+TimingEndpointController::init(const nlohmann::json& init_data)
 {
-  timingendpointcontroller::from_json(obj, m_cfg);
+  // set up queues
+  TimingController::init(init_data["qinfos"]);
+  
+  auto ini = init_data.get<timingendpointcontroller::InitParams>();
+  
+  m_timing_device = ini.device;
+  m_managed_endpoint_id = ini.endpoint_id;
 
-  TLOG_DEBUG(0) << get_name() << " conf: managed endpoint, device: " << m_cfg.device;
+  TLOG() << get_name() << " init: endpoint, device: " << m_timing_device;
+}
+
+void
+TimingEndpointController::do_configure(const nlohmann::json& data)
+{
+  do_endpoint_enable(data);
 }
 
 void
 TimingEndpointController::construct_endpoint_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id)
 {
+  timingcmd::TimingEndpointCmdPayload cmd_payload;
+  cmd_payload.endpoint_id = m_managed_endpoint_id;
+  timingcmd::to_json(hw_cmd.payload, cmd_payload);
+
   hw_cmd.id = cmd_id;
-  hw_cmd.device = m_cfg.device;
+  hw_cmd.device = m_timing_device;
 }
 
 void
@@ -78,9 +94,17 @@ void
 TimingEndpointController::do_endpoint_enable(const nlohmann::json& data)
 {
   timingcmd::TimingHwCmd hw_cmd;
-  construct_endpoint_hw_cmd(hw_cmd, "endpoint_enable");
-  hw_cmd.payload = data;
+  hw_cmd.id = "endpoint_enable";
+  hw_cmd.device = m_timing_device;
 
+  // make our hw cmd
+  timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
+  cmd_payload.endpoint_id = m_managed_endpoint_id;
+  timingcmd::from_json(data, cmd_payload);
+
+  timingcmd::to_json(hw_cmd.payload, cmd_payload);
+
+  TLOG_DEBUG(0) << "ept enable hw cmd; a: " << cmd_payload.address << ", p: " << cmd_payload.partition;
   send_hw_cmd(hw_cmd);
   ++(m_sent_hw_command_counters.at(1).atomic);
 }
@@ -98,8 +122,13 @@ void
 TimingEndpointController::do_endpoint_reset(const nlohmann::json& data)
 {
   timingcmd::TimingHwCmd hw_cmd;
-  construct_endpoint_hw_cmd(hw_cmd, "endpoint_reset");
-  hw_cmd.payload = data;
+  hw_cmd.id = "endpoint_reset";
+  hw_cmd.device = m_timing_device;
+
+  // make our hw cmd
+  timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
+  cmd_payload.endpoint_id = m_managed_endpoint_id;
+  timingcmd::from_json(data, cmd_payload);
 
   send_hw_cmd(hw_cmd);
   ++(m_sent_hw_command_counters.at(3).atomic);

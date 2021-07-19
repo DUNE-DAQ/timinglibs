@@ -5,6 +5,10 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
   , thread_(std::bind(&TimingHardwareManager::process_hardware_commands, this, std::placeholders::_1))
   , m_hw_command_in_queue(nullptr)
   , m_queue_timeout(100)
+  , m_gather_interval(1e6)
+  , m_gather_interval_debug(10e6)
+  , m_connections_file("")
+  , m_uhal_log_level("notice")
   , m_connection_manager(nullptr)
   , m_received_hw_commands_counter{ 0 }
   , m_accepted_hw_commands_counter{ 0 }
@@ -21,8 +25,8 @@ void
 TimingHardwareManager::init(const nlohmann::json& init_data)
 {
   // set up queues
-  auto ini = init_data.get<appfwk::app::ModInit>();
-  for (const auto& qi : ini.qinfos) {
+  auto qinfos = init_data.get<appfwk::app::QueueInfos>();
+  for (const auto& qi : qinfos) {
     if (!qi.name.compare("hardware_commands_in")) {
       try {
         m_hw_command_in_queue.reset(new source_t(qi.inst));
@@ -456,19 +460,22 @@ TimingHardwareManager::endpoint_enable(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
-  auto desgin = get_timing_device<DSGN>(hw_cmd.device);
+  auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " ept enable, adr: " << cmd_payload.address
                 << ", part: " << cmd_payload.partition;
-  desgin.get_endpoint_node(0).enable(cmd_payload.partition, cmd_payload.address);
+  design.get_endpoint_node(cmd_payload.endpoint_id).enable(cmd_payload.partition, cmd_payload.address);
 }
 
 template<class DSGN>
 void
 TimingHardwareManager::endpoint_disable(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  auto desgin = get_timing_device<DSGN>(hw_cmd.device);
+  timingcmd::TimingEndpointCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " ept disable";
-  desgin.get_endpoint_node(0).disable();
+  design.get_endpoint_node(cmd_payload.endpoint_id).disable();
 }
 
 template<class DSGN>
@@ -478,19 +485,19 @@ TimingHardwareManager::endpoint_reset(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
-  auto desgin = get_timing_device<DSGN>(hw_cmd.device);
+  auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " ept reset, adr: " << cmd_payload.address
                 << ", part: " << cmd_payload.partition;
-  desgin.get_endpoint_node(0).reset(cmd_payload.partition, cmd_payload.address);
+  design.get_endpoint_node(cmd_payload.endpoint_id).reset(cmd_payload.partition, cmd_payload.address);
 }
 
 template<class DSGN>
 void
 TimingHardwareManager::hsi_reset(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  auto desgin = get_timing_device<DSGN>(hw_cmd.device);
+  auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi reset";
-  desgin.get_hsi_node().reset_hsi();
+  design.get_hsi_node().reset_hsi();
 }
 
 template<class DSGN>
@@ -500,10 +507,10 @@ TimingHardwareManager::hsi_configure(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::HSIConfigureCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
-  auto desgin = get_timing_device<DSGN>(hw_cmd.device);
+  auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi configure";
 
-  desgin.get_hsi_node().configure_hsi(
+  design.get_hsi_node().configure_hsi(
     cmd_payload.data_source, cmd_payload.rising_edge_mask, cmd_payload.falling_edge_mask, cmd_payload.invert_edge_mask);
 }
 
@@ -511,27 +518,27 @@ template<class DSGN>
 void
 TimingHardwareManager::hsi_start(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  auto desgin = get_timing_device<DSGN>(hw_cmd.device);
+  auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi start";
-  desgin.get_hsi_node().start_hsi();
+  design.get_hsi_node().start_hsi();
 }
 
 template<class DSGN>
 void
 TimingHardwareManager::hsi_stop(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  auto desgin = get_timing_device<DSGN>(hw_cmd.device);
+  auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi stop";
-  desgin.get_hsi_node().stop_hsi();
+  design.get_hsi_node().stop_hsi();
 }
 
 template<class DSGN>
 void
 TimingHardwareManager::hsi_print_status(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  auto desgin = get_timing_device<DSGN>(hw_cmd.device);
+  auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi print status";
-  desgin.get_hsi_node().get_status();
+  design.get_hsi_node().get_status();
 }
 
 } // namespace dunedaq::timinglibs

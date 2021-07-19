@@ -55,39 +55,31 @@ HSIReadout::init(const nlohmann::json& init_data)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
 
-  m_hsievent_sink.reset(new appfwk::DAQSink<dfmessages::HSIEvent>(appfwk::queue_inst(init_data, "hsievent_sink")));
+  auto ini = init_data.get<hsireadout::InitParams>();
 
-  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
-}
+  m_hsievent_sink.reset(new appfwk::DAQSink<dfmessages::HSIEvent>(appfwk::queue_inst(ini.qinfos, "hsievent_sink")));
 
-void
-HSIReadout::do_configure(const nlohmann::json& obj)
-{
-  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
-
-  m_cfg = obj.get<hsireadout::ConfParams>();
-
-  m_connections_file = m_cfg.connections_file;
-  m_readout_period = m_cfg.readout_period;
+  m_connections_file = ini.connections_file;
+  m_readout_period = ini.readout_period;
 
   TLOG_DEBUG(0) << get_name() << "conf: con. file before env var expansion: " << m_connections_file;
   resolve_environment_variables(m_connections_file);
   TLOG_DEBUG(0) << get_name() << "conf: con. file after env var expansion:  " << m_connections_file;
 
-  if (!m_cfg.uhal_log_level.compare("debug")) {
+  if (!m_uhal_log_level.compare("debug")) {
     uhal::setLogLevelTo(uhal::Debug());
-  } else if (!m_cfg.uhal_log_level.compare("info")) {
+  } else if (!m_uhal_log_level.compare("info")) {
     uhal::setLogLevelTo(uhal::Info());
-  } else if (!m_cfg.uhal_log_level.compare("notice")) {
+  } else if (!m_uhal_log_level.compare("notice")) {
     uhal::setLogLevelTo(uhal::Notice());
-  } else if (!m_cfg.uhal_log_level.compare("warning")) {
+  } else if (!m_uhal_log_level.compare("warning")) {
     uhal::setLogLevelTo(uhal::Warning());
-  } else if (!m_cfg.uhal_log_level.compare("error")) {
+  } else if (!m_uhal_log_level.compare("error")) {
     uhal::setLogLevelTo(uhal::Error());
-  } else if (!m_cfg.uhal_log_level.compare("fatal")) {
+  } else if (!m_uhal_log_level.compare("fatal")) {
     uhal::setLogLevelTo(uhal::Fatal());
   } else {
-    throw InvalidUHALLogLevel(ERS_HERE, m_cfg.uhal_log_level);
+    throw InvalidUHALLogLevel(ERS_HERE, m_uhal_log_level);
   }
 
   try {
@@ -98,7 +90,7 @@ HSIReadout::do_configure(const nlohmann::json& obj)
     throw UHALConnectionsFileIssue(ERS_HERE, message.str(), excpt);
   }
 
-  m_hsi_device_name = m_cfg.hsi_device_name;
+  m_hsi_device_name = ini.hsi_device_name;
 
   try {
     m_hsi_device = std::make_unique<uhal::HwInterface>(m_connection_manager->getDevice(m_hsi_device_name));
@@ -107,6 +99,15 @@ HSIReadout::do_configure(const nlohmann::json& obj)
     message << "UHAL device name not " << m_hsi_device_name << " in connections file";
     throw UHALDeviceNameIssue(ERS_HERE, message.str(), exception);
   }
+
+  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
+}
+
+void
+HSIReadout::do_configure(const nlohmann::json& obj)
+{
+  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
+  // configure hsi
 
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_configure() method";
 }

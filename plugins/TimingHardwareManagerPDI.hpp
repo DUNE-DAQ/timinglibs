@@ -91,8 +91,13 @@ public:
 
   // configuration
 private:
-  timinghardwaremanagerpdi::ConfParams m_cfg;
-  void do_configure(const data_t& obj) override;
+    
+  std::string m_monitored_device_name_master;
+  std::vector<std::string> m_monitored_device_names_fanout;
+  std::string m_monitored_device_name_endpoint;
+  std::string m_monitored_device_name_hsi;
+
+  void do_configure(const data_t& data) override {}
 
   ADD_VARIADIC_TEMPLATE_PROCESSOR_DECLARATIONS(register_common_hw_commands_for_design)
   ADD_VARIADIC_TEMPLATE_PROCESSOR_DECLARATIONS(register_master_hw_commands_for_design)

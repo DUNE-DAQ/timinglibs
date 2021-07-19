@@ -58,6 +58,7 @@ public:
   TimingFanoutController& operator=(TimingFanoutController&&) =
     delete; ///< TimingFanoutController is not move-assignable
 
+  void init(const nlohmann::json& init_data) override;
 private:
   // Commands
   void do_configure(const nlohmann::json& obj) override;
@@ -67,9 +68,6 @@ private:
   // timing master commands
   void do_fanout_io_reset(const nlohmann::json& data);
   void do_fanout_print_status(const nlohmann::json&);
-
-  // Configuration
-  timingfanoutcontroller::ConfParams m_cfg;
 
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;
