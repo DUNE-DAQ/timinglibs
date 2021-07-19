@@ -71,6 +71,19 @@ HSIController::do_configure(const nlohmann::json& data)
 }
 
 void
+HSIController::do_start(const nlohmann::json& data)
+{
+  TimingController::do_start(data); // set sent cmd counters to 0
+  do_hsi_start(data);
+}
+
+void
+HSIController::do_stop(const nlohmann::json& data)
+{
+  do_hsi_stop(data);
+}
+
+void
 HSIController::construct_hsi_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id)
 {
   hw_cmd.id = cmd_id;

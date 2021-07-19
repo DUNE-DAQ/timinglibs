@@ -60,7 +60,9 @@ public:
 private:
   // Commands
   void do_configure(const nlohmann::json& data) override;
-
+  void do_start(const nlohmann::json& data) override;
+  void do_stop(const nlohmann::json& data) override;
+  
   void construct_hsi_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
 
   // timinglibs hsi commands
