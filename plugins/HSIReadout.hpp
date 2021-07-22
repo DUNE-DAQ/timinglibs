@@ -67,6 +67,7 @@ public:
 
 private:
   // Commands
+  hsireadout::ConfParams m_cfg;
   void do_configure(const nlohmann::json& obj);
   void do_start(const nlohmann::json& obj);
   void do_stop(const nlohmann::json& obj);
@@ -82,7 +83,6 @@ private:
   std::string m_hsi_device_name;
   uint m_readout_period; // NOLINT(build/unsigned)
 
-  std::string m_uhal_log_level;
   std::string m_connections_file;
   std::unique_ptr<uhal::ConnectionManager> m_connection_manager;
   std::unique_ptr<uhal::HwInterface> m_hsi_device;

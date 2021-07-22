@@ -46,15 +46,10 @@ def generate(
     # Only needed to reproduce the same order as when using jsonnet
     queue_specs = app.QueueSpecs(sorted(queue_bare_specs, key=lambda x: x.inst))
 
-    hsi_readout_init_data = hsi.InitParams(
-                                           qinfos=app.QueueInfos([app.QueueInfo(name="hsievent_sink", inst="hsievent_q", dir="output")]),
-                                           connections_file="${TIMING_SHARE}/config/etc/connections.xml",
-                                           readout_period=READOUT_PERIOD,
-                                           hsi_device_name=HSI_DEVICE_NAME,
-                                           uhal_log_level=UHAL_LOG_LEVEL
-                                           )
-    mod_specs = [
-                    app.ModSpec(inst="hsi", plugin="HSIReadout", data=hsi_readout_init_data),
+    mod_specs = [   
+                    mspec("hsi", "HSIReadout", [
+                                    app.QueueInfo(name="hsievent_sink", inst="hsievent_q", dir="output"),
+                                ]),
 
                     mspec("ttcm", "TimingTriggerCandidateMaker", [
                                     app.QueueInfo(name="input", inst="hsievent_q", dir="input"),
@@ -76,7 +71,12 @@ def generate(
     )
 
     mods = [
-                ("hsi", None),
+                ("hsi", hsi.ConfParams(
+                        connections_file="${TIMING_SHARE}/config/etc/connections.xml",
+                        readout_period=READOUT_PERIOD,
+                        hsi_device_name=HSI_DEVICE_NAME,
+                        uhal_log_level=UHAL_LOG_LEVEL
+                        )),
                 
                 ("ttcm", ttcm.Conf(
                         s1=ttcm.map_t(signal_type=TTCM_S1,

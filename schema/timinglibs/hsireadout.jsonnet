@@ -2,10 +2,7 @@ local moo = import "moo.jsonnet";
 local ns = "dunedaq.timinglibs.hsireadout";
 local s = moo.oschema.schema(ns);
 
-local s_app = import "appfwk/app.jsonnet";
-local app = moo.oschema.hier(s_app).dunedaq.appfwk.app;
-
-local cs = {
+local types = {
     uint_data: s.number("UintData", "u4",
         doc="A count of very many things"),
 
@@ -17,9 +14,7 @@ local cs = {
     uhal_log_level : s.string("UHALLogLevel", pattern=moo.re.ident_only,
                     doc="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug."),
 
-    init: s.record("InitParams", [
-        s.field("qinfos", app.QueueInfos,
-                doc="Information for a module to find its queue"),
+    conf: s.record("ConfParams", [
         s.field("connections_file", self.str, "",
                 doc="device connections file"),
         s.field("readout_period", self.uint_data, 1000,
@@ -28,8 +23,8 @@ local cs = {
                 doc="Name of timing master device to be monitored"),
         s.field("uhal_log_level", self.uhal_log_level, "notice",
                 doc="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug."),
-    ], doc="HSIReadout init"),
+    ], doc="HSIReadout configuration"),
 
 };
 
-s_app + moo.oschema.sort_select(cs)
+moo.oschema.sort_select(types, ns)

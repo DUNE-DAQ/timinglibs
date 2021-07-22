@@ -26,6 +26,8 @@ daq_codegen( fakehsieventgenerator.jsonnet
 			 timingfanoutcontroller.jsonnet 
 			 DEP_PKGS appfwk rcif cmdlib TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
 
+daq_codegen( timingcmd.jsonnet TEMPLATES msgp.hpp.j2 )
+
 daq_codegen( fakehsieventgeneratorinfo.jsonnet 
 			 hsicontrollerinfo.jsonnet 
 			 hsireadoutinfo.jsonnet 
@@ -62,6 +64,8 @@ daq_add_plugin(TimingEndpointController duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(FakeHSIEventGenerator duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(HSIReadout duneDAQModule LINK_LIBRARIES timing::timing timinglibs)
 daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES timing::timing timinglibs)
+
+daq_add_plugin(TimingHwCmdNQ duneNetworkQueue LINK_LIBRARIES timinglibs nwqueueadapters::nwqueueadapters)
 
 ##############################################################################
 target_include_directories(${PROJECT_NAME}_TimingHardwareManagerPDI_duneDAQModule PUBLIC $ENV{UHAL_INC} $ENV{PUGIXML_INC})
