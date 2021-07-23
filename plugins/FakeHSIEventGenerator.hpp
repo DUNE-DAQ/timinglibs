@@ -19,6 +19,9 @@
 
 #include "dfmessages/HSIEvent.hpp"
 
+#include "rcif/cmd/Nljs.hpp"
+#include "rcif/cmd/Structs.hpp"
+
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQSink.hpp"
 #include "appfwk/ThreadHelper.hpp"
@@ -63,6 +66,7 @@ private:
   void do_start(const nlohmann::json& obj);
   void do_stop(const nlohmann::json& obj);
   void do_scrap(const nlohmann::json& obj);
+  void do_resume(const nlohmann::json& obj);
 
   // Threading
   dunedaq::appfwk::ThreadHelper m_thread;
@@ -84,8 +88,9 @@ private:
 
   uint32_t generate_signal_map(); // NOLINT(build/unsigned)
 
-  uint64_t m_clock_frequency; // NOLINT(build/unsigned)
-  uint64_t m_event_period;    // NOLINT(build/unsigned)
+  uint64_t m_clock_frequency;              // NOLINT(build/unsigned)
+  uint64_t m_trigger_interval_ticks;       // NOLINT(build/unsigned)
+  std::atomic<uint64_t> m_event_period;    // NOLINT(build/unsigned)
   int64_t m_timestamp_offset;
 
   uint32_t m_hsi_device_id;            // NOLINT(build/unsigned)

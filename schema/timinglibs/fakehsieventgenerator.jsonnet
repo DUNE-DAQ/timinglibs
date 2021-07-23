@@ -19,8 +19,8 @@ local types = {
       s.field("timestamp_offset", self.i64, 0,
         doc="Offset for HSIEvent timestamps in units of clock ticks. Positive offset increases timestamp estimate."),
 
-      s.field("event_period", self.u32, 1e9,
-        doc="Period between HSIEvent generation [ns]"),
+      s.field("trigger_interval_ticks", self.u64, 64000000,
+        doc="Ticks between HSIEvent generation"),
 
       s.field("hsi_device_id", self.u32, 1,
         doc="HSI device ID for emulated HSIEvent messages"),

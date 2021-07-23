@@ -37,7 +37,7 @@ FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
   , m_random_generator()
   , m_uniform_distribution(0, UINT32_MAX)
   , m_clock_frequency(50e6)
-  , m_event_period(20)
+  , m_event_period(1e6)
   , m_timestamp_offset(0)
   , m_hsi_device_id(0)
   , m_signal_emulation_mode(0)
@@ -53,6 +53,7 @@ FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
   register_command("start", &FakeHSIEventGenerator::do_start);
   register_command("stop", &FakeHSIEventGenerator::do_stop);
   register_command("scrap", &FakeHSIEventGenerator::do_scrap);
+  register_command("resume", &FakeHSIEventGenerator::do_resume);
 }
 
 void
@@ -90,7 +91,12 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
   auto params = obj.get<fakehsieventgenerator::Conf>();
 
   m_clock_frequency = params.clock_frequency;
-  m_event_period = params.event_period;
+  m_trigger_interval_ticks = params.trigger_interval_ticks;
+
+  // time between HSI events [us]
+  m_event_period.store( (static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6 );
+  TLOG() << get_name() << " Setting trigger interval ticks, event period [us] to: " << m_trigger_interval_ticks << ", " << m_event_period.load();
+
   // offset in units of clock ticks, positive offset increases timestamp
   m_timestamp_offset = params.timestamp_offset;
   m_hsi_device_id = params.hsi_device_id;
@@ -105,13 +111,37 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
 }
 
 void
-FakeHSIEventGenerator::do_start(const nlohmann::json& /*args*/)
+FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_start() method";
   m_timestamp_estimator.reset(new TimestampEstimator(m_time_sync_source, m_clock_frequency));
+
+  auto start_params = obj.get<rcif::cmd::StartParams>(); 
+  m_trigger_interval_ticks = start_params.trigger_interval_ticks;
+  
+  // time between HSI events [us]
+  m_event_period.store( (static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6 );
+  TLOG() << get_name() << " Updating trigger interval ticks, event period [us] to: " << m_trigger_interval_ticks << ", " << m_event_period.load();
+
   m_thread.start_working_thread("fake-tsd-gen");
   TLOG() << get_name() << " successfully started";
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_start() method";
+}
+
+void
+FakeHSIEventGenerator::do_resume(const nlohmann::json& obj)
+{
+  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_resume() method";
+  
+  auto resume_params = obj.get<rcif::cmd::ResumeParams>(); 
+  m_trigger_interval_ticks = resume_params.trigger_interval_ticks;
+
+  // time between HSI events [us]
+  m_event_period.store( (static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6 );
+  TLOG() << get_name() << " Updating trigger interval ticks, event period [us] to: " << m_trigger_interval_ticks << ", " << m_event_period.load();
+
+  TLOG() << get_name() << " successfully resumed";
+  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_resume() method";
 }
 
 void
@@ -178,8 +208,8 @@ FakeHSIEventGenerator::generate_hsievents(std::atomic<bool>& running_flag)
   while (running_flag.load()) {
 
     // sleep for the configured event period
-    std::this_thread::sleep_for(std::chrono::nanoseconds(m_event_period));
-
+    std::this_thread::sleep_for(std::chrono::microseconds(m_event_period.load()));
+    
     // emulate some signals
     uint32_t signal_map = generate_signal_map(); // NOLINT(build/unsigned)
 
