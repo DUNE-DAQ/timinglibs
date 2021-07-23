@@ -76,10 +76,21 @@ TimestampEstimator::estimator_thread_fn(std::unique_ptr<appfwk::DAQSource<dfmess
       // std::chrono is the worst
       auto time_now =
         static_cast<uint64_t>(duration_cast<microseconds>(system_clock::now().time_since_epoch()).count()); // NOLINT
-      if (time_now < most_recent_timesync.system_time) {
-        ers::error(InvalidTimeSync(ERS_HERE));
-      } else {
-        
+      
+      // (PAR 2021-07-22) We only want to _increase_ our timestamp
+      // estimate, not _decrease_ it, so we only attempt the update if
+      // our system time is later than the latest time sync's system
+      // time. We can get TimeSync messages from the "future" if
+      // they're coming from another host whose clock is not exactly
+      // synchronized with ours: that's fine, but if the discrepancy
+      // is large, then badness could happen, so emit a warning
+
+      if (time_now < most_recent_timesync.system_time - 10000) {
+        ers::warning(EarlyTimeSync(ERS_HERE, most_recent_timesync.system_time - time_now));
+      }
+
+      if (time_now > most_recent_timesync.system_time) {
+
         auto delta_time = time_now - most_recent_timesync.system_time;
         TLOG_DEBUG(10) << "Time diff between current system and latest TimeSync system time [us]: " << delta_time;
         

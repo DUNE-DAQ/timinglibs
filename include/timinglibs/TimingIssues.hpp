@@ -100,6 +100,8 @@ ERS_DECLARE_ISSUE_BASE(timinglibs,
 
 ERS_DECLARE_ISSUE(timinglibs, InvalidTimeSync, "An invalid TimeSync message was received", ERS_EMPTY)
 
+ERS_DECLARE_ISSUE(timinglibs, EarlyTimeSync, "The most recent TimeSync message is ahead of current system time by " << time_diff << " us.", ((uint64_t)time_diff))
+
 ERS_DECLARE_ISSUE(timinglibs, LateTimeSync, "The most recent TimeSync message is behind current system time by " << time_diff << " us.", ((uint64_t)time_diff))
 
 ERS_DECLARE_ISSUE(timinglibs,
