@@ -72,7 +72,6 @@ TimingHardwareManagerPDI::init(const nlohmann::json& init_data)
 
                                          timing::OuroborosMuxDesign<timing::PC059IONode>,
                                          timing::FanoutDesign<timing::PC059IONode, timing::PDIMasterNode>>();
-
   // endpoint
   register_endpoint_hw_commands_for_design<timing::OuroborosDesign<timing::TLUIONode>,
                                            timing::OuroborosDesign<timing::FMCIONode>,
@@ -83,10 +82,14 @@ TimingHardwareManagerPDI::init(const nlohmann::json& init_data)
                                            timing::OuroborosMuxDesign<timing::PC059IONode>,
                                            timing::FanoutDesign<timing::PC059IONode, timing::PDIMasterNode>,
 
-                                           timing::EndpointDesign<timing::FMCIONode>>();
+                                           timing::EndpointDesign<timing::FMCIONode>,
+
+                                           timing::ChronosDesign<timing::FMCIONode>>();
   // hsi
   register_hsi_hw_commands_for_design<timing::BoreasDesign<timing::FMCIONode>,
-                                      timing::BoreasDesign<timing::TLUIONode>>();
+                                      timing::BoreasDesign<timing::TLUIONode>,
+
+                                      timing::ChronosDesign<timing::FMCIONode>>();
 }
 
 template<class DSGN>

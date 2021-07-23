@@ -39,6 +39,7 @@
 #include "timing/OverlordDesign.hpp"
 #include "timing/OuroborosMuxDesign.hpp"
 #include "timing/FanoutDesign.hpp"
+#include "timing/ChronosDesign.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQModuleHelper.hpp"
