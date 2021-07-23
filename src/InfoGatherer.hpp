@@ -81,12 +81,14 @@ public:
     m_mon_data = new_data;
   }
 
-  const MON_DATA get_monitoring_data() const {
+  MON_DATA get_monitoring_data() const
+  {
     std::shared_lock mon_data_lock(m_mon_data_mutex);
     return m_mon_data;
   }
 
-  void get_info(opmonlib::InfoCollector& ci, int level) const override {
+  void get_info(opmonlib::InfoCollector& ci, int level) const override
+  {
     if (get_last_gathered_time() != 0 && get_op_mon_level() <= level) {
       ci.add(get_monitoring_data());
     }
