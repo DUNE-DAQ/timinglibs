@@ -160,9 +160,15 @@ HSIController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 {
   // send counters internal to the module
   hsicontrollerinfo::Info module_info;
-  for (uint i = 0; i < m_number_hw_commands; ++i) {
-    module_info.sent_hw_command_counters.push_back(m_sent_hw_command_counters.at(i).atomic.load());
-  }
+  module_info.sent_hsi_io_reset_cmds = m_sent_hw_command_counters.at(0).atomic.load();
+  module_info.sent_hsi_endpoint_enable_cmds = m_sent_hw_command_counters.at(1).atomic.load();
+  module_info.sent_hsi_endpoint_disable_cmds = m_sent_hw_command_counters.at(2).atomic.load();
+  module_info.sent_hsi_endpoint_reset_cmds = m_sent_hw_command_counters.at(3).atomic.load();
+  module_info.sent_hsi_reset_cmds = m_sent_hw_command_counters.at(4).atomic.load();
+  module_info.sent_hsi_configure_cmds = m_sent_hw_command_counters.at(5).atomic.load();
+  module_info.sent_hsi_start_cmds = m_sent_hw_command_counters.at(6).atomic.load();
+  module_info.sent_hsi_stop_cmds = m_sent_hw_command_counters.at(7).atomic.load();
+  module_info.sent_hsi_print_status_cmds = m_sent_hw_command_counters.at(8).atomic.load();
   ci.add(module_info);
 }
 } // namespace timinglibs

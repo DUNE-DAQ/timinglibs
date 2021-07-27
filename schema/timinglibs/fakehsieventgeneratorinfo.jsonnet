@@ -7,8 +7,8 @@ local info = {
     uint8  : s.number("uint8", "u8",
                      doc="An unsigned of 8 bytes"),
 
-    counter_vector: s.sequence("HwCommandCounters", self.uint8,
-            doc="A vector hardware command counters"),
+    //counter_vector: s.sequence("HwCommandCounters", self.uint8,
+    //        doc="A vector hardware command counters"),
 
    info: s.record("Info", [
        s.field("generated_hsi_events_counter", self.uint8, doc="Number of generated HSIEvents so far"), 

@@ -9,8 +9,8 @@ local info = {
     uint8  : s.number("uint8", "u4",
                      doc="An unsigned of 8 bytes"),
 
-    counter_vector: s.sequence("HwCommandCounters", self.uint8,
-            doc="A vector hardware command counters"),
+    //counter_vector: s.sequence("HwCommandCounters", self.uint8,
+    //        doc="A vector hardware command counters"),
 
     double_val: s.number("DoubleValue", "f8", 
         doc="A double"),

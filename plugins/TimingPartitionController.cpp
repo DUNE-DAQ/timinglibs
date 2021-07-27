@@ -153,9 +153,18 @@ TimingPartitionController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 {
   // send counters internal to the module
   timingpartitioncontrollerinfo::Info module_info;
-  for (uint i = 0; i < m_number_hw_commands; ++i) {
-    module_info.sent_hw_command_counters.push_back(m_sent_hw_command_counters.at(i).atomic.load());
-  }
+  module_info.sent_partition_configure_cmds = m_sent_hw_command_counters.at(0).atomic.load();
+  module_info.sent_partition_enable_cmds = m_sent_hw_command_counters.at(1).atomic.load();
+  module_info.sent_partition_disable_cmds = m_sent_hw_command_counters.at(2).atomic.load();
+  module_info.sent_partition_start_cmds = m_sent_hw_command_counters.at(3).atomic.load();
+  module_info.sent_partition_stop_cmds = m_sent_hw_command_counters.at(4).atomic.load();
+  module_info.sent_partition_enable_triggers_cmds = m_sent_hw_command_counters.at(5).atomic.load();
+  module_info.sent_partition_disable_triggers_cmds = m_sent_hw_command_counters.at(6).atomic.load();
+  module_info.sent_partition_print_status_cmds = m_sent_hw_command_counters.at(7).atomic.load();
+
+  //for (uint i = 0; i < m_number_hw_commands; ++i) {
+  //  module_info.sent_hw_command_counters.push_back(m_sent_hw_command_counters.at(i).atomic.load());
+  //}
   ci.add(module_info);
 }
 } // namespace timinglibs

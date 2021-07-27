@@ -11,7 +11,7 @@ local info = {
        s.field("received_hw_commands_counter", self.uint8, 0, doc="Number of hw commands received so far"), 
        s.field("accepted_hw_commands_counter", self.uint8, 0, doc="Number of hw commands accepted so far"), 
        s.field("rejected_hw_commands_counter", self.uint8, 0, doc="Number of hw commands rejected so far"), 
-       s.field("failed_hw_commands_counter", self.uint8, 0, doc="Number of hw commands rejected so far"), 
+       s.field("failed_hw_commands_counter", self.uint8, 0, doc="Number of hw commands rejected so far"),
    ], doc="TimingHardwareManagerPDI information")
 };
 

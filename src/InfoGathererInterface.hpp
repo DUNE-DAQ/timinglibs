@@ -103,11 +103,11 @@ public:
   void update_last_gathered_time(int64_t last_time) { m_last_gathered_time.store(last_time); }
   uint get_last_gathered_time() const { return m_last_gathered_time.load(); }
 
-  const std::string& get_device_name() { return m_device_name; }
+  std::string get_device_name() const { return m_device_name; }
 
-  virtual const nlohmann::json get_monitoring_data() const = 0;
+  int get_op_mon_level() const { return m_op_mon_level; }
 
-  int get_op_mon_level() { return m_op_mon_level; }
+  virtual void get_info(opmonlib::InfoCollector& ci, int level) const = 0; 
 
 protected:
   std::atomic<bool> m_run_gathering;

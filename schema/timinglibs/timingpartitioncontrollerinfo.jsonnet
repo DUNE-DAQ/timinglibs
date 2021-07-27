@@ -7,12 +7,16 @@ local info = {
     uint8  : s.number("uint8", "u8",
                      doc="An unsigned of 8 bytes"),
 
-    counter_vector: s.sequence("HwCommandCounters", self.uint8,
-            doc="A vector hardware command counters"),
-
    info: s.record("Info", [
-       s.field("sent_hw_command_counters", self.counter_vector, doc="Number of hw commands sent so far"), 
-   ], doc="TimingMasterController information")
+      s.field("sent_partition_configure_cmds", self.uint8, doc="Number of sent partition_configure commands"),
+      s.field("sent_partition_enable_cmds", self.uint8, doc="Number of sent partition_enable commands"),
+      s.field("sent_partition_disable_cmds", self.uint8, doc="Number of sent partition_disable commands"),
+      s.field("sent_partition_start_cmds", self.uint8, doc="Number of sent partition_start commands"),
+      s.field("sent_partition_stop_cmds", self.uint8, doc="Number of sent partition_stop commands"),
+      s.field("sent_partition_enable_triggers_cmds", self.uint8, doc="Number of sent partition_enable_triggers commands"),
+      s.field("sent_partition_disable_triggers_cmds", self.uint8, doc="Number of sent partition_disable_triggers commands"),
+      s.field("sent_partition_print_status_cmds", self.uint8, doc="Number of sent partition_print_status commands"),
+   ], doc="TimingPartitionController information")
 };
 
 moo.oschema.sort_select(info)

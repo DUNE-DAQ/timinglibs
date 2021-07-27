@@ -81,17 +81,22 @@ public:
     m_mon_data = new_data;
   }
 
-  // const MON_DATA get_monitoring_data() const {
-  //  std::shared_lock mon_data_lock(m_mon_data_mutex);
-  //  return m_mon_data;
-  //}
-
-  const nlohmann::json get_monitoring_data() const override
+  MON_DATA get_monitoring_data() const
   {
     std::shared_lock mon_data_lock(m_mon_data_mutex);
     return m_mon_data;
   }
 
+  void get_info(opmonlib::InfoCollector& ci, int level) const override
+  {
+    if (get_last_gathered_time() != 0 && get_op_mon_level() <= level) {
+      ci.add(get_monitoring_data());
+    }
+    else {
+      TLOG_DEBUG(0) << "skipping gatherer for type: " << typeid(MON_DATA).name() << " for: " << get_device_name() << " with gathered time: " << get_last_gathered_time() 
+      << ", gatherer level: " << get_op_mon_level() << ", opmon level: " << level;
+    }
+  }
 private:
   std::function<void(InfoGatherer<MON_DATA>&)> m_gather_data;
   MON_DATA m_mon_data;

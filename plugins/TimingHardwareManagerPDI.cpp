@@ -253,31 +253,14 @@ TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
   module_info.accepted_hw_commands_counter = m_accepted_hw_commands_counter.load();
   module_info.rejected_hw_commands_counter = m_rejected_hw_commands_counter.load();
   module_info.failed_hw_commands_counter = m_failed_hw_commands_counter.load();
-
+  
   ci.add(module_info);
-
-  // retrieve and send hardware info
-  timing::timingfirmwareinfo::TimingDevicesData devices_data;
-  std::stringstream collector_stream;
-  collector_stream << typeid(this).name() << "_" << get_name();
-  devices_data.collector = collector_stream.str();
-
-  // TODO check
-  devices_data.device_data.clear();
-
+  
+  // add the hardware device data
   for (auto it = m_info_gatherers.begin(); it != m_info_gatherers.end(); ++it) {
-    if (it->second.get()->get_last_gathered_time() != 0 && it->second.get()->get_op_mon_level() <= level) {
-      devices_data.device_data.push_back(it->second.get()->get_monitoring_data());
-    } else {
-      TLOG_DEBUG(0) << "skipping gatherer: " << it->first << " with gathered time: " << it->second.get()->get_last_gathered_time() 
-      << ", gatherer level: " << it->second.get()->get_op_mon_level() << ", opmon level: " << level;
-    }
-       
+    it->second.get()->get_info(ci, level);
   }
-
-  if (devices_data.device_data.size())
-    ci.add(devices_data);
-
+  
   // maybe we should keep track of when we last send data, and only send if we have had an update since
 }
 } // namespace timinglibs
