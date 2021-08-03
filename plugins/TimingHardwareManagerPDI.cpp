@@ -255,12 +255,45 @@ TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
   module_info.failed_hw_commands_counter = m_failed_hw_commands_counter.load();
   
   ci.add(module_info);
-  
-  // add the hardware device data
+
+  // the hardware device data
+  timinghardwaremanagerpdiinfo::PDITimingHardwareData device_info;
+  nlohmann::json device_data;
+  timinghardwaremanagerpdiinfo::to_json(device_data, device_info);
+
   for (auto it = m_info_gatherers.begin(); it != m_info_gatherers.end(); ++it) {
-    it->second.get()->get_info(ci, level);
+    // master info
+    if (m_cfg.monitored_device_name_master.find(it->second.get()->get_device_name()) != std::string::npos) {
+      if (it->first.find("Debug") != std::string::npos) {
+        it->second.get()->get_info(device_data["master_debug"], level);
+      } else {
+        it->second.get()->get_info(device_data["master"], level);
+      }
+    }
+    
+    for (uint i=0; i < m_cfg.monitored_device_names_fanout.size(); ++i) {
+      std::string fanout_device_name = m_cfg.monitored_device_names_fanout.at(i);
+      if (fanout_device_name.find(it->second.get()->get_device_name()) != std::string::npos) {
+        if (it->first.find("Debug") != std::string::npos) {
+          it->second.get()->get_info(device_data["fanout_"+std::to_string(i)+"_debug"], level);
+        } else {
+          it->second.get()->get_info(device_data["fanout_"+std::to_string(i)], level);
+        }
+      }
+    }
+
+    if (m_cfg.monitored_device_name_endpoint.find(it->second.get()->get_device_name()) != std::string::npos) {
+      if (it->first.find("Debug") != std::string::npos) {
+        it->second.get()->get_info(device_data["endpoint_debug"], level);
+      } else {
+        it->second.get()->get_info(device_data["endpoint"], level);
+      }
+    }
   }
+  timinghardwaremanagerpdiinfo::from_json(device_data, device_info);
   
+  ci.add(device_info);
+
   // maybe we should keep track of when we last send data, and only send if we have had an update since
 }
 } // namespace timinglibs
