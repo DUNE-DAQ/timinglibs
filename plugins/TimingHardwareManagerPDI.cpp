@@ -266,7 +266,7 @@ TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
 
   for (auto it = m_info_gatherers.begin(); it != m_info_gatherers.end(); ++it) {
     // master info
-    if (m_cfg.monitored_device_name_master.find(it->second.get()->get_device_name()) != std::string::npos) {
+    if (m_monitored_device_name_master.find(it->second.get()->get_device_name()) != std::string::npos) {
       if (it->first.find("Debug") != std::string::npos) {
         it->second.get()->get_info(device_data["master_debug"], level);
       } else {
@@ -274,8 +274,8 @@ TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
       }
     }
     
-    for (uint i=0; i < m_cfg.monitored_device_names_fanout.size(); ++i) {
-      std::string fanout_device_name = m_cfg.monitored_device_names_fanout.at(i);
+    for (uint i=0; i < m_monitored_device_names_fanout.size(); ++i) {
+      std::string fanout_device_name = m_monitored_device_names_fanout.at(i);
       if (fanout_device_name.find(it->second.get()->get_device_name()) != std::string::npos) {
         if (it->first.find("Debug") != std::string::npos) {
           it->second.get()->get_info(device_data["fanout_"+std::to_string(i)+"_debug"], level);
@@ -285,7 +285,7 @@ TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
       }
     }
 
-    if (m_cfg.monitored_device_name_endpoint.find(it->second.get()->get_device_name()) != std::string::npos) {
+    if (m_monitored_device_name_endpoint.find(it->second.get()->get_device_name()) != std::string::npos) {
       if (it->first.find("Debug") != std::string::npos) {
         it->second.get()->get_info(device_data["endpoint_debug"], level);
       } else {
