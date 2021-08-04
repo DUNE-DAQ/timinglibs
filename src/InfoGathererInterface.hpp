@@ -108,7 +108,9 @@ public:
   int get_op_mon_level() const { return m_op_mon_level; }
 
   virtual void get_info(opmonlib::InfoCollector& ci, int level) const = 0; 
+  virtual void get_info(nlohmann::json& data, int level) const = 0;
 
+  virtual nlohmann::json get_monitoring_data_json() const = 0;
 protected:
   std::atomic<bool> m_run_gathering;
   std::unique_ptr<std::thread> m_gathering_thread;
