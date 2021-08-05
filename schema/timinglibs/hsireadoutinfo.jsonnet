@@ -6,7 +6,7 @@ local info = {
                   doc="A string field"), 
     uint4  : s.number("uint4", "u4",
                      doc="An unsigned of 8 bytes"),
-    uint8  : s.number("uint8", "u4",
+    uint8  : s.number("uint8", "u8",
                      doc="An unsigned of 8 bytes"),
 
     //counter_vector: s.sequence("HwCommandCounters", self.uint8,
