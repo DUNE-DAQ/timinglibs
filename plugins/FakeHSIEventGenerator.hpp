@@ -88,9 +88,9 @@ private:
 
   uint32_t generate_signal_map(); // NOLINT(build/unsigned)
 
-  uint64_t m_clock_frequency;              // NOLINT(build/unsigned)
-  uint64_t m_trigger_interval_ticks;       // NOLINT(build/unsigned)
-  std::atomic<uint64_t> m_event_period;    // NOLINT(build/unsigned)
+  uint64_t m_clock_frequency;                           // NOLINT(build/unsigned)
+  std::atomic<uint64_t> m_trigger_interval_ticks;       // NOLINT(build/unsigned)
+  std::atomic<uint64_t> m_event_period;                 // NOLINT(build/unsigned)
   int64_t m_timestamp_offset;
 
   uint32_t m_hsi_device_id;            // NOLINT(build/unsigned)
