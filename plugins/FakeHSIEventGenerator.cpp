@@ -212,6 +212,7 @@ FakeHSIEventGenerator::generate_hsievents(std::atomic<bool>& running_flag)
     if (m_trigger_interval_ticks.load() > 0) {
       std::this_thread::sleep_for(std::chrono::microseconds(m_event_period.load()));
     } else {
+      std::this_thread::sleep_for(std::chrono::microseconds(250000));
       continue;
     }
     
