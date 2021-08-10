@@ -37,6 +37,7 @@ FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
   , m_random_generator()
   , m_uniform_distribution(0, UINT32_MAX)
   , m_clock_frequency(50e6)
+  , m_trigger_interval_ticks(0)
   , m_event_period(1e6)
   , m_timestamp_offset(0)
   , m_hsi_device_id(0)
@@ -91,7 +92,7 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
   auto params = obj.get<fakehsieventgenerator::Conf>();
 
   m_clock_frequency = params.clock_frequency;
-  m_trigger_interval_ticks = params.trigger_interval_ticks;
+  m_trigger_interval_ticks.store(params.trigger_interval_ticks);
 
   // time between HSI events [us]
   m_event_period.store( (static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6 );
@@ -117,7 +118,7 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
   m_timestamp_estimator.reset(new TimestampEstimator(m_time_sync_source, m_clock_frequency));
 
   auto start_params = obj.get<rcif::cmd::StartParams>(); 
-  m_trigger_interval_ticks = start_params.trigger_interval_ticks;
+  m_trigger_interval_ticks.store( start_params.trigger_interval_ticks );
   
   // time between HSI events [us]
   m_event_period.store( (static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6 );
@@ -134,7 +135,7 @@ FakeHSIEventGenerator::do_resume(const nlohmann::json& obj)
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_resume() method";
   
   auto resume_params = obj.get<rcif::cmd::ResumeParams>(); 
-  m_trigger_interval_ticks = resume_params.trigger_interval_ticks;
+  m_trigger_interval_ticks.store( resume_params.trigger_interval_ticks );
 
   // time between HSI events [us]
   m_event_period.store( (static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6 );
@@ -207,8 +208,13 @@ FakeHSIEventGenerator::generate_hsievents(std::atomic<bool>& running_flag)
 
   while (running_flag.load()) {
 
-    // sleep for the configured event period
-    std::this_thread::sleep_for(std::chrono::microseconds(m_event_period.load()));
+    // sleep for the configured event period, if trigger ticks are not 0, otherwise do not send anything
+    if (m_trigger_interval_ticks.load() > 0) {
+      std::this_thread::sleep_for(std::chrono::microseconds(m_event_period.load()));
+    } else {
+      std::this_thread::sleep_for(std::chrono::microseconds(250000));
+      continue;
+    }
     
     // emulate some signals
     uint32_t signal_map = generate_signal_map(); // NOLINT(build/unsigned)
