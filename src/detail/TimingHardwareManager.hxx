@@ -334,7 +334,7 @@ TimingHardwareManager::set_timestamp(const timingcmd::TimingHwCmd& hw_cmd)
 {
   auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " set timestamp";
-  design.get_master_node().sync_timestamp();
+  design.sync_timestamp();
 }
 
 // partition commands
