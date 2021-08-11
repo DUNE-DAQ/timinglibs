@@ -91,10 +91,10 @@ public:
 
 protected:
   // Commands
-  virtual void do_configure(const nlohmann::json& obj) = 0;
-  virtual void do_start(const nlohmann::json&);
-  virtual void do_stop(const nlohmann::json&);
-  virtual void do_scrap(const nlohmann::json&);
+  //  virtual void do_configure(const nlohmann::json&);
+  //  virtual void do_start(const nlohmann::json&);
+  //  virtual void do_stop(const nlohmann::json&);
+  //  virtual void do_scrap(const nlohmann::json&);
 
   // Threading
   dunedaq::appfwk::ThreadHelper thread_;

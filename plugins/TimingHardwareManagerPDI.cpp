@@ -36,7 +36,6 @@ namespace timinglibs {
 TimingHardwareManagerPDI::TimingHardwareManagerPDI(const std::string& name)
   : TimingHardwareManager(name)
 {
-  register_command("conf", &TimingHardwareManagerPDI::do_configure);
 }
 
 void
@@ -191,8 +190,8 @@ TimingHardwareManagerPDI::init(const nlohmann::json& init_data)
                            timing::EndpointDesign<timing::FMCIONode>>(
       m_gather_interval_debug, m_monitored_device_name_endpoint, 2);
   }
-  start_hw_mon_gathering();
   thread_.start_working_thread();
+  start_hw_mon_gathering();
 }
 
 template<class DSGN>

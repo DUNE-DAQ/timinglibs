@@ -15,10 +15,9 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
   , m_rejected_hw_commands_counter{ 0 }
   , m_failed_hw_commands_counter{ 0 }
 {
-  // all hardware manager variants will need these commands
-  register_command("start", &TimingHardwareManager::do_start);
-  register_command("stop", &TimingHardwareManager::do_stop);
-  register_command("scrap", &TimingHardwareManager::do_scrap);
+  //  register_command("start", &TimingHardwareManager::do_start);
+  //  register_command("stop", &TimingHardwareManager::do_stop);
+  //  register_command("scrap", &TimingHardwareManager::do_scrap);
 }
 
 void
@@ -35,30 +34,6 @@ TimingHardwareManager::init(const nlohmann::json& init_data)
       }
     }
   }
-}
-
-void
-TimingHardwareManager::do_start(const nlohmann::json&)
-{
-  m_received_hw_commands_counter = 0;
-  m_accepted_hw_commands_counter = 0;
-  m_rejected_hw_commands_counter = 0;
-  m_failed_hw_commands_counter = 0;
-  TLOG() << get_name() << " successfully started";
-}
-
-void
-TimingHardwareManager::do_stop(const nlohmann::json&)
-{
-  TLOG() << get_name() << " successfully stopped";
-}
-
-void
-TimingHardwareManager::do_scrap(const nlohmann::json&)
-{
-  // TODO other scraping stuff
-  thread_.stop_working_thread();
-  stop_hw_mon_gathering();
   m_received_hw_commands_counter = 0;
   m_accepted_hw_commands_counter = 0;
   m_rejected_hw_commands_counter = 0;

@@ -32,9 +32,9 @@ namespace timinglibs {
 TimingMasterController::TimingMasterController(const std::string& name)
   : dunedaq::timinglibs::TimingController(name, 3) // 2nd arg: how many hw commands can this module send?
 {
-  register_command("conf", &TimingMasterController::do_configure);
-  register_command("start", &TimingMasterController::do_start);
-  register_command("stop", &TimingMasterController::do_stop);
+  //register_command("conf", &TimingMasterController::do_configure);
+  //register_command("start", &TimingMasterController::do_start);
+  //register_command("stop", &TimingMasterController::do_stop);
 
   // timing master hardware commands
   register_command("master_io_reset", &TimingMasterController::do_master_io_reset);
@@ -55,8 +55,9 @@ TimingMasterController::init(const nlohmann::json& init_data)
 }
 
 void
-TimingMasterController::do_configure(const nlohmann::json& obj)
+TimingMasterController::do_configure(const nlohmann::json& /*data*/)
 {
+  // Placeholder for master configure commands
 }
 
 void

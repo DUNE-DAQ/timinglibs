@@ -61,7 +61,7 @@ public:
   void init(const nlohmann::json& init_data) override;
 private:
   // Commands
-  void do_configure(const nlohmann::json& obj) override;
+  void do_configure(const nlohmann::json& data) override;
 
   void construct_fanout_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
 

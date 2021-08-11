@@ -32,9 +32,9 @@ namespace timinglibs {
 TimingFanoutController::TimingFanoutController(const std::string& name)
   : dunedaq::timinglibs::TimingController(name, 2) // 2nd arg: how many hw commands can this module send?
 {
-  register_command("conf", &TimingFanoutController::do_configure);
-  register_command("start", &TimingFanoutController::do_start);
-  register_command("stop", &TimingFanoutController::do_stop);
+  //  register_command("conf", &TimingFanoutController::do_configure);
+  //  register_command("start", &TimingFanoutController::do_start);
+  //  register_command("stop", &TimingFanoutController::do_stop);
 
   // timing fanout hardware commands
   register_command("fanout_io_reset", &TimingFanoutController::do_fanout_io_reset);
@@ -54,8 +54,9 @@ TimingFanoutController::init(const nlohmann::json& init_data)
 }
 
 void
-TimingFanoutController::do_configure(const nlohmann::json& obj)
+TimingFanoutController::do_configure(const nlohmann::json& /*data*/)
 {
+  // Placeholder for fanout config command sending
 }
 
 void
@@ -95,9 +96,6 @@ TimingFanoutController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
   module_info.sent_io_reset_cmds=m_sent_hw_command_counters.at(0).atomic.load();
   module_info.sent_print_status_cmds=m_sent_hw_command_counters.at(1).atomic.load();
   
-  //for (uint i = 0; i < m_number_hw_commands; ++i) {
-  //  module_info.sent_hw_command_counters.push_back(m_sent_hw_command_counters.at(i).atomic.load());
-  //}
   ci.add(module_info);
 }
 } // namespace timinglibs
