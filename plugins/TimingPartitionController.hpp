@@ -62,9 +62,15 @@ public:
   TimingPartitionController& operator=(TimingPartitionController&&) =
     delete; ///< TimingPartitionController is not move-assignable
 
+  void init(const nlohmann::json& init_data) override;
+
 private:
+  uint m_managed_partition_id;
+
   // Commands
-  void do_configure(const nlohmann::json& obj) override;
+  void do_configure(const nlohmann::json& data) override;
+  void do_start(const nlohmann::json& data) override;
+  void do_stop(const nlohmann::json& data) override;
 
   void construct_partition_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
 
@@ -77,9 +83,6 @@ private:
   void do_partition_enable_triggers(const nlohmann::json&);
   void do_partition_disable_triggers(const nlohmann::json&);
   void do_partition_print_status(const nlohmann::json&);
-
-  // Configuration
-  timingpartitioncontroller::ConfParams m_cfg;
 
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;

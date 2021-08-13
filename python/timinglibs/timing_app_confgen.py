@@ -42,6 +42,7 @@ def generate(
         GATHER_INTERVAL_DEBUG = 10e6,
         MASTER_DEVICE_NAME="PROD_MASTER",
         MASTER_CLOCK_FILE="",
+        PARTITION_IDS=[],
         FANOUT_DEVICES_NAMES=[],
         FANOUT_CLOCK_FILE="",
         ENDPOINT_DEVICE_NAME="",
@@ -71,47 +72,66 @@ def generate(
     # Only needed to reproduce the same order as when using jsonnet
     queue_specs = app.QueueSpecs(sorted(queue_bare_specs, key=lambda x: x.inst))
 
+    thi_init_data = thi.InitParams(
+                                   qinfos=app.QueueInfos([app.QueueInfo(name="hardware_commands_in", inst="hardware_commands", dir="input")]),
+                                   connections_file="${TIMING_SHARE}/config/etc/connections.xml",
+                                   gather_interval=GATHER_INTERVAL,
+                                   gather_interval_debug=GATHER_INTERVAL_DEBUG,
+                                   monitored_device_name_master=MASTER_DEVICE_NAME,
+                                   monitored_device_names_fanout=FANOUT_DEVICES_NAMES,
+                                   monitored_device_name_endpoint=ENDPOINT_DEVICE_NAME,
+                                   monitored_device_name_hsi=HSI_DEVICE_NAME,
+                                   uhal_log_level=UHAL_LOG_LEVEL
+                                  )
     mod_specs = [
-                    mspec("thi", "TimingHardwareManagerPDI", [
-                                    app.QueueInfo(name="hardware_commands_in", inst="hardware_commands", dir="input"),
-                                ]),
+                    app.ModSpec(inst="thi", plugin="TimingHardwareManagerPDI", data=thi_init_data)
                 ]
 
     if MASTER_DEVICE_NAME != "":
-        mod_specs.extend( [
-                            mspec("tmc0", "TimingMasterController", [
-                                            app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output"),
-                                        ]),
-                            
-                            mspec("tpc0", "TimingPartitionController", [
-                                            app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output"),
-                                        ]),
-                        ] )
+        master_controller_init_data = tmc.InitParams(
+                                                     qinfos=app.QueueInfos([app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output")]),
+                                                     device=MASTER_DEVICE_NAME,
+                                                     )
+
+        mod_specs.extend( [ app.ModSpec(inst="tmc0", plugin="TimingMasterController", data=master_controller_init_data) ] )
+
+        tpc_mods=[]
+        for partition_id in PARTITION_IDS:
+
+            part_controller_init_data = tpc.InitParams(
+                                                       qinfos=app.QueueInfos([app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output")]),
+                                                       device=MASTER_DEVICE_NAME,
+                                                       partition_id=partition_id,
+                                                      )
+            tpc_mod = app.ModSpec(inst="tpc{}".format(partition_id), plugin="TimingPartitionController", data=part_controller_init_data)
+            tpc_mods.append(tpc_mod)
+
+        mod_specs.extend( tpc_mods )
 
     for i,fanout_device_name in enumerate(FANOUT_DEVICES_NAMES):
-        mod_specs.extend( [
-                            mspec("tfc{}".format(i), "TimingFanoutController", [
-                                            app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output"),
-                                        ]),
-                          ] )
+        fanout_controller_init_data = tfc.InitParams(
+                                                     qinfos=app.QueueInfos([app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output")]),
+                                                     device=fanout_device_name,
+                                                    )
+        mod_specs.extend( [ app.ModSpec(inst="tfc{}".format(i), plugin="TimingFanoutController", data=fanout_controller_init_data) ] )
 
     if ENDPOINT_DEVICE_NAME != "":
-        mod_specs.extend( [
-                            mspec("tec0", "TimingEndpointController", [
-                                            app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output"),
-                                        ]),
-                          ] )
+        endpoint_controller_init_data = tec.InitParams(
+                                                     qinfos=app.QueueInfos([app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output")]),
+                                                     device=ENDPOINT_DEVICE_NAME,
+                                                     )
+        mod_specs.extend( [ app.ModSpec(inst="tec0", plugin="TimingEndpointController", data=endpoint_controller_init_data) ] )
 
     if HSI_DEVICE_NAME != "":
-        mod_specs.extend( [
-                            mspec("hsi0", "HSIController", [
-                                            app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output"),
-                                        ]),
-                          ] )
+        hsi_controller_init_data = hsi.InitParams(
+                                                  qinfos=app.QueueInfos([app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output")]),
+                                                  device=HSI_DEVICE_NAME,
+                                                 )
+        
+        mod_specs.extend( [ app.ModSpec(inst="hsi0", plugin="HSIController", data=hsi_controller_init_data) ] )
 
     init_specs = app.Init(queues=queue_specs, modules=mod_specs)
     
-
     jstr = json.dumps(init_specs.pod(), indent=4, sort_keys=True)
     print(jstr)
 
@@ -122,49 +142,49 @@ def generate(
         data=init_specs
     )
 
-    mods = [
-                ("thi", thi.ConfParams(
-                        connections_file="${TIMING_SHARE}/config/etc/connections.xml",
-                        gather_interval=GATHER_INTERVAL,
-                        gather_interval_debug=GATHER_INTERVAL_DEBUG,
-                        monitored_device_name_master=MASTER_DEVICE_NAME,
-                        monitored_device_names_fanout=FANOUT_DEVICES_NAMES,
-                        monitored_device_name_endpoint=ENDPOINT_DEVICE_NAME,
-                        monitored_device_name_hsi=HSI_DEVICE_NAME,
-                        uhal_log_level=UHAL_LOG_LEVEL
-                        )),
-            ]
+    ## conf command
+    mods = []
 
     if MASTER_DEVICE_NAME != "":
-        mods.extend( [
-                        ("tmc0", tmc.ConfParams(
-                                device=MASTER_DEVICE_NAME,
-                                )),
-                        ("tpc0", tpc.ConfParams(
-                                device=MASTER_DEVICE_NAME,
-                                partition_id=0,
-                                )),
-                     ] )
+#        mods.extend( [
+#                        ("tmc0", tmc.ConfParams(
+#                                    device=MASTER_DEVICE_NAME,
+#                                 )),
+#                     ] )
+        for partition_id in PARTITION_IDS:
+            mods.extend( [
+                            ("tpc{}".format(partition_id), tpc.PartitionConfParams(
+                                                            trigger_mask=PART_TRIGGER_MASK,
+                                                            spill_gate_enabled=PART_SPILL_GATE_ENABLED,
+                                                            rate_control_enabled=PART_RATE_CONTROL_ENABLED,
+                                                        )),
+                        ] )
 
-    for i,fanout_device_name in enumerate(FANOUT_DEVICES_NAMES):
-        mods.extend( [
-                        ("tfc{}".format(i), tfc.ConfParams(
-                                device=fanout_device_name,
-                                )),
-                     ] )
+#    for i,fanout_device_name in enumerate(FANOUT_DEVICES_NAMES):
+#        mods.extend( [
+#                        ("tfc{}".format(i), tfc.ConfParams(
+#                                device=fanout_device_name,
+#                                )),
+#                     ] )
 
 
     if ENDPOINT_DEVICE_NAME != "":
         mods.extend( [
                         ("tec0", tec.ConfParams(
-                                device=ENDPOINT_DEVICE_NAME,
+                                address=ENDPOINT_ADDRESS,
+                                partition=ENDPOINT_PARTITION
                                 )),
                      ] )
 
     if HSI_DEVICE_NAME != "":
         mods.extend( [
                         ("hsi0", hsi.ConfParams(
-                                device=HSI_DEVICE_NAME,
+                                address=HSI_ENDPOINT_ADDRESS,
+                                partition=HSI_ENDPOINT_PARTITION,
+                                rising_edge_mask=HSI_RE_MASK,                   
+                                falling_edge_mask=HSI_FE_MASK,
+                                invert_edge_mask=HSI_INV_MASK,
+                                data_source=HSI_SOURCE,
                                 )),
                      ] )
 
@@ -239,7 +259,7 @@ def generate(
 
     # partition commands
     partition_configure_cmd = mcmd("partition_configure", [
-            ("tpc.*", tcmd.TimingPartitionConfigureCmdPayload(
+            ("tpc.*", tpc.PartitionConfParams(
                       trigger_mask=PART_TRIGGER_MASK,
                       spill_gate_enabled=PART_SPILL_GATE_ENABLED,
                       rate_control_enabled=PART_RATE_CONTROL_ENABLED,
@@ -496,6 +516,7 @@ if __name__ == '__main__':
 
     @click.option('-m', '--master-device-name', default="PROD_MASTER")
     @click.option('--master-clock-file', default="")
+    @click.option('-p', '--partition-ids', default="0", callback=split_string)
 
     @click.option('-f', '--fanout-devices-names', callback=split_string)
     @click.option('--fanout-clock-file', default="")
@@ -524,7 +545,7 @@ if __name__ == '__main__':
     @click.argument('json_file', type=click.Path(), default='timing_app.json')
     def cli(run_number, gather_interval, gather_interval_debug, 
 
-        master_device_name, master_clock_file,
+        master_device_name, master_clock_file, partition_ids,
         fanout_devices_names, fanout_clock_file,
         endpoint_device_name, endpoint_clock_file, endpoint_address, endpoint_partition,
         hsi_device_name, hsi_clock_file, hsi_endpoint_address, hsi_endpoint_partition, hsi_re_mask, hsi_fe_mask, hsi_inv_mask, hsi_source,
@@ -542,6 +563,7 @@ if __name__ == '__main__':
                     GATHER_INTERVAL_DEBUG = gather_interval_debug,
                     MASTER_DEVICE_NAME = master_device_name,
                     MASTER_CLOCK_FILE = master_clock_file,
+                    PARTITION_IDS = partition_ids,
                     FANOUT_DEVICES_NAMES = fanout_devices_names,
                     FANOUT_CLOCK_FILE = fanout_clock_file,
                     ENDPOINT_DEVICE_NAME = endpoint_device_name,

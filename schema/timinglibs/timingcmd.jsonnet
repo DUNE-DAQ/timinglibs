@@ -56,6 +56,11 @@ local timingcmd = {
             doc="Rate control on"),
     ], doc="Structure for payload of partition configure commands"),
 
+    timing_endpoint_cmd_payload: s.record("TimingEndpointCmdPayload",[
+        s.field("endpoint_id", self.uint_data,
+            doc="ID of target endpoint"),
+    ], doc="Structure for payload of endpoint commands"),
+
     timing_endpoint_configure_cmd_payload: s.record("TimingEndpointConfigureCmdPayload",[
         s.field("endpoint_id", self.uint_data, optional=true,
             doc="ID of target endpoint"),

@@ -32,9 +32,9 @@ namespace timinglibs {
 TimingMasterController::TimingMasterController(const std::string& name)
   : dunedaq::timinglibs::TimingController(name, 3) // 2nd arg: how many hw commands can this module send?
 {
-  register_command("conf", &TimingMasterController::do_configure);
-  register_command("start", &TimingMasterController::do_start);
-  register_command("stop", &TimingMasterController::do_stop);
+  //register_command("conf", &TimingMasterController::do_configure);
+  //register_command("start", &TimingMasterController::do_start);
+  //register_command("stop", &TimingMasterController::do_stop);
 
   // timing master hardware commands
   register_command("master_io_reset", &TimingMasterController::do_master_io_reset);
@@ -43,18 +43,28 @@ TimingMasterController::TimingMasterController(const std::string& name)
 }
 
 void
-TimingMasterController::do_configure(const nlohmann::json& obj)
+TimingMasterController::init(const nlohmann::json& init_data)
 {
-  timingmastercontroller::from_json(obj, m_cfg);
+  // set up queues
+  TimingController::init(init_data["qinfos"]);
+  
+  auto ini = init_data.get<timingmastercontroller::InitParams>();
+  m_timing_device = ini.device;
+  
+  TLOG() << get_name() << " init: master, device: " << m_timing_device;
+}
 
-  TLOG() << get_name() << "conf: managed device: " << m_cfg.device;
+void
+TimingMasterController::do_configure(const nlohmann::json& /*data*/)
+{
+  // Placeholder for master configure commands
 }
 
 void
 TimingMasterController::construct_master_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id)
 {
   hw_cmd.id = cmd_id;
-  hw_cmd.device = m_cfg.device;
+  hw_cmd.device = m_timing_device;
 }
 
 void

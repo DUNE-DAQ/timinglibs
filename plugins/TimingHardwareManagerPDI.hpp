@@ -28,7 +28,7 @@
 
 #include "timinglibs/TimingIssues.hpp"
 
-// in timing-board-software at the moment
+// in timing at the moment
 #include "timing/timingfirmwareinfo/InfoNljs.hpp"
 #include "timing/timingfirmwareinfo/InfoStructs.hpp"
 
@@ -89,10 +89,12 @@ public:
   void init(const nlohmann::json& init_data) override;
   void get_info(opmonlib::InfoCollector& ci, int level) override;
 
-  // configuration
 private:
-  timinghardwaremanagerpdi::ConfParams m_cfg;
-  void do_configure(const data_t& obj) override;
+    
+  std::string m_monitored_device_name_master;
+  std::vector<std::string> m_monitored_device_names_fanout;
+  std::string m_monitored_device_name_endpoint;
+  std::string m_monitored_device_name_hsi;
 
   ADD_VARIADIC_TEMPLATE_PROCESSOR_DECLARATIONS(register_common_hw_commands_for_design)
   ADD_VARIADIC_TEMPLATE_PROCESSOR_DECLARATIONS(register_master_hw_commands_for_design)

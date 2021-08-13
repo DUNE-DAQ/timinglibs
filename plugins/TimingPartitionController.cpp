@@ -50,34 +50,60 @@ TimingPartitionController::TimingPartitionController(const std::string& name)
 }
 
 void
-TimingPartitionController::do_configure(const nlohmann::json& obj)
+TimingPartitionController::init(const nlohmann::json& init_data)
 {
-  timingpartitioncontroller::from_json(obj, m_cfg);
+  // set up queues
+  TimingController::init(init_data["qinfos"]);
 
-  TLOG() << get_name() << " conf: managed partition, device: " << m_cfg.device << ", part id: " << m_cfg.partition_id;
+  auto ini = init_data.get<timingpartitioncontroller::InitParams>();
+  m_timing_device = ini.device;
+  m_managed_partition_id = ini.partition_id;
+  
+  TLOG() << get_name() << " init; device: " << m_timing_device << ", managed part id: " << m_managed_partition_id;
+}
+
+void
+TimingPartitionController::do_configure(const nlohmann::json& data)
+{
+  do_partition_configure(data);
+  do_partition_enable(data);
+}
+
+void
+TimingPartitionController::do_start(const nlohmann::json& data)
+{
+  TimingController::do_start(data); // set sent cmd counters to 0
+  do_partition_start(data);
+}
+
+void
+TimingPartitionController::do_stop(const nlohmann::json& data)
+{
+  do_partition_stop(data);
 }
 
 void
 TimingPartitionController::construct_partition_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id)
 {
   timingcmd::TimingPartitionCmdPayload cmd_payload;
-  cmd_payload.partition_id = m_cfg.partition_id;
+  cmd_payload.partition_id = m_managed_partition_id;
   timingcmd::to_json(hw_cmd.payload, cmd_payload);
 
   hw_cmd.id = cmd_id;
-  hw_cmd.device = m_cfg.device;
+  hw_cmd.device = m_timing_device;
 }
+
 void
 TimingPartitionController::do_partition_configure(const nlohmann::json& data)
 {
   timingcmd::TimingHwCmd hw_cmd;
   hw_cmd.id = "partition_configure";
-  hw_cmd.device = m_cfg.device;
+  hw_cmd.device = m_timing_device;
 
   // make our configure payload with partition id of this controller
   timingcmd::TimingPartitionConfigureCmdPayload cmd_payload;
   timingcmd::from_json(data, cmd_payload);
-  cmd_payload.partition_id = m_cfg.partition_id;
+  cmd_payload.partition_id = m_managed_partition_id;
 
   timingcmd::to_json(hw_cmd.payload, cmd_payload);
 

@@ -2,7 +2,10 @@ local moo = import "moo.jsonnet";
 local ns = "dunedaq.timinglibs.timinghardwaremanagerpdi";
 local s = moo.oschema.schema(ns);
 
-local types = {
+local s_app = import "appfwk/app.jsonnet";
+local app = moo.oschema.hier(s_app).dunedaq.appfwk.app;
+
+local cs = {
     uint_data: s.number("UintData", "u4",
         doc="A count of very many things"),
 
@@ -17,7 +20,9 @@ local types = {
     fanout_device_names_vector: s.sequence("FanoutDeviceNamesVector", self.str,
             doc="A vector of fanout device names"),
 
-    conf: s.record("ConfParams", [
+    init: s.record("InitParams", [
+        s.field("qinfos", app.QueueInfos,
+                doc="Information for a module to find its queue"),
         s.field("connections_file", self.str, "",
                 doc="device connections file"),
         s.field("gather_interval", self.uint_data, 1e6,
@@ -34,8 +39,7 @@ local types = {
                 doc="Name of hsi device to be monitored"),
         s.field("uhal_log_level", self.uhal_log_level, "notice",
                 doc="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug."),
-    ], doc="TimingHardwareManager configuration"),
-
+    ], doc="TimingHardwareManager PD-I init parameters"),
 };
 
-moo.oschema.sort_select(types, ns)
+s_app + moo.oschema.sort_select(cs)

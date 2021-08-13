@@ -52,18 +52,43 @@ HSIController::HSIController(const std::string& name)
 }
 
 void
-HSIController::do_configure(const nlohmann::json& obj)
+HSIController::init(const nlohmann::json& init_data)
 {
-  hsicontroller::from_json(obj, m_cfg);
+  // set up queues
+  TimingController::init(init_data["qinfos"]);
+  
+  auto ini = init_data.get<hsicontroller::InitParams>();
+  m_timing_device = ini.device;
+  
+  TLOG() << get_name() << " init; hsi device: " << m_timing_device;
+}
 
-  TLOG_DEBUG(0) << get_name() << " conf: managed hsi, device: " << m_cfg.device;
+void
+HSIController::do_configure(const nlohmann::json& data)
+{
+  do_hsi_reset(data);
+  do_hsi_endpoint_reset(data);
+  do_hsi_configure(data);
+}
+
+void
+HSIController::do_start(const nlohmann::json& data)
+{
+  TimingController::do_start(data); // set sent cmd counters to 0
+  do_hsi_start(data);
+}
+
+void
+HSIController::do_stop(const nlohmann::json& data)
+{
+  do_hsi_stop(data);
 }
 
 void
 HSIController::construct_hsi_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id)
 {
   hw_cmd.id = cmd_id;
-  hw_cmd.device = m_cfg.device;
+  hw_cmd.device = m_timing_device;
 }
 
 void
@@ -82,8 +107,15 @@ HSIController::do_hsi_endpoint_enable(const nlohmann::json& data)
 {
   timingcmd::TimingHwCmd hw_cmd;
   construct_hsi_hw_cmd(hw_cmd, "endpoint_enable");
-  hw_cmd.payload = data;
 
+  timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
+  cmd_payload.endpoint_id = 0;
+  timingcmd::from_json(data, cmd_payload);
+
+  timingcmd::to_json(hw_cmd.payload, cmd_payload);
+
+  TLOG_DEBUG(0) << "ept enable hw cmd; a: " << cmd_payload.address << ", p: " << cmd_payload.partition;
+  
   send_hw_cmd(hw_cmd);
   ++(m_sent_hw_command_counters.at(1).atomic);
 }
@@ -102,7 +134,12 @@ HSIController::do_hsi_endpoint_reset(const nlohmann::json& data)
 {
   timingcmd::TimingHwCmd hw_cmd;
   construct_hsi_hw_cmd(hw_cmd, "endpoint_reset");
-  hw_cmd.payload = data;
+  
+  timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
+  cmd_payload.endpoint_id = 0;
+  timingcmd::from_json(data, cmd_payload);
+
+  timingcmd::to_json(hw_cmd.payload, cmd_payload);
 
   send_hw_cmd(hw_cmd);
   ++(m_sent_hw_command_counters.at(3).atomic);
@@ -123,7 +160,9 @@ HSIController::do_hsi_configure(const nlohmann::json& data)
   timingcmd::TimingHwCmd hw_cmd;
   construct_hsi_hw_cmd(hw_cmd, "hsi_configure");
   hw_cmd.payload = data;
-
+  
+  std::this_thread::sleep_for(std::chrono::microseconds(2000000));
+  
   send_hw_cmd(hw_cmd);
   ++(m_sent_hw_command_counters.at(5).atomic);
 }

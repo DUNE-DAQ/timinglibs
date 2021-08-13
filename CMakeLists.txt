@@ -7,6 +7,8 @@ daq_setup_environment()
 
 find_package(ers REQUIRED)     
 find_package(logging REQUIRED)
+find_package(cmdlib REQUIRED)
+find_package(rcif REQUIRED)
 find_package(appfwk REQUIRED)
 find_package(timing REQUIRED)
 find_package(nlohmann_json REQUIRED)
@@ -22,7 +24,9 @@ daq_codegen( fakehsieventgenerator.jsonnet
 			 timingmastercontroller.jsonnet
 			 timingpartitioncontroller.jsonnet
 			 timingfanoutcontroller.jsonnet 
-			 TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
+			 DEP_PKGS appfwk rcif cmdlib TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
+
+daq_codegen( timingcmd.jsonnet TEMPLATES msgp.hpp.j2 )
 
 daq_codegen( fakehsieventgeneratorinfo.jsonnet 
 			 hsicontrollerinfo.jsonnet 
@@ -60,6 +64,8 @@ daq_add_plugin(TimingEndpointController duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(FakeHSIEventGenerator duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(HSIReadout duneDAQModule LINK_LIBRARIES timing::timing timinglibs)
 daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES timing::timing timinglibs)
+
+daq_add_plugin(TimingHwCmdNQ duneNetworkQueue LINK_LIBRARIES timinglibs nwqueueadapters::nwqueueadapters)
 
 ##############################################################################
 target_include_directories(${PROJECT_NAME}_TimingHardwareManagerPDI_duneDAQModule PUBLIC $ENV{UHAL_INC} $ENV{PUGIXML_INC})
