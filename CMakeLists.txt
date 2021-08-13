@@ -14,6 +14,8 @@ find_package(timing REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(dfmessages REQUIRED)
 find_package(opmonlib REQUIRED)
+find_package(uhal REQUIRED)
+find_package(pugixml REQUIRED)
 
 daq_codegen( fakehsieventgenerator.jsonnet
 			 hsicontroller.jsonnet
@@ -52,23 +54,18 @@ set(TIMINGLIBS_DEPENDENCIES
 
 ##############################################################################
 daq_add_library(TimingController.cpp TimestampEstimatorBase.cpp TimestampEstimator.cpp TimestampEstimatorSystem.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES})
-target_include_directories(${PROJECT_NAME} PUBLIC $ENV{UHAL_INC} $ENV{PUGIXML_INC})
-
 
 ##############################################################################
-daq_add_plugin(TimingHardwareManagerPDI duneDAQModule LINK_LIBRARIES timing::timing timinglibs)
+daq_add_plugin(TimingHardwareManagerPDI duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)
 daq_add_plugin(TimingMasterController duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(TimingFanoutController duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(TimingPartitionController duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(TimingEndpointController duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(FakeHSIEventGenerator duneDAQModule LINK_LIBRARIES timinglibs)
-daq_add_plugin(HSIReadout duneDAQModule LINK_LIBRARIES timing::timing timinglibs)
-daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES timing::timing timinglibs)
+daq_add_plugin(HSIReadout duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)
+daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES timinglibs)
 
 daq_add_plugin(TimingHwCmdNQ duneNetworkQueue LINK_LIBRARIES timinglibs nwqueueadapters::nwqueueadapters)
-
-##############################################################################
-target_include_directories(${PROJECT_NAME}_TimingHardwareManagerPDI_duneDAQModule PUBLIC $ENV{UHAL_INC} $ENV{PUGIXML_INC})
 
 ##############################################################################
 daq_add_unit_test(TimestampEstimatorSystem_test  LINK_LIBRARIES timinglibs)
