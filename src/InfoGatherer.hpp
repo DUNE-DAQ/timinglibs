@@ -89,10 +89,12 @@ public:
 
   void get_info(opmonlib::InfoCollector& ci, int level) const override
   {
-    if (get_last_gathered_time() != 0 && get_op_mon_level() <= level) {
+    if (get_last_gathered_time() != 0 && get_op_mon_level() <= level) 
+    {
       ci.add(get_monitoring_data());
     }
-    else {
+    else
+    {
       TLOG_DEBUG(0) << "skipping gatherer for type: " << typeid(MON_DATA).name() << " for: " << get_device_name() << " with gathered time: " << get_last_gathered_time() 
       << ", gatherer level: " << get_op_mon_level() << ", opmon level: " << level;
     }
@@ -100,10 +102,12 @@ public:
 
   void get_info(nlohmann::json& data, int level) const override
   {
-    if (get_last_gathered_time() != 0 && get_op_mon_level() <= level) {
+    if (get_last_gathered_time() != 0 && get_op_mon_level() <= level) 
+    {
       data = get_monitoring_data();
     }
-    else {
+    else 
+    {
       TLOG_DEBUG(0) << "skipping gatherer for type: " << typeid(MON_DATA).name() << " for: " << get_device_name() << " with gathered time: " << get_last_gathered_time() 
       << ", gatherer level: " << get_op_mon_level() << ", opmon level: " << level;
     }

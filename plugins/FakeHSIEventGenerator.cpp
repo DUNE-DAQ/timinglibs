@@ -194,7 +194,7 @@ FakeHSIEventGenerator::generate_hsievents(std::atomic<bool>& running_flag)
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering generate_hsievents() method";
 
   // Wait for there to be a valid timestsamp estimate before we start
-  // TODO put in tome sort of timeout?
+  // TODO put in tome sort of timeout? Stoyan Trilov stoyan.trilov@cern.ch
   if (m_timestamp_estimator->wait_for_valid_timestamp(running_flag) == TimestampEstimatorBase::kInterrupted) {
     ers::error(FailedToGetTimestampEstimate(ERS_HERE));
     return;
