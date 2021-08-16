@@ -192,7 +192,7 @@ TimingHardwareManagerPDI::init(const nlohmann::json& init_data)
   }
   thread_.start_working_thread();
   start_hw_mon_gathering();
-}
+} // NOLINT
 
 template<class DSGN>
 void
