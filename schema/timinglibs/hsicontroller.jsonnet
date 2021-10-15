@@ -15,6 +15,9 @@ local cs = {
     uint_data: s.number("UintData", "u4",
         doc="A count of very many things"),
 
+    double_data: s.number("DoubleData", "f8", 
+         doc="A double"),
+
     init: s.record("InitParams", [
         s.field("qinfos", app.QueueInfos,
                 doc="Information for a module to find its queue"),
@@ -35,6 +38,8 @@ local cs = {
             doc="Invert edge mask for HSI triggering"),
         s.field("data_source", self.uint_data,
             doc="Source of data for HSI triggering"),
+        s.field("random_rate", self.double_data,
+            doc="Source of data for HSI triggering in emulation (bit 0)"),
     ], doc="Structure for payload of hsi configure commands"),
 };
 

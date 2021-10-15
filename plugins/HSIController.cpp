@@ -66,6 +66,8 @@ HSIController::init(const nlohmann::json& init_data)
 void
 HSIController::do_configure(const nlohmann::json& data)
 {
+  std::this_thread::sleep_for(std::chrono::microseconds(5000000));
+
   do_hsi_reset(data);
   do_hsi_endpoint_reset(data);
   do_hsi_configure(data);
@@ -160,9 +162,7 @@ HSIController::do_hsi_configure(const nlohmann::json& data)
   timingcmd::TimingHwCmd hw_cmd;
   construct_hsi_hw_cmd(hw_cmd, "hsi_configure");
   hw_cmd.payload = data;
-  
-  std::this_thread::sleep_for(std::chrono::microseconds(2000000));
-  
+
   send_hw_cmd(hw_cmd);
   ++(m_sent_hw_command_counters.at(5).atomic);
 }
