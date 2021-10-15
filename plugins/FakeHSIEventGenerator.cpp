@@ -8,15 +8,14 @@
  */
 
 #include "FakeHSIEventGenerator.hpp"
-
 #include "timinglibs/fakehsieventgenerator/Nljs.hpp"
-
 //#include "timinglibs/Issues.hpp"
 
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/app/Nljs.hpp"
-
+#include "dfmessages/TimeSync.hpp"
 #include "logging/Logging.hpp"
+#include "networkmanager/NetworkManager.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -31,7 +30,6 @@ FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
   : dunedaq::appfwk::DAQModule(name)
   , m_thread(std::bind(&FakeHSIEventGenerator::generate_hsievents, this, std::placeholders::_1))
   , m_hsievent_sink(nullptr)
-  , m_time_sync_source(nullptr)
   , m_queue_timeout(100)
   , m_timestamp_estimator(nullptr)
   , m_random_generator()
@@ -62,8 +60,6 @@ FakeHSIEventGenerator::init(const nlohmann::json& init_data)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
 
-  m_time_sync_source.reset(
-    new appfwk::DAQSource<dfmessages::TimeSync>(appfwk::queue_inst(init_data, "time_sync_source")));
   m_hsievent_sink.reset(new appfwk::DAQSink<dfmessages::HSIEvent>(appfwk::queue_inst(init_data, "hsievent_sink")));
 
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
@@ -95,8 +91,9 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
   m_trigger_interval_ticks.store(params.trigger_interval_ticks);
 
   // time between HSI events [us]
-  m_event_period.store( (static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6 );
-  TLOG() << get_name() << " Setting trigger interval ticks, event period [us] to: " << m_trigger_interval_ticks << ", " << m_event_period.load();
+  m_event_period.store((static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6);
+  TLOG() << get_name() << " Setting trigger interval ticks, event period [us] to: " << m_trigger_interval_ticks << ", "
+         << m_event_period.load();
 
   // offset in units of clock ticks, positive offset increases timestamp
   m_timestamp_offset = params.timestamp_offset;
@@ -104,6 +101,7 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
   m_signal_emulation_mode = params.signal_emulation_mode;
   m_mean_signal_multiplicity = params.mean_signal_multiplicity;
   m_enabled_signals = params.enabled_signals;
+  m_timesync_address = params.timesync_channel;
 
   // configure the random distributions
   m_poisson_distribution = std::poisson_distribution<uint64_t>(m_mean_signal_multiplicity); // NOLINT(build/unsigned)
@@ -115,14 +113,17 @@ void
 FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_start() method";
-  m_timestamp_estimator.reset(new TimestampEstimator(m_time_sync_source, m_clock_frequency));
+  m_timestamp_estimator.reset(new TimestampEstimator(m_clock_frequency));
+  networkmanager::NetworkManager::get().add_subscriber(
+    m_timesync_address, "", std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
 
-  auto start_params = obj.get<rcif::cmd::StartParams>(); 
-  m_trigger_interval_ticks.store( start_params.trigger_interval_ticks );
-  
+  auto start_params = obj.get<rcif::cmd::StartParams>();
+  m_trigger_interval_ticks.store(start_params.trigger_interval_ticks);
+
   // time between HSI events [us]
-  m_event_period.store( (static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6 );
-  TLOG() << get_name() << " Updating trigger interval ticks, event period [us] to: " << m_trigger_interval_ticks << ", " << m_event_period.load();
+  m_event_period.store((static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6);
+  TLOG() << get_name() << " Updating trigger interval ticks, event period [us] to: " << m_trigger_interval_ticks << ", "
+         << m_event_period.load();
 
   m_thread.start_working_thread("fake-tsd-gen");
   TLOG() << get_name() << " successfully started";
@@ -133,13 +134,14 @@ void
 FakeHSIEventGenerator::do_resume(const nlohmann::json& obj)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_resume() method";
-  
-  auto resume_params = obj.get<rcif::cmd::ResumeParams>(); 
-  m_trigger_interval_ticks.store( resume_params.trigger_interval_ticks );
+
+  auto resume_params = obj.get<rcif::cmd::ResumeParams>();
+  m_trigger_interval_ticks.store(resume_params.trigger_interval_ticks);
 
   // time between HSI events [us]
-  m_event_period.store( (static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6 );
-  TLOG() << get_name() << " Updating trigger interval ticks, event period [us] to: " << m_trigger_interval_ticks << ", " << m_event_period.load();
+  m_event_period.store((static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6);
+  TLOG() << get_name() << " Updating trigger interval ticks, event period [us] to: " << m_trigger_interval_ticks << ", "
+         << m_event_period.load();
 
   TLOG() << get_name() << " successfully resumed";
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_resume() method";
@@ -150,6 +152,7 @@ FakeHSIEventGenerator::do_stop(const nlohmann::json& /*args*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_stop() method";
   m_thread.stop_working_thread();
+  networkmanager::NetworkManager::get().remove_subscriber(m_timesync_address, "");
   m_timestamp_estimator.reset(nullptr); // Calls TimestampEstimator dtor
   TLOG() << get_name() << " successfully stopped";
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_stop() method";
@@ -195,7 +198,8 @@ FakeHSIEventGenerator::generate_hsievents(std::atomic<bool>& running_flag)
 
   // Wait for there to be a valid timestsamp estimate before we start
   // TODO put in tome sort of timeout? Stoyan Trilov stoyan.trilov@cern.ch
-  if (m_timestamp_estimator->wait_for_valid_timestamp(running_flag) == TimestampEstimatorBase::kInterrupted) {
+  if (m_timestamp_estimator.get() != nullptr &&
+      m_timestamp_estimator->wait_for_valid_timestamp(running_flag) == TimestampEstimatorBase::kInterrupted) {
     ers::error(FailedToGetTimestampEstimate(ERS_HERE));
     return;
   }
@@ -215,12 +219,12 @@ FakeHSIEventGenerator::generate_hsievents(std::atomic<bool>& running_flag)
       std::this_thread::sleep_for(std::chrono::microseconds(250000));
       continue;
     }
-    
+
     // emulate some signals
     uint32_t signal_map = generate_signal_map(); // NOLINT(build/unsigned)
 
     // if at least one active signal, send a HSIEvent
-    if (signal_map) {
+    if (signal_map && m_timestamp_estimator.get() != nullptr) {
 
       dfmessages::timestamp_t ts = m_timestamp_estimator->get_timestamp_estimate();
 
@@ -267,6 +271,16 @@ FakeHSIEventGenerator::generate_hsievents(std::atomic<bool>& running_flag)
            << " HSIEvent messages and successfully sent " << m_sent_counter << " copies. ";
   ers::info(dunedaq::timinglibs::ProgressUpdate(ERS_HERE, get_name(), oss_summ.str()));
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_work() method";
+}
+
+void
+FakeHSIEventGenerator::dispatch_timesync(ipm::Receiver::Response message)
+{
+  auto timesyncmsg = serialization::deserialize<dfmessages::TimeSync>(message.data);
+  TLOG_DEBUG(13) << "Received TimeSync message with DAQ time = " << timesyncmsg.daq_time;
+  if (m_timestamp_estimator.get() != nullptr) {
+    m_timestamp_estimator->add_timestamp_datapoint(timesyncmsg);
+  }
 }
 
 } // namespace timinglibs
