@@ -184,11 +184,13 @@ HSIController::do_hsi_configure(const nlohmann::json& data)
 
   uint64_t clock_frequency = data["clock_frequency"];
   uint64_t trigger_interval_ticks = data["trigger_interval_ticks"];
-  if (trigger_interval_ticks == 0) {
-    throw InvalidTriggerIntervalTicksValue(ERS_HERE, trigger_interval_ticks);
-  }
+  double emulated_signal_rate=0;
   
-  double emulated_signal_rate =  static_cast<double>(clock_frequency) / trigger_interval_ticks;
+  if (trigger_interval_ticks > 0) {
+    emulated_signal_rate =  static_cast<double>(clock_frequency) / trigger_interval_ticks;
+  } else {
+    ers::error(InvalidTriggerIntervalTicksValue(ERS_HERE, trigger_interval_ticks));
+  }
   hw_cmd.payload["random_rate"] = emulated_signal_rate;
 
   TLOG() << get_name() << " Setting trigger interval ticks, emulated event rate [Hz] to: " << trigger_interval_ticks << ", " << emulated_signal_rate;
