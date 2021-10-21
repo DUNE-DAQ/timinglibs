@@ -28,6 +28,9 @@
 #include "appfwk/DAQSource.hpp"
 #include "appfwk/ThreadHelper.hpp"
 
+#include "rcif/cmd/Nljs.hpp"
+#include "rcif/cmd/Structs.hpp"
+
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 
@@ -58,10 +61,14 @@ public:
 
   void init(const nlohmann::json& init_data) override;
 private:
+
+  hsicontroller::ConfParams m_hsi_configuration;
+
   // Commands
   void do_configure(const nlohmann::json& data) override;
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
+  void do_resume(const nlohmann::json& data);
   
   void construct_hsi_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
 

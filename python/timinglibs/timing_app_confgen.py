@@ -1,3 +1,6 @@
+from rich.console import Console
+console = Console()
+
 # Set moo schema search path
 from dunedaq.env import get_moo_model_path
 import moo.io
@@ -36,11 +39,13 @@ from appfwk.utils import mcmd, mspec, mrccmd
 import json
 import math
 
+CLOCK_SPEED_HZ=50000000
+
 def generate(
         RUN_NUMBER = 333, 
         GATHER_INTERVAL = 1e6,
         GATHER_INTERVAL_DEBUG = 10e6,
-        MASTER_DEVICE_NAME="PROD_MASTER",
+        MASTER_DEVICE_NAME="",
         MASTER_CLOCK_FILE="",
         PARTITION_IDS=[],
         FANOUT_DEVICES_NAMES=[],
@@ -56,6 +61,7 @@ def generate(
         HSI_RE_MASK=0x0,
         HSI_FE_MASK=0x0,
         HSI_INV_MASK=0x0,
+        HSI_RANDOM_RATE=1.0,
         HSI_SOURCE=0x0,
         PART_TRIGGER_MASK=0xff,
         PART_SPILL_GATE_ENABLED=True,
@@ -176,9 +182,17 @@ def generate(
                                 )),
                      ] )
 
+    trigger_interval_ticks=0
     if HSI_DEVICE_NAME != "":
+        if HSI_RANDOM_RATE > 0:
+            trigger_interval_ticks=math.floor((1/HSI_RANDOM_RATE) * CLOCK_SPEED_HZ)
+        else:
+            console.log('WARNING! Emulated trigger rate of 0 will not disable signal emulation in real HSI hardware! To disable emulated HSI triggers, use  option: "--hsi-source 0" or mask all signal bits', style="bold red")
+
         mods.extend( [
                         ("hsi0", hsi.ConfParams(
+                                clock_frequency=CLOCK_SPEED_HZ,
+                                trigger_interval_ticks=trigger_interval_ticks,
                                 address=HSI_ENDPOINT_ADDRESS,
                                 partition=HSI_ENDPOINT_PARTITION,
                                 rising_edge_mask=HSI_RE_MASK,                   
@@ -193,13 +207,14 @@ def generate(
     jstr = json.dumps(confcmd.pod(), indent=4, sort_keys=True)
     print(jstr)
 
+    startpars = rcif.StartParams(run=RUN_NUMBER, trigger_interval_ticks = trigger_interval_ticks)
     startcmd = mrccmd("start", "CONFIGURED", "RUNNING", [
-            ("thi", None),
-            ("tmc.*", None),
-            ("tpc.*", None),
-            ("tfc.*", None),
-            ("tec.*", None),
-            ("hsi.*", None),
+            ("thi", startpars),
+            ("tmc.*", startpars),
+            ("tpc.*", startpars),
+            ("tfc.*", startpars),
+            ("tec.*", startpars),
+            ("hsi.*", startpars),
         ])
 
     jstr = json.dumps(startcmd.pod(), indent=4, sort_keys=True)
@@ -385,6 +400,7 @@ def generate(
                       falling_edge_mask=HSI_FE_MASK,
                       invert_edge_mask=HSI_INV_MASK,
                       data_source=HSI_SOURCE,
+                      random_rate=HSI_RANDOM_RATE
                       )),
         ])
     jstr = json.dumps(hsi_configure_cmd.pod(), indent=4, sort_keys=True)
@@ -514,7 +530,7 @@ if __name__ == '__main__':
     @click.option('-g', '--gather-interval', default=1e6)
     @click.option('-d', '--gather-interval-debug', default=10e6)
 
-    @click.option('-m', '--master-device-name', default="PROD_MASTER")
+    @click.option('-m', '--master-device-name', default="")
     @click.option('--master-clock-file', default="")
     @click.option('-p', '--partition-ids', default="0", callback=split_string)
 
@@ -535,6 +551,7 @@ if __name__ == '__main__':
     @click.option('--hsi-fe-mask', default=0x0)
     @click.option('--hsi-inv-mask', default=0x0)
     @click.option('--hsi-source', default=0x0)
+    @click.option('--hsi-random-rate', default=1.0)
     
     @click.option('--part-trig-mask', default=0xff)
     @click.option('--part-spill-gate', type=bool, default=True)
@@ -548,7 +565,7 @@ if __name__ == '__main__':
         master_device_name, master_clock_file, partition_ids,
         fanout_devices_names, fanout_clock_file,
         endpoint_device_name, endpoint_clock_file, endpoint_address, endpoint_partition,
-        hsi_device_name, hsi_clock_file, hsi_endpoint_address, hsi_endpoint_partition, hsi_re_mask, hsi_fe_mask, hsi_inv_mask, hsi_source,
+        hsi_device_name, hsi_clock_file, hsi_endpoint_address, hsi_endpoint_partition, hsi_re_mask, hsi_fe_mask, hsi_inv_mask, hsi_source, hsi_random_rate,
         part_trig_mask, part_spill_gate, part_rate_control,
         uhal_log_level, output_path, json_file):
         """
@@ -578,6 +595,7 @@ if __name__ == '__main__':
                     HSI_FE_MASK=hsi_fe_mask,
                     HSI_INV_MASK=hsi_inv_mask,
                     HSI_SOURCE=hsi_source,
+                    HSI_RANDOM_RATE=hsi_random_rate,
                     PART_TRIGGER_MASK=part_trig_mask,
                     PART_SPILL_GATE_ENABLED=part_spill_gate,
                     PART_RATE_CONTROL_ENABLED=part_rate_control,
