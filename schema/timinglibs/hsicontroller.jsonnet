@@ -26,6 +26,10 @@ local cs = {
     ], doc="HSIController configuration"),
 
     conf: s.record("ConfParams",[
+        s.field("clock_frequency", self.size,
+            doc="HSI firmware clock frequency"),
+        s.field("trigger_interval_ticks", self.size,
+            doc="Ticks between emulated signals"),
         s.field("address", self.uint_data,
             doc="HSI endpoint address"),
         s.field("partition", self.uint_data,
@@ -38,8 +42,6 @@ local cs = {
             doc="Invert edge mask for HSI triggering"),
         s.field("data_source", self.uint_data,
             doc="Source of data for HSI triggering"),
-        s.field("random_rate", self.double_data,
-            doc="Source of data for HSI triggering in emulation (bit 0)"),
     ], doc="Structure for payload of hsi configure commands"),
 };
 

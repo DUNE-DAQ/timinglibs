@@ -158,13 +158,13 @@ HSIReadout::read_hsievents(std::atomic<bool>& running_flag)
 
       update_buffer_counts(n_words_in_buffer);
 
-      TLOG_DEBUG(4) << get_name() << ": Number of words in HSI buffer: " << n_words_in_buffer;
+      TLOG_DEBUG(5) << get_name() << ": Number of words in HSI buffer: " << n_words_in_buffer;
 
       if (hsi_words.size() >= 5) {
 
         uint n_hsi_events = hsi_words.size() / timing::g_hsi_event_size;
 
-        TLOG_DEBUG(2) << get_name() << ": Have readout " << n_hsi_events << " HSIEvent(s) ";
+        TLOG_DEBUG(4) << get_name() << ": Have readout " << n_hsi_events << " HSIEvent(s) ";
 
         m_readout_counter.store(m_readout_counter.load() + n_hsi_events);
         for (uint i = 0; i < n_hsi_events; ++i) {
@@ -184,10 +184,11 @@ HSIReadout::read_hsievents(std::atomic<bool>& running_flag)
           uint32_t counter = header & 0x0000ffff; // NOLINT(build/unsigned)
 
           if (counter > 0 && counter % 60000 == 0)
-            TLOG_DEBUG(1) << "Sequence counter from firmware: " << counter;
+            TLOG_DEBUG(3) << "Sequence counter from firmware: " << counter;
 
-          TLOG_DEBUG(3) << get_name() << ": read out data: " << header << ", " << std::hex << ts << ", " << data << ", "
+          TLOG_DEBUG(3) << get_name() << ": read out data: " << std::showbase << std::hex << header << ", " << ts << ", " << data << ", "
                         << std::bitset<32>(trigger) << ", "
+                        << "ts: " << ts
                         << "\n";
 
           dfmessages::HSIEvent event = dfmessages::HSIEvent(hsi_device_id, trigger, ts, counter);
