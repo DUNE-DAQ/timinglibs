@@ -1,3 +1,6 @@
+from rich.console import Console
+console = Console()
+
 # Set moo schema search path
 from dunedaq.env import get_moo_model_path
 import moo.io
@@ -42,7 +45,7 @@ def generate(
         RUN_NUMBER = 333, 
         GATHER_INTERVAL = 1e6,
         GATHER_INTERVAL_DEBUG = 10e6,
-        MASTER_DEVICE_NAME="PROD_MASTER",
+        MASTER_DEVICE_NAME="",
         MASTER_CLOCK_FILE="",
         PARTITION_IDS=[],
         FANOUT_DEVICES_NAMES=[],
@@ -179,13 +182,13 @@ def generate(
                                 )),
                      ] )
 
-    if HSI_RANDOM_RATE > 0:
-        trigger_interval_ticks=math.floor((1/HSI_RANDOM_RATE) * CLOCK_SPEED_HZ)
-    else:
-        print('WARNING! Real HSI hardware requires non 0 emulated trigger rate! Defaulting to 1.0. To disable emulated HSI triggers, use  option: "--hsi-source 0"')
-        trigger_interval_ticks=CLOCK_SPEED_HZ
-
+    trigger_interval_ticks=0
     if HSI_DEVICE_NAME != "":
+        if HSI_RANDOM_RATE > 0:
+            trigger_interval_ticks=math.floor((1/HSI_RANDOM_RATE) * CLOCK_SPEED_HZ)
+        else:
+            console.log('WARNING! Emulated trigger rate of 0 will not disable signal emulation in real HSI hardware! To disable emulated HSI triggers, use  option: "--hsi-source 0" or mask all signal bits', style="bold red")
+
         mods.extend( [
                         ("hsi0", hsi.ConfParams(
                                 clock_frequency=CLOCK_SPEED_HZ,
@@ -527,7 +530,7 @@ if __name__ == '__main__':
     @click.option('-g', '--gather-interval', default=1e6)
     @click.option('-d', '--gather-interval-debug', default=10e6)
 
-    @click.option('-m', '--master-device-name', default="PROD_MASTER")
+    @click.option('-m', '--master-device-name', default="")
     @click.option('--master-clock-file', default="")
     @click.option('-p', '--partition-ids', default="0", callback=split_string)
 

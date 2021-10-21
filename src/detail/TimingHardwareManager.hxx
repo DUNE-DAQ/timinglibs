@@ -513,7 +513,7 @@ TimingHardwareManager::hsi_print_status(const timingcmd::TimingHwCmd& hw_cmd)
 {
   auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi print status";
-  design.get_hsi_node().get_status();
+  TLOG() << std::endl << design.get_hsi_node().get_status();
 }
 
 } // namespace dunedaq::timinglibs

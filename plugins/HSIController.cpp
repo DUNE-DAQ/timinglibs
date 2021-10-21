@@ -221,7 +221,7 @@ void
 HSIController::do_hsi_print_status(const nlohmann::json&)
 {
   timingcmd::TimingHwCmd hw_cmd;
-  construct_hsi_hw_cmd(hw_cmd, "print_status");
+  construct_hsi_hw_cmd(hw_cmd, "hsi_print_status");
   send_hw_cmd(hw_cmd);
   ++(m_sent_hw_command_counters.at(8).atomic);
 }
