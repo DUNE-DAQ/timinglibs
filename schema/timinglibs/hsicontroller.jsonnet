@@ -15,6 +15,9 @@ local cs = {
     uint_data: s.number("UintData", "u4",
         doc="A count of very many things"),
 
+    double_data: s.number("DoubleData", "f8", 
+         doc="A double"),
+
     init: s.record("InitParams", [
         s.field("qinfos", app.QueueInfos,
                 doc="Information for a module to find its queue"),
@@ -23,6 +26,10 @@ local cs = {
     ], doc="HSIController configuration"),
 
     conf: s.record("ConfParams",[
+        s.field("clock_frequency", self.size,
+            doc="HSI firmware clock frequency"),
+        s.field("trigger_interval_ticks", self.size,
+            doc="Ticks between emulated signals"),
         s.field("address", self.uint_data,
             doc="HSI endpoint address"),
         s.field("partition", self.uint_data,

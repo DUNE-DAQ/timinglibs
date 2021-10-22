@@ -485,8 +485,8 @@ TimingHardwareManager::hsi_configure(const timingcmd::TimingHwCmd& hw_cmd)
   auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi configure";
 
-  design.get_hsi_node().configure_hsi(
-    cmd_payload.data_source, cmd_payload.rising_edge_mask, cmd_payload.falling_edge_mask, cmd_payload.invert_edge_mask);
+  design.configure_hsi(
+    cmd_payload.data_source, cmd_payload.rising_edge_mask, cmd_payload.falling_edge_mask, cmd_payload.invert_edge_mask, cmd_payload.random_rate);
 }
 
 template<class DSGN>
@@ -513,7 +513,7 @@ TimingHardwareManager::hsi_print_status(const timingcmd::TimingHwCmd& hw_cmd)
 {
   auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi print status";
-  design.get_hsi_node().get_status();
+  TLOG() << std::endl << design.get_hsi_node().get_status();
 }
 
 } // namespace dunedaq::timinglibs
