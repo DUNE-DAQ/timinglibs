@@ -11,7 +11,7 @@ local types = {
 
     i64: s.number("I64", dtype="i8"),
 
-    connection_name : s.string("ConnectionName", doc="Connection name to be used with NetworkManager"),
+    topic_name : s.string("TopicName", doc="Topic name to be used with NetworkManager"),
 
     conf: s.record("Conf", [
 
@@ -36,8 +36,8 @@ local types = {
       s.field("signal_emulation_mode", self.u32, 0,
         doc="Signal bit map emulation mode. 0: enabled signals always on; 1: enabled signals are emulated (independently) on according to a Poisson with mean mean_signal_multiplicity; signal map generated with uniform distr. enabled signals only"),
 
-      s.field("timesync_channel", self.connection_name,
-        doc="Channel to use to receive TimeSync messages")
+      s.field("timesync_topic", self.topic_name, "Timesync",
+        doc="Pub/sub topic to use for receiving TimeSync messages")
 
     ], doc="FakeHSIEventoGenerator configuration parameters"),
 

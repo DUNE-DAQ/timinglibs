@@ -78,7 +78,7 @@ private:
   using sink_t = dunedaq::appfwk::DAQSink<dfmessages::HSIEvent>;
   std::unique_ptr<sink_t> m_hsievent_sink;
   std::chrono::milliseconds m_queue_timeout;
-  std::string m_timesync_address;
+  std::string m_timesync_topic;
 
   // Helper class for estimating DAQ time
   std::unique_ptr<TimestampEstimator> m_timestamp_estimator;
@@ -105,6 +105,8 @@ private:
   std::atomic<uint64_t> m_failed_to_send_counter;   // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_last_generated_timestamp; // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_last_sent_timestamp;      // NOLINT(build/unsigned)
+
+  std::atomic<uint64_t> m_received_timesync_count;  // NOLINT(build/unsigned)
 };
 } // namespace timinglibs
 } // namespace dunedaq

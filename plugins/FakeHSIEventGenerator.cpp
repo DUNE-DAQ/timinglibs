@@ -101,7 +101,7 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
   m_signal_emulation_mode = params.signal_emulation_mode;
   m_mean_signal_multiplicity = params.mean_signal_multiplicity;
   m_enabled_signals = params.enabled_signals;
-  m_timesync_address = params.timesync_channel;
+  m_timesync_topic = params.timesync_topic;
 
   // configure the random distributions
   m_poisson_distribution = std::poisson_distribution<uint64_t>(m_mean_signal_multiplicity); // NOLINT(build/unsigned)
@@ -114,8 +114,11 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_start() method";
   m_timestamp_estimator.reset(new TimestampEstimator(m_clock_frequency));
-  networkmanager::NetworkManager::get().add_subscriber(
-    m_timesync_address, "", std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
+
+  m_received_timesync_count.store(0);
+  networkmanager::NetworkManager::get().subscribe(m_timesync_topic);
+  networkmanager::NetworkManager::get().register_callback(
+    m_timesync_topic, std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
 
   auto start_params = obj.get<rcif::cmd::StartParams>();
   m_trigger_interval_ticks.store(start_params.trigger_interval_ticks);
@@ -152,7 +155,11 @@ FakeHSIEventGenerator::do_stop(const nlohmann::json& /*args*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_stop() method";
   m_thread.stop_working_thread();
-  networkmanager::NetworkManager::get().remove_subscriber(m_timesync_address, "");
+
+  networkmanager::NetworkManager::get().clear_callback(m_timesync_topic);
+  networkmanager::NetworkManager::get().unsubscribe(m_timesync_topic);
+  TLOG() << get_name() << ": received " << m_received_timesync_count.load() << " TimeSync messages.";
+
   m_timestamp_estimator.reset(nullptr); // Calls TimestampEstimator dtor
   TLOG() << get_name() << " successfully stopped";
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_stop() method";
@@ -276,6 +283,7 @@ FakeHSIEventGenerator::generate_hsievents(std::atomic<bool>& running_flag)
 void
 FakeHSIEventGenerator::dispatch_timesync(ipm::Receiver::Response message)
 {
+  ++m_received_timesync_count;
   auto timesyncmsg = serialization::deserialize<dfmessages::TimeSync>(message.data);
   TLOG_DEBUG(13) << "Received TimeSync message with DAQ time = " << timesyncmsg.daq_time;
   if (m_timestamp_estimator.get() != nullptr) {
