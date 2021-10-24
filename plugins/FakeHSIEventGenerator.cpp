@@ -242,7 +242,7 @@ FakeHSIEventGenerator::generate_hsievents(std::atomic<bool>& running_flag)
       m_last_generated_timestamp.store(ts);
 
       dfmessages::HSIEvent event = dfmessages::HSIEvent(m_hsi_device_id, signal_map, ts, m_generated_counter);
-      TLOG_DEBUG(1) << get_name() << ": Sending HSIEvent: " << event.header << ", " << std::bitset<32>(event.signal_map)
+      TLOG_DEBUG(3) << get_name() << ": Sending HSIEvent: " << event.header << ", " << std::bitset<32>(event.signal_map)
                     << ", " << event.timestamp << ", " << event.sequence_counter << "\n";
 
       std::string thisQueueName = m_hsievent_sink->get_name();
@@ -251,7 +251,7 @@ FakeHSIEventGenerator::generate_hsievents(std::atomic<bool>& running_flag)
       // once to send everything we generate, even if running_flag is
       // changed to false between the top of the main loop and here
       do {
-        TLOG_DEBUG(2) << get_name() << ": Pushing the generated HSIEvent onto queue " << thisQueueName;
+        TLOG_DEBUG(4) << get_name() << ": Pushing the generated HSIEvent onto queue " << thisQueueName;
         try {
           m_hsievent_sink->push(event, m_queue_timeout);
           was_sent_successfully = true;

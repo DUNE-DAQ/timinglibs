@@ -12,6 +12,9 @@ local timingcmd = {
     uint_data: s.number("UintData", "u4", 
         doc="A PLL register bit(s) value"),
 
+    double_data: s.number("DoubleData", "f8", 
+         doc="A double"),
+
     inst: s.string("String",
                    doc="Name of a target instance of a kind"),
 
@@ -82,6 +85,9 @@ local timingcmd = {
         
         s.field("data_source", self.uint_data,
             doc="Source of data for HSI triggering"),
+
+        s.field("random_rate", self.double_data,
+            doc="Source of data for HSI triggering in emulation (bit 0)"),
     ], doc="Structure for payload of hsi configure commands")
 };
 
