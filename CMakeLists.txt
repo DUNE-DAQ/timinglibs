@@ -67,6 +67,7 @@ daq_add_plugin(FakeHSIEventGenerator duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(HSIReadout duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)
 daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(HSIEventToFile duneDAQModule LINK_LIBRARIES timing::timing timinglibs)
+daq_add_plugin(MasterReadout duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)
 
 daq_add_plugin(TimingHwCmdNQ duneNetworkQueue LINK_LIBRARIES timinglibs nwqueueadapters::nwqueueadapters)
 

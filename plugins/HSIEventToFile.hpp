@@ -25,11 +25,6 @@
 #include "appfwk/DAQSink.hpp"
 #include "appfwk/ThreadHelper.hpp"
 
-#include "uhal/ConnectionManager.hpp"
-#include "uhal/ProtocolUDP.hpp"
-#include "uhal/log/exception.hpp"
-#include "uhal/utilities/files.hpp"
-
 #include <ers/Issue.hpp>
 
 #include <bitset>

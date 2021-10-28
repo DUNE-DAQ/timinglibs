@@ -42,7 +42,7 @@ def generate(
     queue_specs = app.QueueSpecs(sorted(queue_bare_specs, key=lambda x: x.inst))
 
     mod_specs = [   
-                    mspec("hsi", "HSIReadout", [
+                    mspec("hsi", "MasterReadout", [
                                     app.QueueInfo(name="hsievent_sink", inst="hsievent_q", dir="output"),
                                 ]),
 
