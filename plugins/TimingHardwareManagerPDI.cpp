@@ -294,7 +294,8 @@ TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
   }
   timinghardwaremanagerpdiinfo::from_json(device_data, device_info);
   
-  ci.add(device_info);
+  // disable hardware op mon for now, needs schema rework
+  //ci.add(device_info);
 
   // maybe we should keep track of when we last send data, and only send if we have had an update since
 }
