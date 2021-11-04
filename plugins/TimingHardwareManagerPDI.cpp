@@ -259,17 +259,19 @@ TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
   ci.add(module_info);
 
   // the hardware device data
-  timinghardwaremanagerpdiinfo::PDITimingHardwareData device_info;
-  nlohmann::json device_data;
-  timinghardwaremanagerpdiinfo::to_json(device_data, device_info);
-
   for (auto it = m_info_gatherers.begin(); it != m_info_gatherers.end(); ++it) {
     // master info
     if (m_monitored_device_name_master.find(it->second.get()->get_device_name()) != std::string::npos) {
       if (it->first.find("Debug") != std::string::npos) {
-        it->second.get()->get_info(device_data["master_debug"], level);
+        dunedaq::opmonlib::InfoCollector master_debug_ic;
+        it->second.get()->get_info(master_debug_ic, level);
+        if (!master_debug_ic.is_empty())
+          ci.add("master_debug", master_debug_ic);
       } else {
-        it->second.get()->get_info(device_data["master"], level);
+        dunedaq::opmonlib::InfoCollector master_ic;
+        it->second.get()->get_info(master_ic, level);
+        if (!master_ic.is_empty())
+          ci.add("master", master_ic);
       }
     }
     
@@ -277,26 +279,34 @@ TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
       std::string fanout_device_name = m_monitored_device_names_fanout.at(i);
       if (fanout_device_name.find(it->second.get()->get_device_name()) != std::string::npos) {
         if (it->first.find("Debug") != std::string::npos) {
-          it->second.get()->get_info(device_data["fanout_"+std::to_string(i)+"_debug"], level);
+          dunedaq::opmonlib::InfoCollector fanout_debug_ic;
+          it->second.get()->get_info(fanout_debug_ic, level);
+          if (!fanout_debug_ic.is_empty())
+            ci.add("fanout_"+std::to_string(i)+"_debug", fanout_debug_ic);
         } else {
-          it->second.get()->get_info(device_data["fanout_"+std::to_string(i)], level);
+          dunedaq::opmonlib::InfoCollector fanout_ic;
+          it->second.get()->get_info(fanout_ic, level);
+          if (!fanout_ic.is_empty())
+            ci.add("fanout_"+std::to_string(i)+"", fanout_ic);
         }
       }
     }
 
     if (m_monitored_device_name_endpoint.find(it->second.get()->get_device_name()) != std::string::npos) {
       if (it->first.find("Debug") != std::string::npos) {
-        it->second.get()->get_info(device_data["endpoint_debug"], level);
+        dunedaq::opmonlib::InfoCollector endpoint_debug_ic;
+        it->second.get()->get_info(endpoint_debug_ic, level);
+        if (!endpoint_debug_ic.is_empty())
+          ci.add("endpoint_debug", endpoint_debug_ic);
       } else {
-        it->second.get()->get_info(device_data["endpoint"], level);
+        dunedaq::opmonlib::InfoCollector endpoint_ic;
+        it->second.get()->get_info(endpoint_ic, level);
+        if (!endpoint_ic.is_empty())
+          ci.add("endpoint", endpoint_ic);
       }
     }
   }
-  timinghardwaremanagerpdiinfo::from_json(device_data, device_info);
   
-  // disable hardware op mon for now, needs schema rework
-  //ci.add(device_info);
-
   // maybe we should keep track of when we last send data, and only send if we have had an update since
 }
 } // namespace timinglibs
