@@ -190,6 +190,23 @@ TimingHardwareManagerPDI::init(const nlohmann::json& init_data)
                            timing::EndpointDesign<timing::FMCIONode>>(
       m_gather_interval_debug, m_monitored_device_name_endpoint, 2);
   }
+
+  if (m_monitored_device_name_hsi.compare("")) {
+    register_info_gatherer<timing::timingfirmwareinfo::BoreasTLUMonitorData, timing::BoreasDesign<timing::TLUIONode>>(
+      m_gather_interval, m_monitored_device_name_hsi, 1);
+    
+    register_info_gatherer<timing::timingfirmwareinfo::BoreasTLUMonitorDataDebug,
+                           timing::BoreasDesign<timing::TLUIONode>>(
+      m_gather_interval_debug, m_monitored_device_name_hsi, 2);
+
+    register_info_gatherer<timing::timingfirmwareinfo::ChronosFMCMonitorData, timing::ChronosDesign<timing::FMCIONode>>(
+      m_gather_interval, m_monitored_device_name_hsi, 1);
+    
+    register_info_gatherer<timing::timingfirmwareinfo::ChronosFMCMonitorDataDebug,
+                           timing::ChronosDesign<timing::FMCIONode>>(
+      m_gather_interval_debug, m_monitored_device_name_hsi, 2);
+  }
+
   thread_.start_working_thread();
   start_hw_mon_gathering();
 } // NOLINT
@@ -303,6 +320,20 @@ TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
         it->second.get()->get_info(endpoint_ic, level);
         if (!endpoint_ic.is_empty())
           ci.add("endpoint", endpoint_ic);
+      }
+    }
+
+    if (m_monitored_device_name_hsi.find(it->second.get()->get_device_name()) != std::string::npos) {
+      if (it->first.find("Debug") != std::string::npos) {
+        dunedaq::opmonlib::InfoCollector hsi_debug_ic;
+        it->second.get()->get_info(hsi_debug_ic, level);
+        if (!hsi_debug_ic.is_empty())
+          ci.add("hsi_debug", hsi_debug_ic);
+      } else {
+        dunedaq::opmonlib::InfoCollector hsi_ic;
+        it->second.get()->get_info(hsi_ic, level);
+        if (!hsi_ic.is_empty())
+          ci.add("hsi", hsi_ic);
       }
     }
   }
