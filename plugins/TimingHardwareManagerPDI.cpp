@@ -199,6 +199,13 @@ TimingHardwareManagerPDI::init(const nlohmann::json& init_data)
                            timing::BoreasDesign<timing::TLUIONode>>(
       m_gather_interval_debug, m_monitored_device_name_hsi, 2);
 
+    register_info_gatherer<timing::timingfirmwareinfo::BoreasFMCMonitorData, timing::BoreasDesign<timing::FMCIONode>>(
+      m_gather_interval, m_monitored_device_name_hsi, 1);
+    
+    register_info_gatherer<timing::timingfirmwareinfo::BoreasFMCMonitorDataDebug,
+                           timing::BoreasDesign<timing::FMCIONode>>(
+      m_gather_interval_debug, m_monitored_device_name_hsi, 2);
+
     register_info_gatherer<timing::timingfirmwareinfo::ChronosFMCMonitorData, timing::ChronosDesign<timing::FMCIONode>>(
       m_gather_interval, m_monitored_device_name_hsi, 1);
     
