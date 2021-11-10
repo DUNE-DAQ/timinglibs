@@ -249,15 +249,12 @@ TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
     }
 
     if (m_monitored_device_name_hsi.find(it->second.get()->get_device_name()) != std::string::npos) {
-      if (it->first.find("Debug") != std::string::npos) {
-        it->second.get()->add_info_to_collector("hsi_debug", ci);
-      } else {
+      if (it->second.get()->get_op_mon_level() <= level)
+      {
         it->second.get()->add_info_to_collector("hsi", ci);
       }
     }
   }
-  
-  // maybe we should keep track of when we last send data, and only send if we have had an update since
 }
 } // namespace timinglibs
 } // namespace dunedaq

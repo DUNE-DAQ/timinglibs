@@ -50,17 +50,17 @@ TimingHardwareManager::get_timing_device_plain(const std::string& device_name)
 }
 
 void
-TimingHardwareManager::gather_monitor_data(InfoGathererInterface& gatherer)
+TimingHardwareManager::gather_monitor_data(InfoGatherer& gatherer)
 {
   auto device_name = gatherer.get_device_name();
 
-  
   while (gatherer.run_gathering()) {
     
     // collect the data from the hardware
     try {
       auto design = get_timing_device_plain(device_name);
       gatherer.collect_info_from_device(*design);
+      gatherer.update_last_gathered_time(std::time(nullptr));
     } catch (const std::exception& excpt) {
       ers::error(FailedToCollectOpMonInfo(ERS_HERE, device_name, excpt));
     }
@@ -91,14 +91,19 @@ TimingHardwareManager::gather_monitor_data(InfoGathererInterface& gatherer)
 void
 TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level)
 {
-  std::unique_ptr<InfoGathererInterface> gatherer = std::make_unique<InfoGathererInterface>(
+  std::string gatherer_name = device_name + "_level_" + std::to_string(op_mon_level);
+  if ( m_info_gatherers.find(gatherer_name) == m_info_gatherers.end() ) {
+    std::unique_ptr<InfoGatherer> gatherer = std::make_unique<InfoGatherer>(
     std::bind(&TimingHardwareManager::gather_monitor_data, this, std::placeholders::_1),
     gather_interval,
     device_name,
     op_mon_level);
-  std::string gatherer_name = device_name + "_level_" + std::to_string(op_mon_level);
-  TLOG_DEBUG(0) << "Registering info gatherer: " << gatherer_name;
-  m_info_gatherers.emplace(std::make_pair(gatherer_name, std::move(gatherer)));
+
+    TLOG_DEBUG(0) << "Registering info gatherer: " << gatherer_name;
+    m_info_gatherers.emplace(std::make_pair(gatherer_name, std::move(gatherer))); 
+  } else {
+    TLOG() << "Skipping registration of " << gatherer_name << ". Already exists.";
+  }
 }
 
 } // namespace timinglibs

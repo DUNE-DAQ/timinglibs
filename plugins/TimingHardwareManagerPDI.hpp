@@ -23,7 +23,7 @@
 
 #include "TimingHardwareManager.hpp"
 
-#include "InfoGathererInterface.hpp"
+#include "InfoGatherer.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
 
