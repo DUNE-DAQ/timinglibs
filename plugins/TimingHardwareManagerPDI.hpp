@@ -24,7 +24,6 @@
 #include "TimingHardwareManager.hpp"
 
 #include "InfoGatherer.hpp"
-#include "InfoGathererInterface.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
 

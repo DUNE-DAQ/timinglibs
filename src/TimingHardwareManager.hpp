@@ -19,6 +19,7 @@
 
 #include "InfoGatherer.hpp"
 
+#include "timing/TimingNode.hpp"
 #include "timing/FanoutDesign.hpp"
 
 #include "appfwk/DAQModule.hpp"
@@ -126,6 +127,7 @@ protected:
   template<class TIMING_DEV>
   const TIMING_DEV& get_timing_device(const std::string& device_name);
 
+  const timing::TimingNode* get_timing_device_plain(const std::string& device_name);
   // timing hw cmds stuff
   std::map<timingcmd::TimingHwCmdId, std::function<void(const timingcmd::TimingHwCmd&)>> m_timing_hw_cmd_map_;
 
@@ -190,13 +192,10 @@ protected:
   std::atomic<uint64_t> m_failed_hw_commands_counter;   // NOLINT(build/unsigned)
 
   // monitoring
-  std::map<std::string, std::unique_ptr<InfoGathererInterface>> m_info_gatherers;
+  std::map<std::string, std::unique_ptr<InfoGatherer>> m_info_gatherers;
 
-  template<class INFO, class DSGN>
   void register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level);
-
-  template<class INFO, class DSGN>
-  void gather_monitor_data(InfoGatherer<INFO>& gatherer);
+  void gather_monitor_data(InfoGatherer& gatherer);
 
   virtual void start_hw_mon_gathering(const std::string& device_name="");
   virtual void stop_hw_mon_gathering(const std::string& device_name="");

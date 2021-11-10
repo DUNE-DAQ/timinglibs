@@ -40,63 +40,6 @@ TimingHardwareManager::init(const nlohmann::json& init_data)
   m_failed_hw_commands_counter = 0;
 }
 
-template<class INFO, class DSGN>
-void
-TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level)
-{
-
-  try {
-    if (typeid(const DSGN&) != typeid(m_connection_manager->getDevice(device_name).getNode(""))) {
-      TLOG_DEBUG(0) << device_name << " is not of type " << typeid(DSGN).name() << ". I will not monitor the hw";
-      return;
-    }
-  } catch (const uhal::exception::ConnectionUIDDoesNotExist& exception) {
-    std::stringstream message;
-    message << "UHAL device name not " << device_name << " in connections file";
-    throw UHALDeviceNameIssue(ERS_HERE, message.str(), exception);
-  }
-
-  std::unique_ptr<InfoGathererInterface> gatherer = std::make_unique<InfoGatherer<INFO>>(
-    std::bind(&TimingHardwareManager::gather_monitor_data<INFO, DSGN>, this, std::placeholders::_1),
-    gather_interval,
-    device_name,
-    op_mon_level);
-  std::string gatherer_name = device_name + "_" + typeid(DSGN).name() + "_" + typeid(INFO).name();
-  TLOG_DEBUG(0) << "Registering info gatherer: " << gatherer_name;
-  m_info_gatherers.emplace(std::make_pair(gatherer_name, std::move(gatherer)));
-}
-
-template<class INFO, class DSGN>
-void
-TimingHardwareManager::gather_monitor_data(InfoGatherer<INFO>& gatherer)
-{
-  auto device_name = gatherer.get_device_name();
-
-  while (gatherer.run_gathering()) {
-    // monitoring data recepticle
-    INFO mon_data;
-
-    // collect the data from the hardware
-    try {
-      auto design = get_timing_device<DSGN>(device_name);
-      design.get_info(mon_data);
-
-      // when did we actually collect the data
-      mon_data.time_gathered = static_cast<int64_t>(std::time(nullptr));
-
-      gatherer.update_last_gathered_time(mon_data.time_gathered);
-
-      // store the monitor data for retrieveal by get_info at a later time
-      gatherer.update_monitoring_data(mon_data);
-
-      // sleep for a bit
-      usleep(gatherer.get_gather_interval());
-    } catch (const std::exception& excpt) {
-      ers::error(FailedToCollectOpMonInfo(ERS_HERE, mon_data.info_type, device_name, excpt));
-    }
-  }
-}
-
 void
 TimingHardwareManager::start_hw_mon_gathering(const std::string& device_name)
 {
