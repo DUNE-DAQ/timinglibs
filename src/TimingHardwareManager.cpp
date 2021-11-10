@@ -69,13 +69,13 @@ TimingHardwareManager::gather_monitor_data(InfoGatherer& gatherer)
     auto next_gather_time = prev_gather_time + std::chrono::microseconds(gatherer.get_gather_interval());
     
     // check running_flag periodically
-    auto slice_period = std::chrono::microseconds(1000);
+    auto slice_period = std::chrono::microseconds(10000);
     auto next_slice_gather_time = prev_gather_time + slice_period;
     
     bool break_flag = false;
     while (next_gather_time > next_slice_gather_time + slice_period) {
       if (!gatherer.run_gathering()) {
-        TLOG() << "while waiting to gather data, negative run gatherer flag detected.";
+        TLOG_DEBUG(0) << "while waiting to gather data, negative run gatherer flag detected.";
         break_flag = true;
         break;
       }
