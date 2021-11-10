@@ -14,6 +14,7 @@
 
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
+#include "opmonlib/InfoCollector.hpp"
 
 #include <functional>
 #include <future>
@@ -46,14 +47,20 @@ public:
    * @param gather_data function for data gathering
    * @param gather_interval interval for data gathering in us
    */
-  explicit InfoGathererInterface(uint gather_interval, const std::string& device_name, int op_mon_level)
+  explicit InfoGathererInterface(std::function<void(InfoGathererInterface&)> gather_data,
+                        uint gather_interval,
+                        const std::string& device_name,
+                        int op_mon_level)
     : m_run_gathering(false)
     , m_gathering_thread(nullptr)
     , m_gather_interval(gather_interval)
     , m_device_name(device_name)
     , m_last_gathered_time(0)
     , m_op_mon_level(op_mon_level)
-  {}
+    , m_gather_data(gather_data)
+  {
+    m_info_collector = std::make_unique<opmonlib::InfoCollector>();
+  }
 
   InfoGathererInterface(const InfoGathererInterface&) = delete; ///< InfoGathererInterface is not copy-constructible
   InfoGathererInterface& operator=(const InfoGathererInterface&) =
@@ -65,7 +72,24 @@ public:
    * @brief Start the monitoring thread (which executes the m_gather_data() function)
    * @throws MonitorThreadingIssue if the thread is already running
    */
-  virtual void start_gathering_thread(const std::string& name = "noname") = 0;
+  void start_gathering_thread(const std::string& name = "noname")
+  {
+    if (run_gathering()) {
+      throw GatherThreadingIssue(ERS_HERE,
+                                 "Attempted to start gathering thread "
+                                 "when it is already supposed to be running!");
+    }
+    m_run_gathering = true;
+    m_gathering_thread.reset(new std::thread([&] { m_gather_data(*this); }));
+    auto handle = m_gathering_thread->native_handle();
+    auto rc = pthread_setname_np(handle, name.c_str());
+    if (rc != 0) {
+      std::ostringstream s;
+      s << "The name " << name << " provided for the thread is too long.";
+      ers::warning(GatherThreadingIssue(ERS_HERE, s.str()));
+    }
+  }
+
   /**
    * @brief Stop the gathering thread
    * @throws GatherThreadingIssue If the thread has not yet been started
@@ -107,10 +131,27 @@ public:
 
   int get_op_mon_level() const { return m_op_mon_level; }
 
-  virtual void get_info(opmonlib::InfoCollector& ci, int level) const = 0; 
-  virtual void get_info(nlohmann::json& data, int level) const = 0;
+  template<class DSGN>
+  void collect_info_from_device(const DSGN& device) const
+  {
+    std::unique_lock info_collector_lock(m_info_collector_mutex);
+    device.get_info(*m_info_collector, get_op_mon_level());
+  }
 
-  virtual nlohmann::json get_monitoring_data_json() const = 0;
+  void add_info_to_collector(std::string label, opmonlib::InfoCollector& ic)
+  {
+    std::unique_lock info_collector_lock(m_info_collector_mutex);
+    if (m_info_collector->is_empty())
+    {
+      TLOG() << "skipping add info for gatherer: " << get_device_name() << " with gathered time: " << get_last_gathered_time();
+    }
+    else
+    {
+      ic.add(label, *m_info_collector);
+    }
+    m_info_collector = std::make_unique<opmonlib::InfoCollector>();
+  }
+
 protected:
   std::atomic<bool> m_run_gathering;
   std::unique_ptr<std::thread> m_gathering_thread;
@@ -119,6 +160,10 @@ protected:
   std::string m_device_name;
   std::atomic<int64_t> m_last_gathered_time;
   int m_op_mon_level;
+  std::unique_ptr<opmonlib::InfoCollector> m_info_collector;
+  mutable std::mutex m_info_collector_mutex;
+  std::function<void(InfoGathererInterface&)> m_gather_data;
+
 };
 
 } // namespace timinglibs
