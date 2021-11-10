@@ -153,8 +153,8 @@ TimingHardwareManagerPDI::init(const nlohmann::json& init_data)
     register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_hsi, 2);
   }
 
-  //thread_.start_working_thread();
-  //start_hw_mon_gathering();
+  thread_.start_working_thread();
+  start_hw_mon_gathering();
 } // NOLINT
 
 template<class DSGN>
@@ -230,37 +230,23 @@ TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
         it->second.get()->add_info_to_collector("master", ci);
       }
     }
-//    
-//    for (uint i=0; i < m_monitored_device_names_fanout.size(); ++i) {
-//      std::string fanout_device_name = m_monitored_device_names_fanout.at(i);
-//      if (fanout_device_name.find(it->second.get()->get_device_name()) != std::string::npos) {
-//        if (it->first.find("Debug") != std::string::npos) {
-//          dunedaq::opmonlib::InfoCollector fanout_debug_ic;
-//          it->second.get()->get_info(fanout_debug_ic, level);
-//          if (!fanout_debug_ic.is_empty())
-//            ci.add("fanout_"+std::to_string(i)+"_debug", fanout_debug_ic);
-//        } else {
-//          dunedaq::opmonlib::InfoCollector fanout_ic;
-//          it->second.get()->get_info(fanout_ic, level);
-//          if (!fanout_ic.is_empty())
-//            ci.add("fanout_"+std::to_string(i)+"", fanout_ic);
-//        }
-//      }
-//    }
-//
-//    if (m_monitored_device_name_endpoint.find(it->second.get()->get_device_name()) != std::string::npos) {
-//      if (it->first.find("Debug") != std::string::npos) {
-//        dunedaq::opmonlib::InfoCollector endpoint_debug_ic;
-//        it->second.get()->get_info(endpoint_debug_ic, level);
-//        if (!endpoint_debug_ic.is_empty())
-//          ci.add("endpoint_debug", endpoint_debug_ic);
-//      } else {
-//        dunedaq::opmonlib::InfoCollector endpoint_ic;
-//        it->second.get()->get_info(endpoint_ic, level);
-//        if (!endpoint_ic.is_empty())
-//          ci.add("endpoint", endpoint_ic);
-//      }
-//    }
+    
+    for (uint i=0; i < m_monitored_device_names_fanout.size(); ++i) {
+      std::string fanout_device_name = m_monitored_device_names_fanout.at(i);
+      if (fanout_device_name.find(it->second.get()->get_device_name()) != std::string::npos) {
+        if (it->second.get()->get_op_mon_level() <= level)
+        {
+          it->second.get()->add_info_to_collector("fanout_"+std::to_string(i), ci);
+        }
+      }
+    }
+
+    if (m_monitored_device_name_endpoint.find(it->second.get()->get_device_name()) != std::string::npos) {
+      if (it->second.get()->get_op_mon_level() <= level)
+      {
+        it->second.get()->add_info_to_collector("endpoint", ci);
+      }
+    }
 
     if (m_monitored_device_name_hsi.find(it->second.get()->get_device_name()) != std::string::npos) {
       if (it->first.find("Debug") != std::string::npos) {

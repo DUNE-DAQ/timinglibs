@@ -88,8 +88,8 @@ public:
   TimingHardwareManager(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-constructible
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
   virtual ~TimingHardwareManager() {
-    //thread_.stop_working_thread();
-    //stop_hw_mon_gathering(); 
+    thread_.stop_working_thread();
+    stop_hw_mon_gathering(); 
   }
   void init(const nlohmann::json& init_data) override;
   
