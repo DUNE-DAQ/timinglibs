@@ -72,8 +72,8 @@ ERS_DECLARE_ISSUE_BASE(timinglibs,
 
 ERS_DECLARE_ISSUE(timinglibs,
                   FailedToCollectOpMonInfo,
-                  " Failed to collect op mon info class: " << info_class << " from device: " << device_name,
-                  ((std::string)info_class)((std::string)device_name))
+                  " Failed to collect op mon info from device: " << device_name,
+                  ((std::string)device_name))
 
 ERS_DECLARE_ISSUE(timinglibs, HardwareCommandIssue, " Issue wih hw cmd id: " << hw_cmd_id, ((std::string)hw_cmd_id))
 

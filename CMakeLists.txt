@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(timinglibs VERSION 1.3.1)
+project(timinglibs VERSION 1.4.0)
 
 find_package(daq-cmake REQUIRED)
 
@@ -54,7 +54,7 @@ set(TIMINGLIBS_DEPENDENCIES
 )
 
 ##############################################################################
-daq_add_library(TimingController.cpp TimestampEstimatorBase.cpp TimestampEstimator.cpp TimestampEstimatorSystem.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES})
+daq_add_library(TimingController.cpp TimestampEstimatorBase.cpp TimestampEstimator.cpp TimestampEstimatorSystem.cpp TimingHardwareManager.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES})
 
 ##############################################################################
 daq_add_plugin(TimingHardwareManagerPDI duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)
