@@ -17,20 +17,6 @@ local info = {
        s.field("rejected_hw_commands_counter", self.uint8, 0, doc="Number of hw commands rejected so far"), 
        s.field("failed_hw_commands_counter", self.uint8, 0, doc="Number of hw commands rejected so far"),
    ], doc="TimingHardwareManagerPDI information"),
-
-   pdi_device_data: s.record("PDITimingHardwareData", [
-       s.field("master", self.hw_device_data, doc="Device data"),
-       s.field("fanout_0", self.hw_device_data, doc="Device data"),
-       s.field("fanout_1", self.hw_device_data, doc="Device data"),
-       s.field("fanout_2", self.hw_device_data, doc="Device data"),
-       s.field("endpoint", self.hw_device_data, doc="Device data"),
-
-       s.field("master_debug", self.hw_device_data, doc="Device data"),
-       s.field("fanout_0_debug", self.hw_device_data, doc="Device data"),
-       s.field("fanout_1_debug", self.hw_device_data, doc="Device data"),
-       s.field("fanout_2_debug", self.hw_device_data, doc="Device data"),
-       s.field("endpoint_debug", self.hw_device_data, doc="Device data"),
-   ], doc="PDI timing hardware information"),
 };
 
 moo.oschema.sort_select(info)

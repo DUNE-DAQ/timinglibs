@@ -132,64 +132,27 @@ TimingHardwareManagerPDI::init(const nlohmann::json& init_data)
   // monitoring
   // only register monitor threads if we have been given the name of the device to monitor
   if (m_monitored_device_name_master.compare("")) {
-    register_info_gatherer<timing::timingfirmwareinfo::OverlordTLUMonitorData,
-                           timing::OverlordDesign<timing::TLUIONode>>(
-      m_gather_interval, m_monitored_device_name_master, 1);
-    
-    register_info_gatherer<timing::timingfirmwareinfo::OverlordTLUMonitorDataDebug,
-                           timing::OverlordDesign<timing::TLUIONode>>(
-      m_gather_interval_debug, m_monitored_device_name_master, 2);
-
-    register_info_gatherer<timing::timingfirmwareinfo::BoreasTLUMonitorData, timing::BoreasDesign<timing::TLUIONode>>(
-      m_gather_interval, m_monitored_device_name_master, 1);
-    
-    register_info_gatherer<timing::timingfirmwareinfo::BoreasTLUMonitorDataDebug,
-                           timing::BoreasDesign<timing::TLUIONode>>(
-      m_gather_interval_debug, m_monitored_device_name_master, 2);
-
-    register_info_gatherer<timing::timingfirmwareinfo::BoreasFMCMonitorData, timing::BoreasDesign<timing::FMCIONode>>(
-      m_gather_interval, m_monitored_device_name_master, 1);
-    
-    register_info_gatherer<timing::timingfirmwareinfo::BoreasFMCMonitorDataDebug,
-                           timing::BoreasDesign<timing::FMCIONode>>(
-      m_gather_interval_debug, m_monitored_device_name_master, 2);
-
-    register_info_gatherer<timing::timingfirmwareinfo::FanoutPC059MonitorData,
-                             timing::FanoutDesign<timing::PC059IONode, timing::PDIMasterNode>>(
-                                m_gather_interval, m_monitored_device_name_master, 1);
-    
-    register_info_gatherer<timing::timingfirmwareinfo::FanoutPC059MonitorDataDebug,
-                            timing::FanoutDesign<timing::PC059IONode, timing::PDIMasterNode>>(
-                              m_gather_interval_debug, m_monitored_device_name_master, 2);
-
-    register_info_gatherer<timing::timingfirmwareinfo::OuroborosPC059MonitorData,
-                             timing::OuroborosMuxDesign<timing::PC059IONode>>(
-                                m_gather_interval, m_monitored_device_name_master, 1);
-    
-    register_info_gatherer<timing::timingfirmwareinfo::OuroborosPC059MonitorDataDebug,
-                            timing::OuroborosMuxDesign<timing::PC059IONode>>(
-                              m_gather_interval_debug, m_monitored_device_name_master, 2);
+    register_info_gatherer(m_gather_interval, m_monitored_device_name_master, 1);
+    register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_master, 2);
   }
   
   for (auto it = m_monitored_device_names_fanout.begin(); it != m_monitored_device_names_fanout.end(); ++it) {
     if (it->compare("")) {
-      register_info_gatherer<timing::timingfirmwareinfo::FanoutPC059MonitorData,
-                             timing::FanoutDesign<timing::PC059IONode, timing::PDIMasterNode>>(
-                                m_gather_interval, *it, 1);
-      register_info_gatherer<timing::timingfirmwareinfo::FanoutPC059MonitorDataDebug,
-                            timing::FanoutDesign<timing::PC059IONode, timing::PDIMasterNode>>(
-                              m_gather_interval_debug, *it, 2);
+      register_info_gatherer(m_gather_interval, *it, 1);
+      register_info_gatherer(m_gather_interval_debug, *it, 2);
     }
   }
   
   if (m_monitored_device_name_endpoint.compare("")) {
-    register_info_gatherer<timing::timingfirmwareinfo::TimingEndpointFMCMonitorData,
-                           timing::EndpointDesign<timing::FMCIONode>>(
-      m_gather_interval, m_monitored_device_name_endpoint, 1);
-    register_info_gatherer<timing::timingfirmwareinfo::TimingEndpointFMCMonitorDataDebug,
-                           timing::EndpointDesign<timing::FMCIONode>>(
-      m_gather_interval_debug, m_monitored_device_name_endpoint, 2);
+    register_info_gatherer(m_gather_interval, m_monitored_device_name_endpoint, 1);
+    register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_endpoint, 2);
   }
+
+  if (m_monitored_device_name_hsi.compare("")) {
+    register_info_gatherer(m_gather_interval, m_monitored_device_name_hsi, 1);
+    register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_hsi, 2);
+  }
+
   thread_.start_working_thread();
   start_hw_mon_gathering();
 } // NOLINT
@@ -259,45 +222,39 @@ TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
   ci.add(module_info);
 
   // the hardware device data
-  timinghardwaremanagerpdiinfo::PDITimingHardwareData device_info;
-  nlohmann::json device_data;
-  timinghardwaremanagerpdiinfo::to_json(device_data, device_info);
-
   for (auto it = m_info_gatherers.begin(); it != m_info_gatherers.end(); ++it) {
     // master info
     if (m_monitored_device_name_master.find(it->second.get()->get_device_name()) != std::string::npos) {
-      if (it->first.find("Debug") != std::string::npos) {
-        it->second.get()->get_info(device_data["master_debug"], level);
-      } else {
-        it->second.get()->get_info(device_data["master"], level);
+      if (it->second.get()->get_op_mon_level() <= level)
+      {
+        it->second.get()->add_info_to_collector("master", ci);
       }
     }
     
     for (uint i=0; i < m_monitored_device_names_fanout.size(); ++i) {
       std::string fanout_device_name = m_monitored_device_names_fanout.at(i);
       if (fanout_device_name.find(it->second.get()->get_device_name()) != std::string::npos) {
-        if (it->first.find("Debug") != std::string::npos) {
-          it->second.get()->get_info(device_data["fanout_"+std::to_string(i)+"_debug"], level);
-        } else {
-          it->second.get()->get_info(device_data["fanout_"+std::to_string(i)], level);
+        if (it->second.get()->get_op_mon_level() <= level)
+        {
+          it->second.get()->add_info_to_collector("fanout_"+std::to_string(i), ci);
         }
       }
     }
 
     if (m_monitored_device_name_endpoint.find(it->second.get()->get_device_name()) != std::string::npos) {
-      if (it->first.find("Debug") != std::string::npos) {
-        it->second.get()->get_info(device_data["endpoint_debug"], level);
-      } else {
-        it->second.get()->get_info(device_data["endpoint"], level);
+      if (it->second.get()->get_op_mon_level() <= level)
+      {
+        it->second.get()->add_info_to_collector("endpoint", ci);
+      }
+    }
+
+    if (m_monitored_device_name_hsi.find(it->second.get()->get_device_name()) != std::string::npos) {
+      if (it->second.get()->get_op_mon_level() <= level)
+      {
+        it->second.get()->add_info_to_collector("hsi", ci);
       }
     }
   }
-  timinghardwaremanagerpdiinfo::from_json(device_data, device_info);
-  
-  // disable hardware op mon for now, needs schema rework
-  //ci.add(device_info);
-
-  // maybe we should keep track of when we last send data, and only send if we have had an update since
 }
 } // namespace timinglibs
 } // namespace dunedaq
