@@ -14,6 +14,7 @@
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/DAQSource.hpp"
+#include "toolbox/ThreadHelper.hpp"
 
 #include "dfmessages/TimeSync.hpp"
 #include "dfmessages/Types.hpp"
@@ -46,14 +47,14 @@ public:
   void add_timestamp_datapoint(const dfmessages::TimeSync& ts);
 
 private:
-  void estimator_thread_fn(std::unique_ptr<appfwk::DAQSource<dfmessages::TimeSync>>& time_sync_source);
+  void estimator_thread_fn(std::atomic<bool>& running_flag);
 
   // The estimate of the current timestamp
   std::atomic<dfmessages::timestamp_t> m_current_timestamp_estimate{ dfmessages::TypeDefaults::s_invalid_timestamp };
 
-  std::atomic<bool> m_running_flag{ false };
   uint64_t m_clock_frequency_hz; // NOLINT(build/unsigned)
-  std::thread m_estimator_thread;
+  appfwk::DAQSource<dfmessages::TimeSync>* m_time_sync_source;
+  toolbox::ThreadHelper m_estimator_thread;
   dfmessages::TimeSync m_most_recent_timesync;
   std::mutex m_datapoint_mutex;
 };

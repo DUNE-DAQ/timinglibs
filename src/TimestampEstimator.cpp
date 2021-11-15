@@ -20,16 +20,17 @@ namespace dunedaq {
 namespace timinglibs {
 TimestampEstimator::TimestampEstimator(std::unique_ptr<appfwk::DAQSource<dfmessages::TimeSync>>& time_sync_source,
                                        uint64_t clock_frequency_hz) // NOLINT(build/unsigned)
-  : m_running_flag(true)
-  , m_clock_frequency_hz(clock_frequency_hz)
-  , m_estimator_thread(&TimestampEstimator::estimator_thread_fn, this, std::ref(time_sync_source))
+  : m_clock_frequency_hz(clock_frequency_hz)
+  , m_time_sync_source(time_sync_source.get())
+  , m_estimator_thread(std::bind(&TimestampEstimator::estimator_thread_fn, this, std::placeholders::_1))
 {
-  pthread_setname_np(m_estimator_thread.native_handle(), "tde-ts-est");
+  m_estimator_thread.start_working_thread("tde-ts-est");
 }
 
 TimestampEstimator::TimestampEstimator(uint64_t clock_frequency_hz) // NOLINT(build/unsigned)
-  : m_running_flag(false)
-  , m_clock_frequency_hz(clock_frequency_hz)
+  : m_clock_frequency_hz(clock_frequency_hz)
+  , m_time_sync_source(nullptr)
+  , m_estimator_thread(std::bind(&TimestampEstimator::estimator_thread_fn, this, std::placeholders::_1))
 {
   m_most_recent_timesync.daq_time = dfmessages::TypeDefaults::s_invalid_timestamp;
   m_current_timestamp_estimate.store(dfmessages::TypeDefaults::s_invalid_timestamp);
@@ -37,9 +38,8 @@ TimestampEstimator::TimestampEstimator(uint64_t clock_frequency_hz) // NOLINT(bu
 
 TimestampEstimator::~TimestampEstimator()
 {
-  m_running_flag.store(false);
-  if (m_estimator_thread.joinable()) {
-    m_estimator_thread.join();
+  if (m_estimator_thread.thread_running()) {
+    m_estimator_thread.stop_working_thread();
   }
 }
 
@@ -103,7 +103,7 @@ TimestampEstimator::add_timestamp_datapoint(const dfmessages::TimeSync& ts)
 }
 
 void
-TimestampEstimator::estimator_thread_fn(std::unique_ptr<appfwk::DAQSource<dfmessages::TimeSync>>& time_sync_source)
+TimestampEstimator::estimator_thread_fn(std::atomic<bool>& running_flag)
 {
   // This loop is a hack to deal with the fact that there might be
   // leftover TimeSync messages from the previous run, because
@@ -114,9 +114,9 @@ TimestampEstimator::estimator_thread_fn(std::unique_ptr<appfwk::DAQSource<dfmess
   // which we drop on the floor. This is fairly harmless: it'll just
   // slightly delay us getting to the point where we actually start
   // making the timestamp estimate
-  while (time_sync_source->can_pop()) {
+  while (m_time_sync_source->can_pop()) {
     dfmessages::TimeSync t{ dfmessages::TypeDefaults::s_invalid_timestamp };
-    time_sync_source->pop(t);
+    m_time_sync_source->pop(t);
   }
 
   m_most_recent_timesync.daq_time = dfmessages::TypeDefaults::s_invalid_timestamp;
@@ -125,11 +125,11 @@ TimestampEstimator::estimator_thread_fn(std::unique_ptr<appfwk::DAQSource<dfmess
   // time_sync_source_ is connected to an MPMC queue with multiple
   // writers. We read whatever we can off it, and the item with the
   // largest timestamp "wins"
-  while (m_running_flag.load()) {
+  while (running_flag.load()) {
     // First, update the latest timestamp
-    while (time_sync_source->can_pop()) {
+    while (m_time_sync_source->can_pop()) {
       dfmessages::TimeSync t{ dfmessages::TypeDefaults::s_invalid_timestamp };
-      time_sync_source->pop(t);
+      m_time_sync_source->pop(t);
       add_timestamp_datapoint(t);
     }
 
@@ -139,9 +139,9 @@ TimestampEstimator::estimator_thread_fn(std::unique_ptr<appfwk::DAQSource<dfmess
   // Drain the input queue as best we can. We're not going to do
   // anything with the TimeSync messages, so we just drop them on the
   // floor
-  while (time_sync_source->can_pop()) {
+  while (m_time_sync_source->can_pop()) {
     dfmessages::TimeSync t{ dfmessages::TypeDefaults::s_invalid_timestamp };
-    time_sync_source->pop(t);
+    m_time_sync_source->pop(t);
   }
 }
 
