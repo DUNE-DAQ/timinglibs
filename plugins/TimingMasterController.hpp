@@ -59,6 +59,7 @@ public:
     delete; ///< TimingMasterController is not move-assignable
 
   void init(const nlohmann::json& init_data) override;
+
 private:
   // Commands
   void do_configure(const nlohmann::json& data) override;

@@ -50,13 +50,14 @@ TimingHardwareManager::start_hw_mon_gathering(const std::string& device_name)
       it->second.get()->start_gathering_thread();
   } else {
     // find gatherer for suppled device name and start it
-    bool gatherer_found=false;
+    bool gatherer_found = false;
     for (auto it = m_info_gatherers.lower_bound(device_name); it != m_info_gatherers.end(); ++it) {
       TLOG_DEBUG(0) << get_name() << " Starting info gatherer: " << it->first;
       it->second.get()->start_gathering_thread();
-      gatherer_found=true;
-    } 
-    if (!gatherer_found) ers::error(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "start", device_name));
+      gatherer_found = true;
+    }
+    if (!gatherer_found)
+      ers::error(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "start", device_name));
   }
 }
 
@@ -70,13 +71,14 @@ TimingHardwareManager::stop_hw_mon_gathering(const std::string& device_name)
       it->second.get()->stop_gathering_thread();
   } else {
     // find gatherer for suppled device name and stop it
-    bool gatherer_found=false;
+    bool gatherer_found = false;
     for (auto it = m_info_gatherers.lower_bound(device_name); it != m_info_gatherers.end(); ++it) {
       TLOG_DEBUG(0) << get_name() << " Stopping info gatherer: " << it->first;
       it->second.get()->stop_gathering_thread();
-      gatherer_found=true;
-    } 
-    if (!gatherer_found) ers::error(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "stop", device_name));
+      gatherer_found = true;
+    }
+    if (!gatherer_found)
+      ers::error(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "stop", device_name));
   }
 }
 
@@ -204,7 +206,7 @@ TimingHardwareManager::io_reset(const timingcmd::TimingHwCmd& hw_cmd)
 {
   timingcmd::IOResetCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
-  
+
   stop_hw_mon_gathering(hw_cmd.device);
   auto design = get_timing_device<DSGN>(hw_cmd.device);
 
@@ -221,11 +223,12 @@ TimingHardwareManager::io_reset(const timingcmd::TimingHwCmd& hw_cmd)
 
 template<>
 void
-TimingHardwareManager::io_reset<timing::FanoutDesign<timing::PC059IONode, timing::PDIMasterNode>>(const timingcmd::TimingHwCmd& hw_cmd)
+TimingHardwareManager::io_reset<timing::FanoutDesign<timing::PC059IONode, timing::PDIMasterNode>>(
+  const timingcmd::TimingHwCmd& hw_cmd)
 {
   timingcmd::IOResetCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
-  
+
   stop_hw_mon_gathering(hw_cmd.device);
   auto design = get_timing_device<timing::FanoutDesign<timing::PC059IONode, timing::PDIMasterNode>>(hw_cmd.device);
 
@@ -233,8 +236,8 @@ TimingHardwareManager::io_reset<timing::FanoutDesign<timing::PC059IONode, timing
     TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " soft io reset";
     design.get_io_node().soft_reset();
   } else {
-    TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device
-                  << " io reset, with fanout mode: " << cmd_payload.fanout_mode << ", and supplied clk file: " << cmd_payload.clock_config;
+    TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " io reset, with fanout mode: " << cmd_payload.fanout_mode
+                  << ", and supplied clk file: " << cmd_payload.clock_config;
     design.reset(cmd_payload.fanout_mode, cmd_payload.clock_config);
   }
   start_hw_mon_gathering(hw_cmd.device);
@@ -428,8 +431,11 @@ TimingHardwareManager::hsi_configure(const timingcmd::TimingHwCmd& hw_cmd)
   auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi configure";
 
-  design.configure_hsi(
-    cmd_payload.data_source, cmd_payload.rising_edge_mask, cmd_payload.falling_edge_mask, cmd_payload.invert_edge_mask, cmd_payload.random_rate);
+  design.configure_hsi(cmd_payload.data_source,
+                       cmd_payload.rising_edge_mask,
+                       cmd_payload.falling_edge_mask,
+                       cmd_payload.invert_edge_mask,
+                       cmd_payload.random_rate);
 }
 
 template<class DSGN>

@@ -106,7 +106,7 @@ private:
   std::atomic<uint64_t> m_last_generated_timestamp; // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_last_sent_timestamp;      // NOLINT(build/unsigned)
 
-  std::atomic<uint64_t> m_received_timesync_count;  // NOLINT(build/unsigned)
+  std::atomic<uint64_t> m_received_timesync_count; // NOLINT(build/unsigned)
 };
 } // namespace timinglibs
 } // namespace dunedaq

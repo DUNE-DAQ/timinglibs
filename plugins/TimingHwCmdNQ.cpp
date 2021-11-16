@@ -6,8 +6,8 @@
  * received with this code.
  */
 
-#include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
+#include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingcmd/msgp.hpp"
 
 #include "nwqueueadapters/AdapterMacros.hpp"

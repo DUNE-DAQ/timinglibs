@@ -60,8 +60,8 @@ public:
   HSIController& operator=(HSIController&&) = delete;      ///< HSIController is not move-assignable
 
   void init(const nlohmann::json& init_data) override;
-private:
 
+private:
   hsicontroller::ConfParams m_hsi_configuration;
 
   // Commands
@@ -69,7 +69,7 @@ private:
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
   void do_resume(const nlohmann::json& data);
-  
+
   void construct_hsi_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
 
   // timinglibs hsi commands
