@@ -20,6 +20,8 @@
 #include "InfoGatherer.hpp"
 
 #include "timing/TimingNode.hpp"
+#include "timing/TopDesignInterface.hpp"
+#include "timing/MasterDesignInterface.hpp"
 #include "timing/FanoutDesign.hpp"
 
 #include "appfwk/DAQModule.hpp"
@@ -126,8 +128,8 @@ protected:
   // retrieve top level/design object for a timing device
   template<class TIMING_DEV>
   const TIMING_DEV& get_timing_device(const std::string& device_name);
-
   const timing::TimingNode* get_timing_device_plain(const std::string& device_name);
+
   // timing hw cmds stuff
   std::map<timingcmd::TimingHwCmdId, std::function<void(const timingcmd::TimingHwCmd&)>> m_timing_hw_cmd_map_;
 

@@ -206,15 +206,17 @@ TimingHardwareManager::io_reset(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
   
   stop_hw_mon_gathering(hw_cmd.device);
-  auto design = get_timing_device<DSGN>(hw_cmd.device);
+  auto design_device = get_timing_device_plain(hw_cmd.device);
+
+  auto design = dynamic_cast<const timing::TopDesignInterface*>(design_device);
 
   if (cmd_payload.soft) {
     TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " soft io reset";
-    design.get_io_node().soft_reset();
+    design->soft_reset_io();
   } else {
     TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device
                   << " io reset, with supplied clk file: " << cmd_payload.clock_config;
-    design.get_io_node().reset(cmd_payload.clock_config);
+    design->reset_io(cmd_payload.fanout_mode, cmd_payload.clock_config);
   }
   start_hw_mon_gathering(hw_cmd.device);
 }
@@ -235,7 +237,7 @@ TimingHardwareManager::io_reset<timing::FanoutDesign<timing::PC059IONode, timing
   } else {
     TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device
                   << " io reset, with fanout mode: " << cmd_payload.fanout_mode << ", and supplied clk file: " << cmd_payload.clock_config;
-    design.reset(cmd_payload.fanout_mode, cmd_payload.clock_config);
+    design.reset_io(cmd_payload.fanout_mode, cmd_payload.clock_config);
   }
   start_hw_mon_gathering(hw_cmd.device);
 }
@@ -254,9 +256,12 @@ template<class DSGN>
 void
 TimingHardwareManager::set_timestamp(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  auto design = get_timing_device<DSGN>(hw_cmd.device);
+  auto design_device = get_timing_device_plain(hw_cmd.device);
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(design_device);
+
+  //auto design = get_timing_device<DSGN>(hw_cmd.device);
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " set timestamp";
-  design.sync_timestamp();
+  design->sync_timestamp();
 }
 
 // partition commands
