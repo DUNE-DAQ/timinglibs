@@ -41,51 +41,10 @@ TimingHardwareManagerPDI::TimingHardwareManagerPDI(const std::string& name)
 void
 TimingHardwareManagerPDI::init(const nlohmann::json& init_data)
 {
-  // register only the commands which are needed for this hardware manager and each design
-
-  // common
-  register_common_hw_commands_for_design<timing::OverlordDesign<timing::TLUIONode>,
-                                         timing::OverlordDesign<timing::FMCIONode>,
-
-                                         timing::OuroborosDesign<timing::TLUIONode>,
-                                         timing::OuroborosDesign<timing::FMCIONode>,
-
-                                         timing::BoreasDesign<timing::FMCIONode>,
-                                         timing::BoreasDesign<timing::TLUIONode>,
-
-                                         timing::OuroborosMuxDesign<timing::PC059IONode>,
-                                         timing::FanoutDesign<timing::PC059IONode, timing::PDIMasterNode>,
-
-                                         timing::EndpointDesign<timing::FMCIONode>>();
-  // master
-  register_master_hw_commands_for_design<timing::OverlordDesign<timing::TLUIONode>,
-                                         timing::OverlordDesign<timing::FMCIONode>,
-
-                                         timing::BoreasDesign<timing::TLUIONode>,
-                                         timing::BoreasDesign<timing::FMCIONode>,
-
-                                         timing::OuroborosDesign<timing::TLUIONode>,
-                                         timing::OuroborosDesign<timing::FMCIONode>,
-
-                                         timing::OuroborosMuxDesign<timing::PC059IONode>,
-                                         timing::FanoutDesign<timing::PC059IONode, timing::PDIMasterNode>>();
-  // endpoint
-  register_endpoint_hw_commands_for_design<timing::OuroborosDesign<timing::TLUIONode>,
-                                           timing::OuroborosDesign<timing::FMCIONode>,
-
-                                           timing::BoreasDesign<timing::FMCIONode>,
-                                           timing::BoreasDesign<timing::TLUIONode>,
-
-                                           timing::OuroborosMuxDesign<timing::PC059IONode>,
-                                           timing::FanoutDesign<timing::PC059IONode, timing::PDIMasterNode>,
-
-                                           timing::EndpointDesign<timing::FMCIONode>,
-
-                                           timing::ChronosDesign<timing::FMCIONode>>();
-  // hsi
-  register_hsi_hw_commands_for_design<timing::BoreasDesign<timing::FMCIONode>,
-                                      timing::BoreasDesign<timing::TLUIONode>,
-                                      timing::ChronosDesign<timing::FMCIONode>>();
+  register_common_hw_commands_for_design();
+  register_master_hw_commands_for_design();
+  register_endpoint_hw_commands_for_design();
+  register_hsi_hw_commands_for_design();
 
   TimingHardwareManager::init(init_data["qinfos"]);
   
@@ -157,55 +116,43 @@ TimingHardwareManagerPDI::init(const nlohmann::json& init_data)
   start_hw_mon_gathering();
 } // NOLINT
 
-template<class DSGN>
 void
 TimingHardwareManagerPDI::register_common_hw_commands_for_design()
 {
-  register_timing_hw_command("io_reset", typeid(DSGN).name(), &TimingHardwareManagerPDI::io_reset<DSGN>);
-  register_timing_hw_command("print_status", typeid(DSGN).name(), &TimingHardwareManagerPDI::print_status<DSGN>);
+  register_timing_hw_command("io_reset", &TimingHardwareManagerPDI::io_reset);
+  register_timing_hw_command("print_status", &TimingHardwareManagerPDI::print_status);
 }
 
-template<class DSGN>
 void
 TimingHardwareManagerPDI::register_master_hw_commands_for_design()
 {
-  register_timing_hw_command("set_timestamp", typeid(DSGN).name(), &TimingHardwareManagerPDI::set_timestamp<DSGN>);
-  register_timing_hw_command(
-    "partition_configure", typeid(DSGN).name(), &TimingHardwareManagerPDI::partition_configure<DSGN>);
-  register_timing_hw_command(
-    "partition_enable", typeid(DSGN).name(), &TimingHardwareManagerPDI::partition_enable<DSGN>);
-  register_timing_hw_command(
-    "partition_disable", typeid(DSGN).name(), &TimingHardwareManagerPDI::partition_disable<DSGN>);
-  register_timing_hw_command("partition_start", typeid(DSGN).name(), &TimingHardwareManagerPDI::partition_start<DSGN>);
-  register_timing_hw_command("partition_stop", typeid(DSGN).name(), &TimingHardwareManagerPDI::partition_stop<DSGN>);
-  register_timing_hw_command(
-    "partition_enable_triggers", typeid(DSGN).name(), &TimingHardwareManagerPDI::partition_enable_triggers<DSGN>);
-  register_timing_hw_command(
-    "partition_disable_triggers", typeid(DSGN).name(), &TimingHardwareManagerPDI::partition_disable_triggers<DSGN>);
-  register_timing_hw_command(
-    "partition_print_status", typeid(DSGN).name(), &TimingHardwareManagerPDI::partition_print_status<DSGN>);
+  register_timing_hw_command("set_timestamp", &TimingHardwareManagerPDI::set_timestamp);
+  register_timing_hw_command("partition_configure", &TimingHardwareManagerPDI::partition_configure);
+  register_timing_hw_command("partition_enable", &TimingHardwareManagerPDI::partition_enable);
+  register_timing_hw_command("partition_disable", &TimingHardwareManagerPDI::partition_disable);
+  register_timing_hw_command("partition_start", &TimingHardwareManagerPDI::partition_start);
+  register_timing_hw_command("partition_stop", &TimingHardwareManagerPDI::partition_stop);
+  register_timing_hw_command("partition_enable_triggers", &TimingHardwareManagerPDI::partition_enable_triggers);
+  register_timing_hw_command("partition_disable_triggers", &TimingHardwareManagerPDI::partition_disable_triggers);
+  register_timing_hw_command("partition_print_status", &TimingHardwareManagerPDI::partition_print_status);
 }
 
-template<class DSGN>
 void
 TimingHardwareManagerPDI::register_endpoint_hw_commands_for_design()
 {
-  register_timing_hw_command("endpoint_enable", typeid(DSGN).name(), &TimingHardwareManagerPDI::endpoint_enable<DSGN>);
-  register_timing_hw_command(
-    "endpoint_disable", typeid(DSGN).name(), &TimingHardwareManagerPDI::endpoint_disable<DSGN>);
-  register_timing_hw_command("endpoint_reset", typeid(DSGN).name(), &TimingHardwareManagerPDI::endpoint_reset<DSGN>);
+  register_timing_hw_command("endpoint_enable", &TimingHardwareManagerPDI::endpoint_enable);
+  register_timing_hw_command("endpoint_disable", &TimingHardwareManagerPDI::endpoint_disable);
+  register_timing_hw_command("endpoint_reset", &TimingHardwareManagerPDI::endpoint_reset);
 }
 
-template<class DSGN>
 void
 TimingHardwareManagerPDI::register_hsi_hw_commands_for_design()
 {
-  register_timing_hw_command("hsi_reset", typeid(DSGN).name(), &TimingHardwareManagerPDI::hsi_reset<DSGN>);
-  register_timing_hw_command("hsi_configure", typeid(DSGN).name(), &TimingHardwareManagerPDI::hsi_configure<DSGN>);
-  register_timing_hw_command("hsi_start", typeid(DSGN).name(), &TimingHardwareManagerPDI::hsi_start<DSGN>);
-  register_timing_hw_command("hsi_stop", typeid(DSGN).name(), &TimingHardwareManagerPDI::hsi_stop<DSGN>);
-  register_timing_hw_command(
-    "hsi_print_status", typeid(DSGN).name(), &TimingHardwareManagerPDI::hsi_print_status<DSGN>);
+  register_timing_hw_command("hsi_reset", &TimingHardwareManagerPDI::hsi_reset);
+  register_timing_hw_command("hsi_configure", &TimingHardwareManagerPDI::hsi_configure);
+  register_timing_hw_command("hsi_start", &TimingHardwareManagerPDI::hsi_start);
+  register_timing_hw_command("hsi_stop", &TimingHardwareManagerPDI::hsi_stop);
+  register_timing_hw_command("hsi_print_status", &TimingHardwareManagerPDI::hsi_print_status);
 }
 
 void
