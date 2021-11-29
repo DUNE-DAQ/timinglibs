@@ -20,6 +20,10 @@
 #include "InfoGatherer.hpp"
 
 #include "timing/TimingNode.hpp"
+#include "timing/TopDesignInterface.hpp"
+#include "timing/MasterDesignInterface.hpp"
+#include "timing/HSIDesignInterface.hpp"
+#include "timing/EndpointDesignInterface.hpp"
 #include "timing/FanoutDesign.hpp"
 
 #include "appfwk/DAQModule.hpp"
@@ -42,17 +46,6 @@
 #include <regex>
 #include <string>
 #include <vector>
-
-// NOLINTNEXTLINE(build/define_used)
-#define ADD_VARIADIC_TEMPLATE_PROCESSOR_DECLARATIONS(FUNCTION_NAME)                                                    \
-  template<class DSGN>                                                                                                 \
-  void FUNCTION_NAME();                                                                                                \
-  template<class DSGN0, class DSGN1, class... DSGNS>                                                                   \
-  void FUNCTION_NAME()                                                                                                 \
-  {                                                                                                                    \
-    FUNCTION_NAME<DSGN0>();                                                                                            \
-    FUNCTION_NAME<DSGN1, DSGNS...>();                                                                                  \
-  }
 
 namespace dunedaq {
 namespace timinglibs {
@@ -121,68 +114,45 @@ protected:
   std::map<std::string, std::unique_ptr<uhal::HwInterface>> m_hw_device_map;
   std::mutex m_hw_device_map_mutex;
 
-  void construct_hw_cmd_name(const timingcmd::TimingHwCmd& hw_cmd, std::string& hw_cmd_name);
-
   // retrieve top level/design object for a timing device
   template<class TIMING_DEV>
   const TIMING_DEV& get_timing_device(const std::string& device_name);
-
   const timing::TimingNode* get_timing_device_plain(const std::string& device_name);
+
   // timing hw cmds stuff
   std::map<timingcmd::TimingHwCmdId, std::function<void(const timingcmd::TimingHwCmd&)>> m_timing_hw_cmd_map_;
 
   template<typename Child>
   void register_timing_hw_command(const std::string& hw_cmd_id,
-                                  const std::string& design_type,
                                   void (Child::*f)(const timingcmd::TimingHwCmd&));
 
   // timing common commands
-  template<class DSGN>
   void io_reset(const timingcmd::TimingHwCmd& hw_cmd);
-
-  template<class DSGN>
   void print_status(const timingcmd::TimingHwCmd& hw_cmd);
 
   // timing master commands
-  template<class DSGN>
   void set_timestamp(const timingcmd::TimingHwCmd& hw_cmd);
 
   // timing partition commands
-  template<class DSGN>
   void partition_configure(const timingcmd::TimingHwCmd& hw_cmd);
-  template<class DSGN>
   void partition_enable(const timingcmd::TimingHwCmd& hw_cmd);
-  template<class DSGN>
   void partition_disable(const timingcmd::TimingHwCmd& hw_cmd);
-  template<class DSGN>
   void partition_start(const timingcmd::TimingHwCmd& hw_cmd);
-  template<class DSGN>
   void partition_stop(const timingcmd::TimingHwCmd& hw_cmd);
-  template<class DSGN>
   void partition_enable_triggers(const timingcmd::TimingHwCmd& hw_cmd);
-  template<class DSGN>
   void partition_disable_triggers(const timingcmd::TimingHwCmd& hw_cmd);
-  template<class DSGN>
   void partition_print_status(const timingcmd::TimingHwCmd& hw_cmd);
 
   // timing endpoint commands
-  template<class DSGN>
   void endpoint_enable(const timingcmd::TimingHwCmd& hw_cmd);
-  template<class DSGN>
   void endpoint_disable(const timingcmd::TimingHwCmd& hw_cmd);
-  template<class DSGN>
   void endpoint_reset(const timingcmd::TimingHwCmd& hw_cmd);
 
   // hsi
-  template<class DSGN>
   void hsi_reset(const timingcmd::TimingHwCmd& hw_cmd);
-  template<class DSGN>
   void hsi_configure(const timingcmd::TimingHwCmd& hw_cmd);
-  template<class DSGN>
   void hsi_start(const timingcmd::TimingHwCmd& hw_cmd);
-  template<class DSGN>
   void hsi_stop(const timingcmd::TimingHwCmd& hw_cmd);
-  template<class DSGN>
   void hsi_print_status(const timingcmd::TimingHwCmd& hw_cmd);
 
   // opmon stuff
