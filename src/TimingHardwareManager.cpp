@@ -16,6 +16,46 @@
 namespace dunedaq {
 namespace timinglibs {
 
+TimingHardwareManager::TimingHardwareManager(const std::string& name)
+  : dunedaq::appfwk::DAQModule(name)
+  , thread_(std::bind(&TimingHardwareManager::process_hardware_commands, this, std::placeholders::_1))
+  , m_hw_command_in_queue(nullptr)
+  , m_queue_timeout(100)
+  , m_gather_interval(1e6)
+  , m_gather_interval_debug(10e6)
+  , m_connections_file("")
+  , m_uhal_log_level("notice")
+  , m_connection_manager(nullptr)
+  , m_received_hw_commands_counter{ 0 }
+  , m_accepted_hw_commands_counter{ 0 }
+  , m_rejected_hw_commands_counter{ 0 }
+  , m_failed_hw_commands_counter{ 0 }
+{
+  //  register_command("start", &TimingHardwareManager::do_start);
+  //  register_command("stop", &TimingHardwareManager::do_stop);
+  //  register_command("scrap", &TimingHardwareManager::do_scrap);
+}
+
+void
+TimingHardwareManager::init(const nlohmann::json& init_data)
+{
+  // set up queues
+  auto qinfos = init_data.get<appfwk::app::QueueInfos>();
+  for (const auto& qi : qinfos) {
+    if (!qi.name.compare("hardware_commands_in")) {
+      try {
+        m_hw_command_in_queue.reset(new source_t(qi.inst));
+      } catch (const ers::Issue& excpt) {
+        throw InvalidQueueFatalError(ERS_HERE, get_name(), qi.name, excpt);
+      }
+    }
+  }
+  m_received_hw_commands_counter = 0;
+  m_accepted_hw_commands_counter = 0;
+  m_rejected_hw_commands_counter = 0;
+  m_failed_hw_commands_counter = 0;
+}
+
 const timing::TimingNode*
 TimingHardwareManager::get_timing_device_plain(const std::string& device_name)
 {
@@ -104,6 +144,324 @@ TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::s
   } else {
     TLOG() << "Skipping registration of " << gatherer_name << ". Already exists.";
   }
+}
+
+void
+TimingHardwareManager::start_hw_mon_gathering(const std::string& device_name)
+{
+  // start all gatherers if no device name is given
+  if (!device_name.compare("")) {
+    TLOG_DEBUG(0) << get_name() << " Starting all info gatherers";
+    for (auto it = m_info_gatherers.begin(); it != m_info_gatherers.end(); ++it)
+      it->second.get()->start_gathering_thread();
+  } else {
+    // find gatherer for suppled device name and start it
+    bool gatherer_found=false;
+    for (auto it = m_info_gatherers.lower_bound(device_name); it != m_info_gatherers.end(); ++it) {
+      TLOG_DEBUG(0) << get_name() << " Starting info gatherer: " << it->first;
+      it->second.get()->start_gathering_thread();
+      gatherer_found=true;
+    } 
+    if (!gatherer_found) ers::error(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "start", device_name));
+  }
+}
+
+void
+TimingHardwareManager::stop_hw_mon_gathering(const std::string& device_name)
+{
+  // stop all gatherers if no device name is given
+  if (!device_name.compare("")) {
+    TLOG_DEBUG(0) << get_name() << " Stopping all info gatherers";
+    for (auto it = m_info_gatherers.begin(); it != m_info_gatherers.end(); ++it)
+      it->second.get()->stop_gathering_thread();
+  } else {
+    // find gatherer for suppled device name and stop it
+    bool gatherer_found=false;
+    for (auto it = m_info_gatherers.lower_bound(device_name); it != m_info_gatherers.end(); ++it) {
+      TLOG_DEBUG(0) << get_name() << " Stopping info gatherer: " << it->first;
+      it->second.get()->stop_gathering_thread();
+      gatherer_found=true;
+    } 
+    if (!gatherer_found) ers::error(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "stop", device_name));
+  }
+}
+
+// cmd stuff
+void
+TimingHardwareManager::process_hardware_commands(std::atomic<bool>& running_flag)
+{
+
+  std::ostringstream starting_stream;
+  starting_stream << ": Starting process_hardware_commands() method.";
+  TLOG_DEBUG(0) << get_name() << starting_stream.str();
+
+  while (running_flag.load()) {
+    timingcmd::TimingHwCmd timing_hw_cmd;
+
+    try {
+      m_hw_command_in_queue->pop(timing_hw_cmd, m_queue_timeout);
+    } catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt) {
+      // it is perfectly reasonable that there might be no commands in the queue
+      // some fraction of the times that we check, so we just continue on and try again
+      continue;
+    }
+
+    ++m_received_hw_commands_counter;
+
+    TLOG_DEBUG(0) << get_name() << ": Received hardware command #" << m_received_hw_commands_counter.load()
+                  << ", it is of type: " << timing_hw_cmd.id << ", targeting device: " << timing_hw_cmd.device;
+
+    std::string hw_cmd_name = timing_hw_cmd.id;
+    if (auto cmd = m_timing_hw_cmd_map_.find(hw_cmd_name); cmd != m_timing_hw_cmd_map_.end()) {
+
+      ++m_accepted_hw_commands_counter;
+
+      TLOG_DEBUG(0) << "Found hw cmd: " << hw_cmd_name;
+      try {
+        std::invoke(cmd->second, timing_hw_cmd);
+      } catch (const std::exception& exception) {
+        ers::error(FailedToExecuteHardwareCommand(ERS_HERE, hw_cmd_name, timing_hw_cmd.device, exception));
+        ++m_failed_hw_commands_counter;
+      }
+    } else {
+      ers::error(InvalidHardwareCommandID(ERS_HERE, hw_cmd_name));
+      ++m_rejected_hw_commands_counter;
+    }
+  }
+
+  std::ostringstream exiting_stream;
+  exiting_stream << ": Exiting process_hardware_commands() method. Received " << m_received_hw_commands_counter.load()
+                 << " commands";
+  TLOG_DEBUG(0) << get_name() << exiting_stream.str();
+}
+
+// common commands
+void
+TimingHardwareManager::io_reset(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::IOResetCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+  
+  stop_hw_mon_gathering(hw_cmd.device);
+
+  auto design_device = get_timing_device_plain(hw_cmd.device);
+  auto design = dynamic_cast<const timing::TopDesignInterface*>(design_device);
+
+  if (cmd_payload.soft) {
+    TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " soft io reset";
+    design->soft_reset_io();
+  } else {
+    TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device
+                  << " io reset, with supplied clk file: " << cmd_payload.clock_config;
+    design->reset_io(cmd_payload.fanout_mode, cmd_payload.clock_config);
+  }
+  start_hw_mon_gathering(hw_cmd.device);
+}
+
+void
+TimingHardwareManager::print_status(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  auto design = dynamic_cast<const timing::TopDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " print status";
+  TLOG() << std::endl << design->get_status();
+}
+
+// master commands
+void
+TimingHardwareManager::set_timestamp(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " set timestamp";
+  design->sync_timestamp();
+}
+
+// partition commands
+void
+TimingHardwareManager::partition_configure(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionConfigureCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  auto partition = design->get_partition_node(cmd_payload.partition_id);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " configure";
+
+  partition.reset();
+  partition.configure(cmd_payload.trigger_mask, cmd_payload.spill_gate_enabled, cmd_payload.rate_control_enabled);
+}
+
+void
+TimingHardwareManager::partition_enable(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  auto partition = design->get_partition_node(cmd_payload.partition_id);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " enable";
+  partition.enable(true);
+}
+
+void
+TimingHardwareManager::partition_disable(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  auto partition = design->get_partition_node(cmd_payload.partition_id);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " disable";
+  partition.enable(false);
+}
+
+void
+TimingHardwareManager::partition_start(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  auto partition = design->get_partition_node(cmd_payload.partition_id);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " start";
+  partition.start();
+}
+
+void
+TimingHardwareManager::partition_stop(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  auto partition = design->get_partition_node(cmd_payload.partition_id);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " stop";
+  partition.stop();
+}
+
+void
+TimingHardwareManager::partition_enable_triggers(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  auto partition = design->get_partition_node(cmd_payload.partition_id);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id
+                << " start triggers";
+  partition.enable_triggers(true);
+}
+
+void
+TimingHardwareManager::partition_disable_triggers(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  auto partition = design->get_partition_node(cmd_payload.partition_id);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " stop triggers";
+  partition.enable_triggers(false);
+}
+
+void
+TimingHardwareManager::partition_print_status(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  auto partition = design->get_partition_node(cmd_payload.partition_id);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " print partition " << cmd_payload.partition_id << " status";
+  TLOG() << std::endl << partition.get_status();
+}
+
+// endpoint commands
+void
+TimingHardwareManager::endpoint_enable(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = dynamic_cast<const timing::EndpointDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " ept enable, adr: " << cmd_payload.address
+                << ", part: " << cmd_payload.partition;
+  design->get_endpoint_node(cmd_payload.endpoint_id).enable(cmd_payload.partition, cmd_payload.address);
+}
+
+void
+TimingHardwareManager::endpoint_disable(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingEndpointCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = dynamic_cast<const timing::EndpointDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " ept disable";
+  design->get_endpoint_node(cmd_payload.endpoint_id).disable();
+}
+
+void
+TimingHardwareManager::endpoint_reset(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = dynamic_cast<const timing::EndpointDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " ept reset, adr: " << cmd_payload.address
+                << ", part: " << cmd_payload.partition;
+  design->get_endpoint_node(cmd_payload.endpoint_id).reset(cmd_payload.partition, cmd_payload.address);
+}
+
+void
+TimingHardwareManager::hsi_reset(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi reset";
+  design->get_hsi_node().reset_hsi();
+}
+
+void
+TimingHardwareManager::hsi_configure(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::HSIConfigureCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi configure";
+
+  design->configure_hsi(
+    cmd_payload.data_source, cmd_payload.rising_edge_mask, cmd_payload.falling_edge_mask, cmd_payload.invert_edge_mask, cmd_payload.random_rate);
+}
+
+void
+TimingHardwareManager::hsi_start(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi start";
+  design->get_hsi_node().start_hsi();
+}
+
+void
+TimingHardwareManager::hsi_stop(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi stop";
+  design->get_hsi_node().stop_hsi();
+}
+
+void
+TimingHardwareManager::hsi_print_status(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi print status";
+  TLOG() << std::endl << design->get_hsi_node().get_status();
 }
 
 } // namespace timinglibs

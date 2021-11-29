@@ -94,10 +94,10 @@ private:
   std::string m_monitored_device_name_endpoint;
   std::string m_monitored_device_name_hsi;
 
-  ADD_VARIADIC_TEMPLATE_PROCESSOR_DECLARATIONS(register_common_hw_commands_for_design)
-  ADD_VARIADIC_TEMPLATE_PROCESSOR_DECLARATIONS(register_master_hw_commands_for_design)
-  ADD_VARIADIC_TEMPLATE_PROCESSOR_DECLARATIONS(register_endpoint_hw_commands_for_design)
-  ADD_VARIADIC_TEMPLATE_PROCESSOR_DECLARATIONS(register_hsi_hw_commands_for_design)
+  void register_common_hw_commands_for_design();
+  void register_master_hw_commands_for_design();
+  void register_endpoint_hw_commands_for_design();
+  void register_hsi_hw_commands_for_design();
 };
 } // namespace timinglibs
 } // namespace dunedaq
