@@ -13,6 +13,8 @@ local types = {
 
     uhal_log_level : s.string("UHALLogLevel", pattern=moo.re.ident_only,
                     doc="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug."),
+    
+    connection_name : s.string("connection_name"),
 
     conf: s.record("ConfParams", [
         s.field("connections_file", self.str, "",
@@ -23,6 +25,8 @@ local types = {
                 doc="Name of timing master device to be monitored"),
         s.field("uhal_log_level", self.uhal_log_level, "notice",
                 doc="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug."),
+        s.field("hsievent_connection_name", self.connection_name, 
+                doc="Connection name to be used to send hsievent to")
     ], doc="HSIReadout configuration"),
 
 };

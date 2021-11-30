@@ -7,6 +7,8 @@
 #ifndef TIMINGLIBS_PLUGINS_FAKEHSIEVENTGENERATOR_HPP_
 #define TIMINGLIBS_PLUGINS_FAKEHSIEVENTGENERATOR_HPP_
 
+#include "HSIEventSender.hpp"
+
 #include "timinglibs/fakehsieventgenerator/Nljs.hpp"
 #include "timinglibs/fakehsieventgenerator/Structs.hpp"
 
@@ -42,7 +44,7 @@ namespace timinglibs {
  * @brief FakeHSIEventGenerator generates fake HSIEvent messages
  * and pushes them to the configured output queue.
  */
-class FakeHSIEventGenerator : public dunedaq::appfwk::DAQModule
+class FakeHSIEventGenerator : public HSIEventSender
 {
 public:
   /**
@@ -62,22 +64,18 @@ public:
 
 private:
   // Commands
-  void do_configure(const nlohmann::json& obj);
-  void do_start(const nlohmann::json& obj);
-  void do_stop(const nlohmann::json& obj);
-  void do_scrap(const nlohmann::json& obj);
+  void do_configure(const nlohmann::json& obj) override;
+  void do_start(const nlohmann::json& obj) override;
+  void do_stop(const nlohmann::json& obj) override;
+  void do_scrap(const nlohmann::json& obj) override;
   void do_resume(const nlohmann::json& obj);
 
   void dispatch_timesync(ipm::Receiver::Response message);
 
   // Threading
-  dunedaq::appfwk::ThreadHelper m_thread;
-  void generate_hsievents(std::atomic<bool>&);
+  void do_hsievent_work(std::atomic<bool>&) override;
 
   // Configuration
-  using sink_t = dunedaq::appfwk::DAQSink<dfmessages::HSIEvent>;
-  std::unique_ptr<sink_t> m_hsievent_sink;
-  std::chrono::milliseconds m_queue_timeout;
   std::string m_timesync_topic;
 
   // Helper class for estimating DAQ time
@@ -101,10 +99,7 @@ private:
 
   uint32_t m_enabled_signals;                       // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_generated_counter;        // NOLINT(build/unsigned)
-  std::atomic<uint64_t> m_sent_counter;             // NOLINT(build/unsigned)
-  std::atomic<uint64_t> m_failed_to_send_counter;   // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_last_generated_timestamp; // NOLINT(build/unsigned)
-  std::atomic<uint64_t> m_last_sent_timestamp;      // NOLINT(build/unsigned)
 
   std::atomic<uint64_t> m_received_timesync_count; // NOLINT(build/unsigned)
 };

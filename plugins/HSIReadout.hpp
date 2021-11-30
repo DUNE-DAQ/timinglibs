@@ -7,6 +7,8 @@
 #ifndef TIMINGLIBS_PLUGINS_HSIREADOUT_HPP_
 #define TIMINGLIBS_PLUGINS_HSIREADOUT_HPP_
 
+#include "HSIEventSender.hpp"
+
 #include "timinglibs/hsireadout/Nljs.hpp"
 #include "timinglibs/hsireadout/Structs.hpp"
 
@@ -48,7 +50,7 @@ namespace timinglibs {
  * @brief HSIReadout generates fake HSIEvent messages
  * and pushes them to the configured output queue.
  */
-class HSIReadout : public dunedaq::appfwk::DAQModule
+class HSIReadout : public HSIEventSender
 {
 public:
   /**
@@ -68,18 +70,12 @@ public:
 private:
   // Commands
   hsireadout::ConfParams m_cfg;
-  void do_configure(const nlohmann::json& obj);
-  void do_start(const nlohmann::json& obj);
-  void do_stop(const nlohmann::json& obj);
-  void do_scrap(const nlohmann::json& obj);
-
-  dunedaq::appfwk::ThreadHelper m_thread;
+  void do_configure(const nlohmann::json& obj) override;
+  void do_start(const nlohmann::json& obj) override;
+  void do_stop(const nlohmann::json& obj) override;
+  void do_scrap(const nlohmann::json& obj) override;
 
   // Configuration
-  using sink_t = dunedaq::appfwk::DAQSink<dfmessages::HSIEvent>;
-  std::unique_ptr<sink_t> m_hsievent_sink;
-
-  std::chrono::milliseconds m_queue_timeout;
   std::string m_hsi_device_name;
   uint m_readout_period; // NOLINT(build/unsigned)
 
@@ -87,13 +83,10 @@ private:
   std::unique_ptr<uhal::ConnectionManager> m_connection_manager;
   std::unique_ptr<uhal::HwInterface> m_hsi_device;
 
-  void read_hsievents(std::atomic<bool>&);
+  void do_hsievent_work(std::atomic<bool>&) override;
+
   std::atomic<uint64_t> m_readout_counter;        // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_last_readout_timestamp; // NOLINT(build/unsigned)
-
-  std::atomic<uint64_t> m_sent_counter;           // NOLINT(build/unsigned)
-  std::atomic<uint64_t> m_failed_to_send_counter; // NOLINT(build/unsigned)
-  std::atomic<uint64_t> m_last_sent_timestamp;    // NOLINT(build/unsigned)
 
   std::deque<uint16_t> m_buffer_counts; // NOLINT(build/unsigned)
   std::shared_mutex m_buffer_counts_mutex;
