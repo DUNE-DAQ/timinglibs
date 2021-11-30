@@ -19,12 +19,12 @@
 
 #include "InfoGatherer.hpp"
 
-#include "timing/TimingNode.hpp"
-#include "timing/TopDesignInterface.hpp"
-#include "timing/MasterDesignInterface.hpp"
-#include "timing/HSIDesignInterface.hpp"
 #include "timing/EndpointDesignInterface.hpp"
 #include "timing/FanoutDesign.hpp"
+#include "timing/HSIDesignInterface.hpp"
+#include "timing/MasterDesignInterface.hpp"
+#include "timing/TimingNode.hpp"
+#include "timing/TopDesignInterface.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQModuleHelper.hpp"
@@ -80,12 +80,12 @@ public:
     delete;                                                ///< TimingHardwareManager is not copy-assignable
   TimingHardwareManager(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-constructible
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
-  virtual ~TimingHardwareManager() {
+  virtual ~TimingHardwareManager()
+  {
     thread_.stop_working_thread();
-    stop_hw_mon_gathering(); 
+    stop_hw_mon_gathering();
   }
   void init(const nlohmann::json& init_data) override;
-  
 
 protected:
   // Commands
@@ -102,7 +102,7 @@ protected:
   using source_t = dunedaq::appfwk::DAQSource<timingcmd::TimingHwCmd>;
   std::unique_ptr<source_t> m_hw_command_in_queue;
   std::chrono::milliseconds m_queue_timeout;
-  
+
   // hardware polling intervals [us]
   uint m_gather_interval;
   uint m_gather_interval_debug;
@@ -123,8 +123,7 @@ protected:
   std::map<timingcmd::TimingHwCmdId, std::function<void(const timingcmd::TimingHwCmd&)>> m_timing_hw_cmd_map_;
 
   template<typename Child>
-  void register_timing_hw_command(const std::string& hw_cmd_id,
-                                  void (Child::*f)(const timingcmd::TimingHwCmd&));
+  void register_timing_hw_command(const std::string& hw_cmd_id, void (Child::*f)(const timingcmd::TimingHwCmd&));
 
   // timing common commands
   void io_reset(const timingcmd::TimingHwCmd& hw_cmd);
@@ -167,8 +166,8 @@ protected:
   void register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level);
   void gather_monitor_data(InfoGatherer& gatherer);
 
-  virtual void start_hw_mon_gathering(const std::string& device_name="");
-  virtual void stop_hw_mon_gathering(const std::string& device_name="");
+  virtual void start_hw_mon_gathering(const std::string& device_name = "");
+  virtual void stop_hw_mon_gathering(const std::string& device_name = "");
 };
 
 } // namespace timinglibs

@@ -16,6 +16,7 @@ find_package(dfmessages REQUIRED)
 find_package(opmonlib REQUIRED)
 find_package(uhal REQUIRED)
 find_package(pugixml REQUIRED)
+find_package(networkmanager REQUIRED)
 
 daq_codegen( fakehsieventgenerator.jsonnet
 			 hsicontroller.jsonnet
@@ -26,7 +27,7 @@ daq_codegen( fakehsieventgenerator.jsonnet
 			 timingmastercontroller.jsonnet
 			 timingpartitioncontroller.jsonnet
 			 timingfanoutcontroller.jsonnet 
-			 DEP_PKGS appfwk rcif cmdlib TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
+			 DEP_PKGS appfwk rcif cmdlib networkmanager TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
 
 daq_codegen( timingcmd.jsonnet TEMPLATES msgp.hpp.j2 )
 

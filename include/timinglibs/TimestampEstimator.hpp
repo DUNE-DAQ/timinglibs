@@ -14,12 +14,14 @@
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/DAQSource.hpp"
+#include "appfwk/ThreadHelper.hpp"
 
 #include "dfmessages/TimeSync.hpp"
 #include "dfmessages/Types.hpp"
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <thread>
 
 namespace dunedaq {
@@ -36,19 +38,25 @@ public:
   TimestampEstimator(std::unique_ptr<appfwk::DAQSource<dfmessages::TimeSync>>& time_sync_source,
                      uint64_t clock_frequency_hz); // NOLINT(build/unsigned)
 
+  TimestampEstimator(uint64_t clock_frequency_hz); // NOLINT(build/unsigned)
+
   virtual ~TimestampEstimator();
 
   dfmessages::timestamp_t get_timestamp_estimate() const override { return m_current_timestamp_estimate.load(); }
 
+  void add_timestamp_datapoint(const dfmessages::TimeSync& ts);
+
 private:
-  void estimator_thread_fn(std::unique_ptr<appfwk::DAQSource<dfmessages::TimeSync>>& time_sync_source);
+  void estimator_thread_fn(std::atomic<bool>& running_flag);
 
   // The estimate of the current timestamp
   std::atomic<dfmessages::timestamp_t> m_current_timestamp_estimate{ dfmessages::TypeDefaults::s_invalid_timestamp };
 
-  std::atomic<bool> m_running_flag{ false };
   uint64_t m_clock_frequency_hz; // NOLINT(build/unsigned)
-  std::thread m_estimator_thread;
+  appfwk::DAQSource<dfmessages::TimeSync>* m_time_sync_source;
+  appfwk::ThreadHelper m_estimator_thread;
+  dfmessages::TimeSync m_most_recent_timesync;
+  std::mutex m_datapoint_mutex;
 };
 
 } // namespace timinglibs

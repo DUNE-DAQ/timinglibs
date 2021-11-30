@@ -186,10 +186,9 @@ HSIReadout::read_hsievents(std::atomic<bool>& running_flag)
           if (counter > 0 && counter % 60000 == 0)
             TLOG_DEBUG(3) << "Sequence counter from firmware: " << counter;
 
-          TLOG_DEBUG(3) << get_name() << ": read out data: " << std::showbase << std::hex << header << ", " << ts << ", " << data << ", "
-                        << std::bitset<32>(trigger) << ", "
-                        << "ts: " << ts
-                        << "\n";
+          TLOG_DEBUG(3) << get_name() << ": read out data: " << std::showbase << std::hex << header << ", " << ts
+                        << ", " << data << ", " << std::bitset<32>(trigger) << ", "
+                        << "ts: " << ts << "\n";
 
           dfmessages::HSIEvent event = dfmessages::HSIEvent(hsi_device_id, trigger, ts, counter);
           m_last_readout_timestamp.store(ts);

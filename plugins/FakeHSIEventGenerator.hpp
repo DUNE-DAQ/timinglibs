@@ -25,8 +25,8 @@
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQSink.hpp"
 #include "appfwk/ThreadHelper.hpp"
-
 #include <ers/Issue.hpp>
+#include <ipm/Receiver.hpp>
 
 #include <bitset>
 #include <chrono>
@@ -68,6 +68,8 @@ private:
   void do_scrap(const nlohmann::json& obj);
   void do_resume(const nlohmann::json& obj);
 
+  void dispatch_timesync(ipm::Receiver::Response message);
+
   // Threading
   dunedaq::appfwk::ThreadHelper m_thread;
   void generate_hsievents(std::atomic<bool>&);
@@ -75,10 +77,10 @@ private:
   // Configuration
   using sink_t = dunedaq::appfwk::DAQSink<dfmessages::HSIEvent>;
   std::unique_ptr<sink_t> m_hsievent_sink;
-  std::unique_ptr<appfwk::DAQSource<dfmessages::TimeSync>> m_time_sync_source;
   std::chrono::milliseconds m_queue_timeout;
+  std::string m_timesync_topic;
 
-  // Interface to consume TimeSync messages
+  // Helper class for estimating DAQ time
   std::unique_ptr<TimestampEstimator> m_timestamp_estimator;
 
   // Random Generatior
@@ -88,9 +90,9 @@ private:
 
   uint32_t generate_signal_map(); // NOLINT(build/unsigned)
 
-  uint64_t m_clock_frequency;                           // NOLINT(build/unsigned)
-  std::atomic<uint64_t> m_trigger_interval_ticks;       // NOLINT(build/unsigned)
-  std::atomic<uint64_t> m_event_period;                 // NOLINT(build/unsigned)
+  uint64_t m_clock_frequency;                     // NOLINT(build/unsigned)
+  std::atomic<uint64_t> m_trigger_interval_ticks; // NOLINT(build/unsigned)
+  std::atomic<uint64_t> m_event_period;           // NOLINT(build/unsigned)
   int64_t m_timestamp_offset;
 
   uint32_t m_hsi_device_id;            // NOLINT(build/unsigned)
@@ -103,6 +105,8 @@ private:
   std::atomic<uint64_t> m_failed_to_send_counter;   // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_last_generated_timestamp; // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_last_sent_timestamp;      // NOLINT(build/unsigned)
+
+  std::atomic<uint64_t> m_received_timesync_count; // NOLINT(build/unsigned)
 };
 } // namespace timinglibs
 } // namespace dunedaq

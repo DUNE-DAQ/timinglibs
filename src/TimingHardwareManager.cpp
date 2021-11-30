@@ -69,7 +69,7 @@ TimingHardwareManager::get_timing_device_plain(const std::string& device_name)
   std::lock_guard<std::mutex> hw_device_map_guard(m_hw_device_map_mutex);
 
   if (auto hw_device_entry = m_hw_device_map.find(device_name); hw_device_entry != m_hw_device_map.end()) {
-    return dynamic_cast<const timing::TimingNode*> (&hw_device_entry->second->getNode(""));
+    return dynamic_cast<const timing::TimingNode*>(&hw_device_entry->second->getNode(""));
   } else {
     TLOG_DEBUG(0) << get_name() << ": hw device interface for: " << device_name
                   << " does not exist. I will try to create it.";
@@ -85,7 +85,7 @@ TimingHardwareManager::get_timing_device_plain(const std::string& device_name)
 
     TLOG_DEBUG(0) << get_name() << ": hw device interface for: " << device_name << " successfully created.";
 
-    return dynamic_cast<const timing::TimingNode*> (&m_hw_device_map.find(device_name)->second->getNode(""));
+    return dynamic_cast<const timing::TimingNode*>(&m_hw_device_map.find(device_name)->second->getNode(""));
   }
 }
 
@@ -95,7 +95,7 @@ TimingHardwareManager::gather_monitor_data(InfoGatherer& gatherer)
   auto device_name = gatherer.get_device_name();
 
   while (gatherer.run_gathering()) {
-    
+
     // collect the data from the hardware
     try {
       auto design = get_timing_device_plain(device_name);
@@ -107,11 +107,11 @@ TimingHardwareManager::gather_monitor_data(InfoGatherer& gatherer)
 
     auto prev_gather_time = std::chrono::steady_clock::now();
     auto next_gather_time = prev_gather_time + std::chrono::microseconds(gatherer.get_gather_interval());
-    
+
     // check running_flag periodically
     auto slice_period = std::chrono::microseconds(10000);
     auto next_slice_gather_time = prev_gather_time + slice_period;
-    
+
     bool break_flag = false;
     while (next_gather_time > next_slice_gather_time + slice_period) {
       if (!gatherer.run_gathering()) {
@@ -132,15 +132,15 @@ void
 TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level)
 {
   std::string gatherer_name = device_name + "_level_" + std::to_string(op_mon_level);
-  if ( m_info_gatherers.find(gatherer_name) == m_info_gatherers.end() ) {
+  if (m_info_gatherers.find(gatherer_name) == m_info_gatherers.end()) {
     std::unique_ptr<InfoGatherer> gatherer = std::make_unique<InfoGatherer>(
-    std::bind(&TimingHardwareManager::gather_monitor_data, this, std::placeholders::_1),
-    gather_interval,
-    device_name,
-    op_mon_level);
+      std::bind(&TimingHardwareManager::gather_monitor_data, this, std::placeholders::_1),
+      gather_interval,
+      device_name,
+      op_mon_level);
 
     TLOG_DEBUG(0) << "Registering info gatherer: " << gatherer_name;
-    m_info_gatherers.emplace(std::make_pair(gatherer_name, std::move(gatherer))); 
+    m_info_gatherers.emplace(std::make_pair(gatherer_name, std::move(gatherer)));
   } else {
     TLOG() << "Skipping registration of " << gatherer_name << ". Already exists.";
   }
