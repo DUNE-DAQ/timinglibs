@@ -27,10 +27,7 @@ namespace dunedaq {
 namespace timinglibs {
 
 FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
-  : dunedaq::appfwk::DAQModule(name)
-  , m_thread(std::bind(&FakeHSIEventGenerator::generate_hsievents, this, std::placeholders::_1))
-  , m_hsievent_sink(nullptr)
-  , m_queue_timeout(100)
+  : HSIEventSender(name)
   , m_timestamp_estimator(nullptr)
   , m_random_generator()
   , m_uniform_distribution(0, UINT32_MAX)
@@ -43,10 +40,7 @@ FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
   , m_mean_signal_multiplicity(0)
   , m_enabled_signals(0)
   , m_generated_counter(0)
-  , m_sent_counter(0)
-  , m_failed_to_send_counter(0)
   , m_last_generated_timestamp(0)
-  , m_last_sent_timestamp(0)
 {
   register_command("conf", &FakeHSIEventGenerator::do_configure);
   register_command("start", &FakeHSIEventGenerator::do_start);
@@ -56,12 +50,9 @@ FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
 }
 
 void
-FakeHSIEventGenerator::init(const nlohmann::json& init_data)
+FakeHSIEventGenerator::init(const nlohmann::json& /*init_data*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
-
-  m_hsievent_sink.reset(new appfwk::DAQSink<dfmessages::HSIEvent>(appfwk::queue_inst(init_data, "hsievent_sink")));
-
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
 
@@ -87,6 +78,8 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
 
   auto params = obj.get<fakehsieventgenerator::Conf>();
 
+  m_hsievent_send_connection = params.hsievent_connection_name;
+  
   m_clock_frequency = params.clock_frequency;
   m_trigger_interval_ticks.store(params.trigger_interval_ticks);
 
@@ -199,7 +192,7 @@ FakeHSIEventGenerator::generate_signal_map()
 }
 
 void
-FakeHSIEventGenerator::generate_hsievents(std::atomic<bool>& running_flag)
+FakeHSIEventGenerator::do_hsievent_work(std::atomic<bool>& running_flag)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering generate_hsievents() method";
 
@@ -242,32 +235,7 @@ FakeHSIEventGenerator::generate_hsievents(std::atomic<bool>& running_flag)
       m_last_generated_timestamp.store(ts);
 
       dfmessages::HSIEvent event = dfmessages::HSIEvent(m_hsi_device_id, signal_map, ts, m_generated_counter);
-      TLOG_DEBUG(3) << get_name() << ": Sending HSIEvent: " << event.header << ", " << std::bitset<32>(event.signal_map)
-                    << ", " << event.timestamp << ", " << event.sequence_counter << "\n";
-
-      std::string thisQueueName = m_hsievent_sink->get_name();
-      bool was_sent_successfully = false;
-      // do...while instead of while... so that we always try at least
-      // once to send everything we generate, even if running_flag is
-      // changed to false between the top of the main loop and here
-      do {
-        TLOG_DEBUG(4) << get_name() << ": Pushing the generated HSIEvent onto queue " << thisQueueName;
-        try {
-          m_hsievent_sink->push(event, m_queue_timeout);
-          was_sent_successfully = true;
-
-          ++m_sent_counter;
-          m_last_sent_timestamp.store(ts);
-
-        } catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt) {
-          std::ostringstream oss_warn;
-          oss_warn << "push to output queue \"" << thisQueueName << "\"";
-          ers::warning(
-            dunedaq::appfwk::QueueTimeoutExpired(ERS_HERE, get_name(), oss_warn.str(), m_queue_timeout.count()));
-          ++m_failed_to_send_counter;
-        }
-      } while (!was_sent_successfully && running_flag.load());
-
+      send_hsi_event(event);
     } else {
       continue;
     }
