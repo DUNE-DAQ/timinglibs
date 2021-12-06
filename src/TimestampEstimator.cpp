@@ -52,7 +52,8 @@ TimestampEstimator::add_timestamp_datapoint(const dfmessages::TimeSync& ts)
   dfmessages::timestamp_t estimate = m_current_timestamp_estimate.load();
   dfmessages::timestamp_diff_t diff = estimate - ts.daq_time;
   TLOG_DEBUG(10) << "Got a TimeSync timestamp = " << ts.daq_time << ", system time = " << ts.system_time
-                 << " when current timestamp estimate was " << estimate << ". diff=" << diff;
+                 << " when current timestamp estimate was " << estimate << ". diff=" << diff
+                 << " run=" << ts.run_number << " seqno=" << ts.sequence_number << " source_pid=" << ts.source_pid;
   if (m_most_recent_timesync.daq_time == dfmessages::TypeDefaults::s_invalid_timestamp ||
       ts.daq_time > m_most_recent_timesync.daq_time) {
     m_most_recent_timesync = ts;
