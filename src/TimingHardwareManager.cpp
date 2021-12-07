@@ -10,6 +10,8 @@
 #include "logging/Logging.hpp"
 
 #include <memory>
+#include <utility>
+#include <string>
 
 #define TRACE_NAME "TimingHardwareManager" // NOLINT
 
