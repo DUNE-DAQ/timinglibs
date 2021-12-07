@@ -38,7 +38,7 @@ public:
   TimestampEstimator(std::unique_ptr<appfwk::DAQSource<dfmessages::TimeSync>>& time_sync_source,
                      uint64_t clock_frequency_hz); // NOLINT(build/unsigned)
 
-  TimestampEstimator(uint64_t clock_frequency_hz); // NOLINT(build/unsigned)
+  explicit TimestampEstimator(uint64_t clock_frequency_hz); // NOLINT(build/unsigned)
 
   virtual ~TimestampEstimator();
 

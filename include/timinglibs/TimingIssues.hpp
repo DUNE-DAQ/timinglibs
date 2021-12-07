@@ -134,7 +134,7 @@ ERS_DECLARE_ISSUE(timinglibs,
 ERS_DECLARE_ISSUE(timinglibs,
                   InvalidTriggerIntervalTicksValue,
                   " Trigger interval ticks value " << trigger_interval_ticks << " invalid!",
-                  ((uint64_t)trigger_interval_ticks))
+                  ((uint64_t)trigger_interval_ticks)) // NOLINT(build/unsigned)
 } // namespace dunedaq
 
 #endif // TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGISSUES_HPP_
