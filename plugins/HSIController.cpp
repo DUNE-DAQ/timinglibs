@@ -182,8 +182,8 @@ HSIController::do_hsi_configure(const nlohmann::json& data)
   construct_hsi_hw_cmd(hw_cmd, "hsi_configure");
   hw_cmd.payload = data;
 
-  uint64_t clock_frequency = data["clock_frequency"];
-  uint64_t trigger_interval_ticks = data["trigger_interval_ticks"];
+  uint64_t clock_frequency = data["clock_frequency"]; // NOLINT(build/unsigned)
+  uint64_t trigger_interval_ticks = data["trigger_interval_ticks"]; // NOLINT(build/unsigned)
   double emulated_signal_rate = 0;
 
   if (trigger_interval_ticks > 0) {
