@@ -115,6 +115,7 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
 
   auto start_params = obj.get<rcif::cmd::StartParams>();
   m_trigger_interval_ticks.store(start_params.trigger_interval_ticks);
+  m_run_number.store(start_params.run);
 
   // time between HSI events [us]
   m_event_period.store((static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6);
@@ -253,9 +254,14 @@ FakeHSIEventGenerator::dispatch_timesync(ipm::Receiver::Response message)
 {
   ++m_received_timesync_count;
   auto timesyncmsg = serialization::deserialize<dfmessages::TimeSync>(message.data);
-  TLOG_DEBUG(13) << "Received TimeSync message with DAQ time = " << timesyncmsg.daq_time;
+  TLOG_DEBUG(13) << "Received TimeSync message with DAQ time= " << timesyncmsg.daq_time
+                 << ", run=" << timesyncmsg.run_number << " (local run number is " << m_run_number << ")";
   if (m_timestamp_estimator.get() != nullptr) {
-    m_timestamp_estimator->add_timestamp_datapoint(timesyncmsg);
+    if (timesyncmsg.run_number == m_run_number) {
+      m_timestamp_estimator->add_timestamp_datapoint(timesyncmsg);
+    } else {
+      TLOG_DEBUG(0) << "Discarded TimeSync message from run " << timesyncmsg.run_number << " during run " << m_run_number;
+    }
   }
 }
 

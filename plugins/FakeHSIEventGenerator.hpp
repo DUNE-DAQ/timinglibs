@@ -77,6 +77,7 @@ private:
 
   // Configuration
   std::string m_timesync_topic;
+  std::atomic<daqdataformats::run_number_t> m_run_number;
 
   // Helper class for estimating DAQ time
   std::unique_ptr<TimestampEstimator> m_timestamp_estimator;
