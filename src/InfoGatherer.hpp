@@ -74,9 +74,10 @@ public:
   void start_gathering_thread(const std::string& name = "noname")
   {
     if (run_gathering()) {
-      throw GatherThreadingIssue(ERS_HERE,
+      ers::warning(GatherThreadingIssue(ERS_HERE,
                                  "Attempted to start gathering thread "
-                                 "when it is already supposed to be running!");
+                                 "when it is already supposed to be running!"));
+      return;
     }
     m_run_gathering = true;
     m_gathering_thread.reset(new std::thread([&] { m_gather_data(*this); }));
@@ -98,9 +99,10 @@ public:
   void stop_gathering_thread()
   {
     if (!run_gathering()) {
-      throw GatherThreadingIssue(ERS_HERE,
+      ers::warning(GatherThreadingIssue(ERS_HERE,
                                  "Attempted to stop gathering thread "
-                                 "when it is not supposed to be running!");
+                                 "when it is not supposed to be running!"));
+      return;
     }
     m_run_gathering = false;
     if (m_gathering_thread->joinable()) {

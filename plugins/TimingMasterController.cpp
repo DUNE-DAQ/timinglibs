@@ -73,7 +73,6 @@ TimingMasterController::do_master_io_reset(const nlohmann::json& data)
   timingcmd::TimingHwCmd hw_cmd;
   construct_master_hw_cmd(hw_cmd, "io_reset");
   hw_cmd.payload = data;
-  hw_cmd.payload["fanout_mode"] = 1; // put hw in standalone if fanout design
 
   send_hw_cmd(hw_cmd);
   ++(m_sent_hw_command_counters.at(0).atomic);

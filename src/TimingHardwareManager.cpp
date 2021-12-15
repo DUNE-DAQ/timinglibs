@@ -104,7 +104,7 @@ TimingHardwareManager::gather_monitor_data(InfoGatherer& gatherer)
       gatherer.collect_info_from_device(*design);
       gatherer.update_last_gathered_time(std::time(nullptr));
     } catch (const std::exception& excpt) {
-      ers::error(FailedToCollectOpMonInfo(ERS_HERE, device_name, excpt));
+      ers::warning(FailedToCollectOpMonInfo(ERS_HERE, device_name, excpt));
     }
 
     auto prev_gather_time = std::chrono::steady_clock::now();
@@ -164,7 +164,7 @@ TimingHardwareManager::start_hw_mon_gathering(const std::string& device_name)
       it->second.get()->start_gathering_thread();
       gatherer_found=true;
     } 
-    if (!gatherer_found) ers::error(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "start", device_name));
+    if (!gatherer_found) ers::warning(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "start", device_name));
   }
 }
 
@@ -184,7 +184,7 @@ TimingHardwareManager::stop_hw_mon_gathering(const std::string& device_name)
       it->second.get()->stop_gathering_thread();
       gatherer_found=true;
     } 
-    if (!gatherer_found) ers::error(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "stop", device_name));
+    if (!gatherer_found) ers::warning(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "stop", device_name));
   }
 }
 
@@ -256,7 +256,7 @@ TimingHardwareManager::io_reset(const timingcmd::TimingHwCmd& hw_cmd)
     design->soft_reset_io();
   } else {
     TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device
-                  << " io reset, with supplied clk file: " << cmd_payload.clock_config;
+                  << " io reset, with supplied clk file: " << cmd_payload.clock_config << "and fanout mode: " << cmd_payload.fanout_mode;
     design->reset_io(cmd_payload.fanout_mode, cmd_payload.clock_config);
   }
   start_hw_mon_gathering(hw_cmd.device);

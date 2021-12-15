@@ -12,6 +12,9 @@ local timingcmd = {
     uint_data: s.number("UintData", "u4", 
         doc="A PLL register bit(s) value"),
 
+    fanout_mode: s.number("FanoutMode", "i4", 
+        doc="Fanout mode"),
+
     double_data: s.number("DoubleData", "f8", 
          doc="A double"),
 
@@ -39,8 +42,8 @@ local timingcmd = {
             doc="Path of clock config file"),
         s.field("soft", self.bool_data, false,
             doc="Soft reset"),
-        s.field("fanout_mode", self.uint_data, 0, 
-            doc="Fanout mode. 0: fanout, 1: standalone"),
+        s.field("fanout_mode", self.fanout_mode, -1, 
+            doc="Fanout mode. -1: none, 0: fanout, 1: standalone"),
     ], doc="Structure for io reset commands"),
 
     timing_partition_cmd_payload: s.record("TimingPartitionCmdPayload",[
