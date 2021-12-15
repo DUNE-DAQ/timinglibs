@@ -244,6 +244,8 @@ TimingHardwareManager::io_reset(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::IOResetCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
   
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " io reset";
+
   stop_hw_mon_gathering(hw_cmd.device);
 
   auto design_device = get_timing_device_plain(hw_cmd.device);
@@ -263,8 +265,9 @@ TimingHardwareManager::io_reset(const timingcmd::TimingHwCmd& hw_cmd)
 void
 TimingHardwareManager::print_status(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  auto design = dynamic_cast<const timing::TopDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " print status";
+
+  auto design = dynamic_cast<const timing::TopDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   TLOG() << std::endl << design->get_status();
 }
 
@@ -272,8 +275,9 @@ TimingHardwareManager::print_status(const timingcmd::TimingHwCmd& hw_cmd)
 void
 TimingHardwareManager::set_timestamp(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " set timestamp";
+
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   design->sync_timestamp();
 }
 
@@ -284,10 +288,10 @@ TimingHardwareManager::partition_configure(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::TimingPartitionConfigureCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " configure";
+
   auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   auto partition = design->get_partition_node(cmd_payload.partition_id);
-
-  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " configure";
 
   partition.reset();
   partition.configure(cmd_payload.trigger_mask, cmd_payload.spill_gate_enabled, cmd_payload.rate_control_enabled);
@@ -299,10 +303,10 @@ TimingHardwareManager::partition_enable(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " enable";
+
   auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   auto partition = design->get_partition_node(cmd_payload.partition_id);
-
-  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " enable";
   partition.enable(true);
 }
 
@@ -312,10 +316,10 @@ TimingHardwareManager::partition_disable(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " disable";
+
   auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   auto partition = design->get_partition_node(cmd_payload.partition_id);
-
-  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " disable";
   partition.enable(false);
 }
 
@@ -325,10 +329,10 @@ TimingHardwareManager::partition_start(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " start";
+
   auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   auto partition = design->get_partition_node(cmd_payload.partition_id);
-
-  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " start";
   partition.start();
 }
 
@@ -338,10 +342,10 @@ TimingHardwareManager::partition_stop(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " stop";
+
   auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   auto partition = design->get_partition_node(cmd_payload.partition_id);
-
-  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " stop";
   partition.stop();
 }
 
@@ -351,11 +355,11 @@ TimingHardwareManager::partition_enable_triggers(const timingcmd::TimingHwCmd& h
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
-  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
-  auto partition = design->get_partition_node(cmd_payload.partition_id);
-
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id
                 << " start triggers";
+
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  auto partition = design->get_partition_node(cmd_payload.partition_id);
   partition.enable_triggers(true);
 }
 
@@ -365,10 +369,10 @@ TimingHardwareManager::partition_disable_triggers(const timingcmd::TimingHwCmd& 
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " stop triggers";
+
   auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   auto partition = design->get_partition_node(cmd_payload.partition_id);
-
-  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " stop triggers";
   partition.enable_triggers(false);
 }
 
@@ -378,10 +382,10 @@ TimingHardwareManager::partition_print_status(const timingcmd::TimingHwCmd& hw_c
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " print partition " << cmd_payload.partition_id << " status";
+
   auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   auto partition = design->get_partition_node(cmd_payload.partition_id);
-
-  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " print partition " << cmd_payload.partition_id << " status";
   TLOG() << std::endl << partition.get_status();
 }
 
@@ -392,10 +396,11 @@ TimingHardwareManager::endpoint_enable(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
-  auto design = dynamic_cast<const timing::EndpointDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " ept enable, adr: " << cmd_payload.address
                 << ", part: " << cmd_payload.partition;
-  design->get_endpoint_node(cmd_payload.endpoint_id).enable(cmd_payload.partition, cmd_payload.address);
+
+  auto design = dynamic_cast<const timing::EndpointDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  design->get_endpoint_node_plain(cmd_payload.endpoint_id)->enable(cmd_payload.partition, cmd_payload.address);
 }
 
 void
@@ -404,9 +409,10 @@ TimingHardwareManager::endpoint_disable(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::TimingEndpointCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
-  auto design = dynamic_cast<const timing::EndpointDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " ept disable";
-  design->get_endpoint_node(cmd_payload.endpoint_id).disable();
+
+  auto design = dynamic_cast<const timing::EndpointDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  design->get_endpoint_node_plain(cmd_payload.endpoint_id)->disable();
 }
 
 void
@@ -415,17 +421,19 @@ TimingHardwareManager::endpoint_reset(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
-  auto design = dynamic_cast<const timing::EndpointDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " ept reset, adr: " << cmd_payload.address
                 << ", part: " << cmd_payload.partition;
-  design->get_endpoint_node(cmd_payload.endpoint_id).reset(cmd_payload.partition, cmd_payload.address);
+
+  auto design = dynamic_cast<const timing::EndpointDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  design->get_endpoint_node_plain(cmd_payload.endpoint_id)->reset(cmd_payload.partition, cmd_payload.address);
 }
 
 void
 TimingHardwareManager::hsi_reset(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi reset";
+
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   design->get_hsi_node().reset_hsi();
 }
 
@@ -435,9 +443,9 @@ TimingHardwareManager::hsi_configure(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::HSIConfigureCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
-  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi configure";
 
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   design->configure_hsi(
     cmd_payload.data_source, cmd_payload.rising_edge_mask, cmd_payload.falling_edge_mask, cmd_payload.invert_edge_mask, cmd_payload.random_rate);
 }
@@ -445,24 +453,27 @@ TimingHardwareManager::hsi_configure(const timingcmd::TimingHwCmd& hw_cmd)
 void
 TimingHardwareManager::hsi_start(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi start";
+
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   design->get_hsi_node().start_hsi();
 }
 
 void
 TimingHardwareManager::hsi_stop(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi stop";
+
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   design->get_hsi_node().stop_hsi();
 }
 
 void
 TimingHardwareManager::hsi_print_status(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi print status";
+
+  auto design = dynamic_cast<const timing::HSIDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   TLOG() << std::endl << design->get_hsi_node().get_status();
 }
 
