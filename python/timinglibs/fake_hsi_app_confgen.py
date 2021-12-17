@@ -15,12 +15,14 @@ moo.otypes.load_types('nwqueueadapters/queuetonetwork.jsonnet')
 moo.otypes.load_types('nwqueueadapters/networktoqueue.jsonnet')
 moo.otypes.load_types('nwqueueadapters/networkobjectreceiver.jsonnet')
 moo.otypes.load_types('nwqueueadapters/networkobjectsender.jsonnet')
+moo.otypes.load_types('networkmanager/nwmgr.jsonnet')
 
 # Import new types
 import dunedaq.appfwk.cmd as cmd # AddressedCmd, 
 import dunedaq.appfwk.app as app # Queue spec
 import dunedaq.cmdlib.cmd as cmdlib # Command
 import dunedaq.rcif.cmd as rcif # rcif
+import dunedaq.networkmanager.nwmgr as nwmgr
 
 import dunedaq.timinglibs.fakehsieventgenerator as fhsig
 import dunedaq.nwqueueadapters.networktoqueue as ntoq
@@ -34,9 +36,10 @@ import json
 import math
 
 def generate(
+        PARTITION = "hsi_readout_test",
         OUTPUT_PATH=".",
+        TRIGGER_RATE_HZ: int=1,
         CLOCK_SPEED_HZ: int = 50000000,
-        HSI_EVENT_PERIOD_NS: int = 1e9,
         HSI_TIMESTAMP_OFFSET: int = 0, # Offset for HSIEvent timestamps in units of clock ticks. Positive offset increases timestamp estimate.
         HSI_DEVICE_ID: int = 0,
         MEAN_SIGNAL_MULTIPLICITY: int = 0,
@@ -44,14 +47,12 @@ def generate(
         ENABLED_SIGNALS: int = 0b00000001,
     ):
 
-    network_endpoints={
-        "timesync": "tcp://localhost:12347"
-    }
+    # network connection
+    nw_specs = [nwmgr.Connection(name=PARTITION + ".hsievent",topics=[],  address="tcp://127.0.0.1:12344")]
     
     # Define modules and queues
     queue_bare_specs = [
             app.QueueSpec(inst="time_sync_from_netq", kind='FollySPSCQueue', capacity=100),
-            app.QueueSpec(inst="hsievent_q_to_net", kind='FollySPSCQueue', capacity=100e6),
         ]
 
     # Only needed to reproduce the same order as when using jsonnet
@@ -64,7 +65,6 @@ def generate(
 
                     mspec("fhsig", "FakeHSIEventGenerator", [
                         app.QueueInfo(name="time_sync_source", inst="time_sync_from_netq", dir="input"),
-                        app.QueueInfo(name="hsievent_sink", inst="hsievent_q_to_net", dir="output"),
                     ]),
                 ]
 
@@ -80,22 +80,21 @@ def generate(
         exit_state="INITIAL",
         data=init_specs
     )
+    
+    trigger_interval_ticks = 0
+    if TRIGGER_RATE_HZ > 0:
+        trigger_interval_ticks = math.floor((1 / TRIGGER_RATE_HZ) * CLOCK_SPEED_HZ)
 
     mods = [
-                ("ntoq_timesync", ntoq.Conf(msg_type="dunedaq::dfmessages::TimeSync",
-                                           msg_module_name="TimeSyncNQ",
-                                           receiver_config=nor.Conf(ipm_plugin_type="ZmqReceiver",
-                                                                    address=network_endpoints["timesync"])
-                                           )
-                ),
-
                 ("fhsig", fhsig.Conf(
                         clock_frequency=CLOCK_SPEED_HZ,
-                        event_period=HSI_EVENT_PERIOD_NS,
+                        trigger_interval_ticks=trigger_interval_ticks,
                         timestamp_offset=HSI_TIMESTAMP_OFFSET,
                         mean_signal_multiplicity=MEAN_SIGNAL_MULTIPLICITY,
                         signal_emulation_mode=SIGNAL_EMULATION_MODE,
                         enabled_signals=ENABLED_SIGNALS,
+                        timesync_topic="Timesync",
+                        hsievent_connection_name = PARTITION+".hsievent",
                         )),
             ]
 
@@ -145,9 +144,11 @@ if __name__ == '__main__':
     import click
 
     @click.command(context_settings=CONTEXT_SETTINGS)
+    @click.option('-p', '--partition', default="fake_hsi_readout_test")
+    @click.option('-t', '--trigger-rate-hz', default=1.0, help='Fake HSI only: rate at which fake HSIEvents are sent. 0 - disable HSIEvent generation.')
     @click.option('-o', '--output-path', type=click.Path(), default='.')
     @click.argument('json_file', type=click.Path(), default='fake_hsi_app.json')
-    def cli(output_path, json_file):
+    def cli(partition, trigger_rate_hz, output_path, json_file):
         """
           JSON_FILE: Input raw data file.
           JSON_FILE: Output json configuration file.
@@ -155,6 +156,8 @@ if __name__ == '__main__':
 
         with open(json_file, 'w') as f:
             f.write(generate(
+                    PARTITION=partition,
+                    TRIGGER_RATE_HZ=trigger_rate_hz,
                     OUTPUT_PATH = output_path,
                 ))
 
