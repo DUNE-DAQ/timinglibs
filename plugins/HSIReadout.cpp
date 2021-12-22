@@ -29,19 +29,13 @@ namespace dunedaq {
 namespace timinglibs {
 
 HSIReadout::HSIReadout(const std::string& name)
-  : dunedaq::appfwk::DAQModule(name)
-  , m_thread(std::bind(&HSIReadout::read_hsievents, this, std::placeholders::_1))
-  , m_hsievent_sink(nullptr)
-  , m_queue_timeout(1)
+  : HSIEventSender(name)
   , m_readout_period(1000)
   , m_connections_file("")
   , m_connection_manager(nullptr)
   , m_hsi_device(nullptr)
   , m_readout_counter(0)
   , m_last_readout_timestamp(0)
-  , m_sent_counter(0)
-  , m_failed_to_send_counter(0)
-  , m_last_sent_timestamp(0)
 
 {
   register_command("conf", &HSIReadout::do_configure);
@@ -50,13 +44,10 @@ HSIReadout::HSIReadout(const std::string& name)
   register_command("scrap", &HSIReadout::do_scrap);
 }
 
-void
-HSIReadout::init(const nlohmann::json& init_data)
+ void
+HSIReadout::init(const nlohmann::json& /*init_data*/)
 {
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
-
-  m_hsievent_sink.reset(new appfwk::DAQSink<dfmessages::HSIEvent>(appfwk::queue_inst(init_data, "hsievent_sink")));
-
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
 }
 
@@ -67,6 +58,7 @@ HSIReadout::do_configure(const nlohmann::json& obj)
 
   m_cfg = obj.get<hsireadout::ConfParams>();
 
+  m_hsievent_send_connection = m_cfg.hsievent_connection_name;
   m_connections_file = m_cfg.connections_file;
   m_readout_period = m_cfg.readout_period;
 
@@ -137,9 +129,9 @@ HSIReadout::do_scrap(const nlohmann::json& /*args*/)
 }
 
 void
-HSIReadout::read_hsievents(std::atomic<bool>& running_flag)
+HSIReadout::do_hsievent_work(std::atomic<bool>& running_flag)
 {
-  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering read_hsievents() method";
+  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_hsievent_work() method";
 
   m_readout_counter = 0;
   m_sent_counter = 0;
@@ -186,30 +178,14 @@ HSIReadout::read_hsievents(std::atomic<bool>& running_flag)
           if (counter > 0 && counter % 60000 == 0)
             TLOG_DEBUG(3) << "Sequence counter from firmware: " << counter;
 
-          TLOG_DEBUG(3) << get_name() << ": read out data: " << std::showbase << std::hex << header << ", " << ts << ", " << data << ", "
-                        << std::bitset<32>(trigger) << ", "
-                        << "ts: " << ts
-                        << "\n";
+          TLOG_DEBUG(3) << get_name() << ": read out data: " << std::showbase << std::hex << header << ", " << ts
+                        << ", " << data << ", " << std::bitset<32>(trigger) << ", "
+                        << "ts: " << ts << "\n";
 
           dfmessages::HSIEvent event = dfmessages::HSIEvent(hsi_device_id, trigger, ts, counter);
           m_last_readout_timestamp.store(ts);
 
-          std::string thisQueueName = m_hsievent_sink->get_name();
-          bool was_successfully_sent = false;
-          while (!was_successfully_sent) {
-            try {
-              m_hsievent_sink->push(event, m_queue_timeout);
-              ++m_sent_counter;
-              m_last_sent_timestamp.store(event.timestamp);
-              was_successfully_sent = true;
-            } catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt) {
-              std::ostringstream oss_warn;
-              oss_warn << "push to output queue \"" << thisQueueName << "\"";
-              ers::error(
-                dunedaq::appfwk::QueueTimeoutExpired(ERS_HERE, get_name(), oss_warn.str(), m_queue_timeout.count()));
-              ++m_failed_to_send_counter;
-            }
-          }
+          send_hsi_event(event);
         }
       }
     } catch (const uhal::exception::ConnectionUIDDoesNotExist& excpt) {

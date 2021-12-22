@@ -47,6 +47,7 @@ def generate(
         GATHER_INTERVAL_DEBUG = 10e6,
         MASTER_DEVICE_NAME="",
         MASTER_CLOCK_FILE="",
+        MASTER_CLOCK_MODE=-1,
         PARTITION_IDS=[],
         FANOUT_DEVICES_NAMES=[],
         FANOUT_CLOCK_FILE="",
@@ -251,6 +252,7 @@ def generate(
     master_io_reset_cmd = mcmd("master_io_reset", [
             ("tmc.*", tcmd.IOResetCmdPayload(
                       clock_config=MASTER_CLOCK_FILE,
+                      fanout_mode=MASTER_CLOCK_MODE,
                       soft=False
                       )),
         ])
@@ -532,6 +534,7 @@ if __name__ == '__main__':
 
     @click.option('-m', '--master-device-name', default="")
     @click.option('--master-clock-file', default="")
+    @click.option('--master-clock-mode', default=-1)
     @click.option('-p', '--partition-ids', default="0", callback=split_string)
 
     @click.option('-f', '--fanout-devices-names', callback=split_string)
@@ -562,7 +565,7 @@ if __name__ == '__main__':
     @click.argument('json_file', type=click.Path(), default='timing_app.json')
     def cli(run_number, gather_interval, gather_interval_debug, 
 
-        master_device_name, master_clock_file, partition_ids,
+        master_device_name, master_clock_file, master_clock_mode, partition_ids,
         fanout_devices_names, fanout_clock_file,
         endpoint_device_name, endpoint_clock_file, endpoint_address, endpoint_partition,
         hsi_device_name, hsi_clock_file, hsi_endpoint_address, hsi_endpoint_partition, hsi_re_mask, hsi_fe_mask, hsi_inv_mask, hsi_source, hsi_random_rate,
@@ -580,6 +583,7 @@ if __name__ == '__main__':
                     GATHER_INTERVAL_DEBUG = gather_interval_debug,
                     MASTER_DEVICE_NAME = master_device_name,
                     MASTER_CLOCK_FILE = master_clock_file,
+                    MASTER_CLOCK_MODE = master_clock_mode,
                     PARTITION_IDS = partition_ids,
                     FANOUT_DEVICES_NAMES = fanout_devices_names,
                     FANOUT_CLOCK_FILE = fanout_clock_file,

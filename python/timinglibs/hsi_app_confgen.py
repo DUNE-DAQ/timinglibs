@@ -11,12 +11,14 @@ moo.otypes.load_types('cmdlib/cmd.jsonnet')
 moo.otypes.load_types('rcif/cmd.jsonnet')
 moo.otypes.load_types('timinglibs/hsireadout.jsonnet')
 moo.otypes.load_types('trigger/timingtriggercandidatemaker.jsonnet')
+moo.otypes.load_types('networkmanager/nwmgr.jsonnet')
 
 # Import new types
 import dunedaq.appfwk.cmd as cmd # AddressedCmd, 
 import dunedaq.appfwk.app as app # Queue spec
 import dunedaq.cmdlib.cmd as cmdlib # Command
 import dunedaq.rcif.cmd as rcif # rcif
+import dunedaq.networkmanager.nwmgr as nwmgr
 
 import dunedaq.timinglibs.hsireadout as hsi
 import dunedaq.trigger.timingtriggercandidatemaker as ttcm
@@ -27,7 +29,9 @@ import json
 import math
 
 def generate(
+        PARTITION = "hsi_readout_test",
         RUN_NUMBER = 333, 
+        CONNECTIONS_FILE="${TIMING_SHARE}/config/etc/connections.xml",
         READOUT_PERIOD = 1e3,
         HSI_DEVICE_NAME="BOREAS_FMC",
         TTCM_S1: int = 1,
@@ -36,9 +40,11 @@ def generate(
         OUTPUT_PATH=".",
     ):
     
+    # network connection
+    nw_specs = [nwmgr.Connection(name=PARTITION + ".hsievent",topics=[],  address="tcp://127.0.0.1:12344")]
+
     # Define modules and queues
     queue_bare_specs = [
-            app.QueueSpec(inst="hsievent_q", kind='FollySPSCQueue', capacity=2000),
             app.QueueSpec(inst="trigger_candidate_q", kind='FollySPSCQueue', capacity=2000),
 
         ]
@@ -47,18 +53,14 @@ def generate(
     queue_specs = app.QueueSpecs(sorted(queue_bare_specs, key=lambda x: x.inst))
 
     mod_specs = [   
-                    mspec("hsi", "HSIReadout", [
-                                    app.QueueInfo(name="hsievent_sink", inst="hsievent_q", dir="output"),
-                                ]),
+                    mspec("hsi", "HSIReadout", []),
 
                     mspec("ttcm", "TimingTriggerCandidateMaker", [
-                                    app.QueueInfo(name="input", inst="hsievent_q", dir="input"),
                                     app.QueueInfo(name="output", inst="trigger_candidate_q", dir="output"),
                                 ]),
                 ]
 
-    init_specs = app.Init(queues=queue_specs, modules=mod_specs)
-    
+    init_specs = app.Init(queues=queue_specs, modules=mod_specs, nwconnections=nw_specs)
 
     jstr = json.dumps(init_specs.pod(), indent=4, sort_keys=True)
     print(jstr)
@@ -72,10 +74,11 @@ def generate(
 
     mods = [
                 ("hsi", hsi.ConfParams(
-                        connections_file="${TIMING_SHARE}/config/etc/connections.xml",
+                        connections_file=CONNECTIONS_FILE,
                         readout_period=READOUT_PERIOD,
                         hsi_device_name=HSI_DEVICE_NAME,
-                        uhal_log_level=UHAL_LOG_LEVEL
+                        uhal_log_level=UHAL_LOG_LEVEL,
+                        hsievent_connection_name = f"{PARTITION}.hsievent",
                         )),
                 
                 ("ttcm", ttcm.Conf(
@@ -84,7 +87,8 @@ def generate(
                                       time_after=200000),
                         s2=ttcm.map_t(signal_type=TTCM_S2,
                                       time_before=100000,
-                                      time_after=200000)
+                                      time_after=200000),
+                        hsievent_connection_name = PARTITION+".hsievent",
                         )),
             ]
 
@@ -133,15 +137,17 @@ if __name__ == '__main__':
     import click
 
     @click.command(context_settings=CONTEXT_SETTINGS)
+    @click.option('-p', '--partition', default="hsi_readout_test")
     @click.option('-r', '--run-number', default=333)
-    @click.option('-p', '--readout-period', default=1e3)
+    @click.option('-c', '--connections-file', default="${TIMING_SHARE}/config/etc/connections.xml")
+    @click.option('--readout-period', default=1e3)
     @click.option('-h', '--hsi-device-name', default="BOREAS_FMC")
     @click.option('--ttcm-s1', default=1, help="Timing trigger candidate maker accepted HSI signal ID 1")
     @click.option('--ttcm-s2', default=2, help="Timing trigger candidate maker accepted HSI signal ID 2")
     @click.option('-u', '--uhal-log-level', default="notice")
     @click.option('-o', '--output-path', type=click.Path(), default='.')
     @click.argument('json_file', type=click.Path(), default='hsi_readout_app.json')
-    def cli(run_number, readout_period, hsi_device_name, ttcm_s1, ttcm_s2, uhal_log_level, output_path, json_file):
+    def cli(partition, run_number, connections_file, readout_period, hsi_device_name, ttcm_s1, ttcm_s2, uhal_log_level, output_path, json_file):
         """
           JSON_FILE: Input raw data file.
           JSON_FILE: Output json configuration file.
@@ -149,7 +155,9 @@ if __name__ == '__main__':
 
         with open(json_file, 'w') as f:
             f.write(generate(
-                    RUN_NUMBER = run_number, 
+                    PARTITION=partition,
+                    RUN_NUMBER = run_number,
+                    CONNECTIONS_FILE=connections_file,
                     READOUT_PERIOD = readout_period,
                     HSI_DEVICE_NAME = hsi_device_name,
                     TTCM_S1 = ttcm_s1,

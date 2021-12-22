@@ -92,10 +92,10 @@ TimingFanoutController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 {
   // send counters internal to the module
   timingfanoutcontrollerinfo::Info module_info;
-  
-  module_info.sent_io_reset_cmds=m_sent_hw_command_counters.at(0).atomic.load();
-  module_info.sent_print_status_cmds=m_sent_hw_command_counters.at(1).atomic.load();
-  
+
+  module_info.sent_io_reset_cmds = m_sent_hw_command_counters.at(0).atomic.load();
+  module_info.sent_print_status_cmds = m_sent_hw_command_counters.at(1).atomic.load();
+
   ci.add(module_info);
 }
 } // namespace timinglibs

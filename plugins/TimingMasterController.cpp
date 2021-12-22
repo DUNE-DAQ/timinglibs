@@ -32,9 +32,9 @@ namespace timinglibs {
 TimingMasterController::TimingMasterController(const std::string& name)
   : dunedaq::timinglibs::TimingController(name, 3) // 2nd arg: how many hw commands can this module send?
 {
-  //register_command("conf", &TimingMasterController::do_configure);
-  //register_command("start", &TimingMasterController::do_start);
-  //register_command("stop", &TimingMasterController::do_stop);
+  // register_command("conf", &TimingMasterController::do_configure);
+  // register_command("start", &TimingMasterController::do_start);
+  // register_command("stop", &TimingMasterController::do_stop);
 
   // timing master hardware commands
   register_command("master_io_reset", &TimingMasterController::do_master_io_reset);
@@ -47,10 +47,10 @@ TimingMasterController::init(const nlohmann::json& init_data)
 {
   // set up queues
   TimingController::init(init_data["qinfos"]);
-  
+
   auto ini = init_data.get<timingmastercontroller::InitParams>();
   m_timing_device = ini.device;
-  
+
   TLOG() << get_name() << " init: master, device: " << m_timing_device;
 }
 
@@ -73,7 +73,6 @@ TimingMasterController::do_master_io_reset(const nlohmann::json& data)
   timingcmd::TimingHwCmd hw_cmd;
   construct_master_hw_cmd(hw_cmd, "io_reset");
   hw_cmd.payload = data;
-  hw_cmd.payload["fanout_mode"] = 1; // put hw in standalone if fanout design
 
   send_hw_cmd(hw_cmd);
   ++(m_sent_hw_command_counters.at(0).atomic);
@@ -105,8 +104,8 @@ TimingMasterController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
   module_info.sent_master_io_reset_cmds = m_sent_hw_command_counters.at(0).atomic.load();
   module_info.sent_master_set_timestamp_cmds = m_sent_hw_command_counters.at(1).atomic.load();
   module_info.sent_master_print_status_cmds = m_sent_hw_command_counters.at(2).atomic.load();
-  
-  //for (uint i = 0; i < m_number_hw_commands; ++i) {
+
+  // for (uint i = 0; i < m_number_hw_commands; ++i) {
   //  module_info.sent_hw_command_counters.push_back(m_sent_hw_command_counters.at(i).atomic.load());
   //}
   ci.add(module_info);

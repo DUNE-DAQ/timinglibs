@@ -58,7 +58,7 @@ TimingPartitionController::init(const nlohmann::json& init_data)
   auto ini = init_data.get<timingpartitioncontroller::InitParams>();
   m_timing_device = ini.device;
   m_managed_partition_id = ini.partition_id;
-  
+
   TLOG() << get_name() << " init; device: " << m_timing_device << ", managed part id: " << m_managed_partition_id;
 }
 
@@ -188,7 +188,7 @@ TimingPartitionController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
   module_info.sent_partition_disable_triggers_cmds = m_sent_hw_command_counters.at(6).atomic.load();
   module_info.sent_partition_print_status_cmds = m_sent_hw_command_counters.at(7).atomic.load();
 
-  //for (uint i = 0; i < m_number_hw_commands; ++i) {
+  // for (uint i = 0; i < m_number_hw_commands; ++i) {
   //  module_info.sent_hw_command_counters.push_back(m_sent_hw_command_counters.at(i).atomic.load());
   //}
   ci.add(module_info);

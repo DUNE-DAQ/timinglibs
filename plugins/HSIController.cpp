@@ -57,10 +57,10 @@ HSIController::init(const nlohmann::json& init_data)
 {
   // set up queues
   TimingController::init(init_data["qinfos"]);
-  
+
   auto ini = init_data.get<hsicontroller::InitParams>();
   m_timing_device = ini.device;
-  
+
   TLOG() << get_name() << " init; hsi device: " << m_timing_device;
 }
 
@@ -68,7 +68,7 @@ void
 HSIController::do_configure(const nlohmann::json& data)
 {
   m_hsi_configuration = data.get<hsicontroller::ConfParams>();
-  
+
   // wait for network communication to timing hardware interface module to definitely be ready
   std::this_thread::sleep_for(std::chrono::microseconds(5000000));
 
@@ -82,7 +82,7 @@ HSIController::do_start(const nlohmann::json& data)
 {
   TimingController::do_start(data); // set sent cmd counters to 0
 
-  auto start_params = data.get<rcif::cmd::StartParams>(); 
+  auto start_params = data.get<rcif::cmd::StartParams>();
   m_hsi_configuration.trigger_interval_ticks = start_params.trigger_interval_ticks;
 
   do_hsi_reset(data);
@@ -99,7 +99,7 @@ HSIController::do_stop(const nlohmann::json& data)
 void
 HSIController::do_resume(const nlohmann::json& data)
 {
-  auto resume_params = data.get<rcif::cmd::ResumeParams>(); 
+  auto resume_params = data.get<rcif::cmd::ResumeParams>();
   m_hsi_configuration.trigger_interval_ticks = resume_params.trigger_interval_ticks;
 
   do_hsi_configure(m_hsi_configuration);
@@ -136,7 +136,7 @@ HSIController::do_hsi_endpoint_enable(const nlohmann::json& data)
   timingcmd::to_json(hw_cmd.payload, cmd_payload);
 
   TLOG_DEBUG(0) << "ept enable hw cmd; a: " << cmd_payload.address << ", p: " << cmd_payload.partition;
-  
+
   send_hw_cmd(hw_cmd);
   ++(m_sent_hw_command_counters.at(1).atomic);
 }
@@ -155,7 +155,7 @@ HSIController::do_hsi_endpoint_reset(const nlohmann::json& data)
 {
   timingcmd::TimingHwCmd hw_cmd;
   construct_hsi_hw_cmd(hw_cmd, "endpoint_reset");
-  
+
   timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
   cmd_payload.endpoint_id = 0;
   timingcmd::from_json(data, cmd_payload);
@@ -182,18 +182,19 @@ HSIController::do_hsi_configure(const nlohmann::json& data)
   construct_hsi_hw_cmd(hw_cmd, "hsi_configure");
   hw_cmd.payload = data;
 
-  uint64_t clock_frequency = data["clock_frequency"];
-  uint64_t trigger_interval_ticks = data["trigger_interval_ticks"];
-  double emulated_signal_rate=0;
-  
+  uint64_t clock_frequency = data["clock_frequency"]; // NOLINT(build/unsigned)
+  uint64_t trigger_interval_ticks = data["trigger_interval_ticks"]; // NOLINT(build/unsigned)
+  double emulated_signal_rate = 0;
+
   if (trigger_interval_ticks > 0) {
-    emulated_signal_rate =  static_cast<double>(clock_frequency) / trigger_interval_ticks;
+    emulated_signal_rate = static_cast<double>(clock_frequency) / trigger_interval_ticks;
   } else {
     ers::error(InvalidTriggerIntervalTicksValue(ERS_HERE, trigger_interval_ticks));
   }
   hw_cmd.payload["random_rate"] = emulated_signal_rate;
 
-  TLOG() << get_name() << " Setting trigger interval ticks, emulated event rate [Hz] to: " << trigger_interval_ticks << ", " << emulated_signal_rate;
+  TLOG() << get_name() << " Setting trigger interval ticks, emulated event rate [Hz] to: " << trigger_interval_ticks
+         << ", " << emulated_signal_rate;
 
   send_hw_cmd(hw_cmd);
   ++(m_sent_hw_command_counters.at(5).atomic);

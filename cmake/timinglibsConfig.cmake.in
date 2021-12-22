@@ -3,12 +3,9 @@
 
 include(CMakeFindDependencyMacro)
 
+find_dependency(Boost COMPONENTS program_options)
 find_dependency(ers)
 find_dependency(timing)
-find_dependency(Boost COMPONENTS unit_test_framework program_options)
-find_dependency(TRACE)
-
-find_dependency(nlohmann_json)
 find_dependency(logging)
 find_dependency(appfwk)
 find_dependency(nlohmann_json)
@@ -16,6 +13,11 @@ find_dependency(dfmessages)
 find_dependency(opmonlib)
 find_dependency(uhal)
 find_dependency(pugixml)
+find_dependency(cmdlib)
+find_dependency(rcif)
+find_dependency(dfmessages)
+find_dependency(networkmanager)
+
 
 # Figure out whether or not this dependency is an installed package or
 # in repo form

@@ -62,11 +62,10 @@ public:
     m_info_collector = std::make_unique<opmonlib::InfoCollector>();
   }
 
-  InfoGatherer(const InfoGatherer&) = delete; ///< InfoGatherer is not copy-constructible
-  InfoGatherer& operator=(const InfoGatherer&) =
-    delete;                                                ///< InfoGatherer is not copy-assignable
-  InfoGatherer(InfoGatherer&&) = delete; ///< InfoGatherer is not move-constructible
-  InfoGatherer& operator=(InfoGatherer&&) = delete; ///< InfoGatherer is not move-assignable
+  InfoGatherer(const InfoGatherer&) = delete;            ///< InfoGatherer is not copy-constructible
+  InfoGatherer& operator=(const InfoGatherer&) = delete; ///< InfoGatherer is not copy-assignable
+  InfoGatherer(InfoGatherer&&) = delete;                 ///< InfoGatherer is not move-constructible
+  InfoGatherer& operator=(InfoGatherer&&) = delete;      ///< InfoGatherer is not move-assignable
 
   /**
    * @brief Start the monitoring thread (which executes the m_gather_data() function)
@@ -75,9 +74,10 @@ public:
   void start_gathering_thread(const std::string& name = "noname")
   {
     if (run_gathering()) {
-      throw GatherThreadingIssue(ERS_HERE,
+      ers::warning(GatherThreadingIssue(ERS_HERE,
                                  "Attempted to start gathering thread "
-                                 "when it is already supposed to be running!");
+                                 "when it is already supposed to be running!"));
+      return;
     }
     m_run_gathering = true;
     m_gathering_thread.reset(new std::thread([&] { m_gather_data(*this); }));
@@ -99,9 +99,10 @@ public:
   void stop_gathering_thread()
   {
     if (!run_gathering()) {
-      throw GatherThreadingIssue(ERS_HERE,
+      ers::warning(GatherThreadingIssue(ERS_HERE,
                                  "Attempted to stop gathering thread "
-                                 "when it is not supposed to be running!");
+                                 "when it is not supposed to be running!"));
+      return;
     }
     m_run_gathering = false;
     if (m_gathering_thread->joinable()) {
@@ -141,12 +142,10 @@ public:
   void add_info_to_collector(std::string label, opmonlib::InfoCollector& ic)
   {
     std::unique_lock info_collector_lock(m_info_collector_mutex);
-    if (m_info_collector->is_empty())
-    {
-      TLOG() << "skipping add info for gatherer: " << get_device_name() << " with gathered time: " << get_last_gathered_time();
-    }
-    else
-    {
+    if (m_info_collector->is_empty()) {
+      TLOG() << "skipping add info for gatherer: " << get_device_name()
+             << " with gathered time: " << get_last_gathered_time();
+    } else {
       ic.add(label, *m_info_collector);
     }
     m_info_collector = std::make_unique<opmonlib::InfoCollector>();
@@ -163,7 +162,6 @@ protected:
   std::unique_ptr<opmonlib::InfoCollector> m_info_collector;
   mutable std::mutex m_info_collector_mutex;
   std::function<void(InfoGatherer&)> m_gather_data;
-
 };
 
 } // namespace timinglibs
