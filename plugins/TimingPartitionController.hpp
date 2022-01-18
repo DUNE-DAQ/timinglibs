@@ -28,7 +28,7 @@
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQSink.hpp"
 #include "appfwk/DAQSource.hpp"
-#include "appfwk/ThreadHelper.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"

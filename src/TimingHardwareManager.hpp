@@ -30,7 +30,7 @@
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/DAQSink.hpp"
 #include "appfwk/DAQSource.hpp"
-#include "appfwk/ThreadHelper.hpp"
+#include "utilities/WorkerThread.hpp"
 #include "appfwk/app/Nljs.hpp"
 #include "appfwk/app/Structs.hpp"
 
@@ -95,7 +95,7 @@ protected:
   //  virtual void do_scrap(const nlohmann::json&);
 
   // Threading
-  dunedaq::appfwk::ThreadHelper thread_;
+  dunedaq::utilities::WorkerThread thread_;
   virtual void process_hardware_commands(std::atomic<bool>&);
 
   // Configuration

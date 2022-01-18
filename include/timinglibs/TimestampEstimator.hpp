@@ -14,7 +14,7 @@
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/DAQSource.hpp"
-#include "appfwk/ThreadHelper.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include "dfmessages/TimeSync.hpp"
 #include "dfmessages/Types.hpp"
@@ -54,7 +54,7 @@ private:
 
   uint64_t m_clock_frequency_hz; // NOLINT(build/unsigned)
   appfwk::DAQSource<dfmessages::TimeSync>* m_time_sync_source;
-  appfwk::ThreadHelper m_estimator_thread;
+  utilities::WorkerThread m_estimator_thread;
   dfmessages::TimeSync m_most_recent_timesync;
   std::mutex m_datapoint_mutex;
 };
