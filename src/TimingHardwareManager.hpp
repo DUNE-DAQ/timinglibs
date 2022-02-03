@@ -14,6 +14,7 @@
 
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
+#include "timinglibs/timingcmd/msgp.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
 
@@ -86,6 +87,7 @@ public:
     stop_hw_mon_gathering();
   }
   void init(const nlohmann::json& init_data) override;
+  virtual void conf(const nlohmann::json& conf_data) = 0;
 
 protected:
   // Commands

@@ -35,29 +35,29 @@ namespace timinglibs {
 
 TimingHardwareManagerPDI::TimingHardwareManagerPDI(const std::string& name)
   : TimingHardwareManager(name)
-{}
+{
+  register_command("conf", &TimingHardwareManagerPDI::conf);
+}
 
 void
-TimingHardwareManagerPDI::init(const nlohmann::json& init_data)
+TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
 {
   register_common_hw_commands_for_design();
   register_master_hw_commands_for_design();
   register_endpoint_hw_commands_for_design();
   register_hsi_hw_commands_for_design();
 
-  TimingHardwareManager::init(init_data["qinfos"]);
+  auto conf_params = conf_data.get<timinghardwaremanagerpdi::ConfParams>();
 
-  auto ini = init_data.get<timinghardwaremanagerpdi::InitParams>();
+  m_connections_file = conf_params.connections_file;
+  m_uhal_log_level = conf_params.uhal_log_level;
+  m_gather_interval = conf_params.gather_interval;
+  m_gather_interval_debug = conf_params.gather_interval_debug;
 
-  m_connections_file = ini.connections_file;
-  m_uhal_log_level = ini.uhal_log_level;
-  m_gather_interval = ini.gather_interval;
-  m_gather_interval_debug = ini.gather_interval_debug;
-
-  m_monitored_device_name_master = ini.monitored_device_name_master;
-  m_monitored_device_names_fanout = ini.monitored_device_names_fanout;
-  m_monitored_device_name_endpoint = ini.monitored_device_name_endpoint;
-  m_monitored_device_name_hsi = ini.monitored_device_name_hsi;
+  m_monitored_device_name_master = conf_params.monitored_device_name_master;
+  m_monitored_device_names_fanout = conf_params.monitored_device_names_fanout;
+  m_monitored_device_name_endpoint = conf_params.monitored_device_name_endpoint;
+  m_monitored_device_name_hsi = conf_params.monitored_device_name_hsi;
 
   TLOG() << get_name() << "conf: con. file before env var expansion: " << m_connections_file;
   resolve_environment_variables(m_connections_file);

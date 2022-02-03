@@ -42,16 +42,9 @@ void
 TimingHardwareManager::init(const nlohmann::json& init_data)
 {
   // set up queues
-  auto qinfos = init_data.get<appfwk::app::QueueInfos>();
-  for (const auto& qi : qinfos) {
-    if (!qi.name.compare("hardware_commands_in")) {
-      try {
-        m_hw_command_in_queue.reset(new source_t(qi.inst));
-      } catch (const ers::Issue& excpt) {
-        throw InvalidQueueFatalError(ERS_HERE, get_name(), qi.name, excpt);
-      }
-    }
-  }
+  auto qi = appfwk::queue_index(init_data, { "timing_cmds_queue" });  
+  m_hw_command_in_queue.reset(new source_t(qi["timing_cmds_queue"].inst));
+
   m_received_hw_commands_counter = 0;
   m_accepted_hw_commands_counter = 0;
   m_rejected_hw_commands_counter = 0;

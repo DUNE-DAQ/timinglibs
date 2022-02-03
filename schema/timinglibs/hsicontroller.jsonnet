@@ -18,14 +18,9 @@ local cs = {
     double_data: s.number("DoubleData", "f8", 
          doc="A double"),
 
-    init: s.record("InitParams", [
-        s.field("qinfos", app.QueueInfos,
-                doc="Information for a module to find its queue"),
-        s.field("device", self.str, "",
-                doc="String of managed device name"),
-    ], doc="HSIController configuration"),
-
     conf: s.record("ConfParams",[
+        s.field("device", self.str, "",
+            doc="String of managed device name"),
         s.field("clock_frequency", self.size,
             doc="HSI firmware clock frequency"),
         s.field("trigger_interval_ticks", self.size,
