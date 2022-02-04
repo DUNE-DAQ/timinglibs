@@ -63,7 +63,7 @@ void
 HSIController::do_configure(const nlohmann::json& data)
 {
   m_hsi_configuration = data.get<hsicontroller::ConfParams>();
-  m_timing_device = "BOREAS_TLU";
+  m_timing_device = m_hsi_configuration.device;
 
   TLOG() << get_name() << " conf; hsi device: " << m_timing_device;
   
