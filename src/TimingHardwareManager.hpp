@@ -83,11 +83,12 @@ public:
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
   virtual ~TimingHardwareManager()
   {
-    thread_.stop_working_thread();
-    stop_hw_mon_gathering();
+//    thread_.stop_working_thread();
+//    stop_hw_mon_gathering();
   }
   void init(const nlohmann::json& init_data) override;
-  virtual void conf(const nlohmann::json& conf_data) = 0;
+  virtual void conf(const nlohmann::json& conf_data);
+  virtual void scrap(const nlohmann::json& data);
 
 protected:
   // Commands
@@ -133,6 +134,7 @@ protected:
 
   // timing master commands
   void set_timestamp(const timingcmd::TimingHwCmd& hw_cmd);
+  void set_endpoint_delay(const timingcmd::TimingHwCmd& hw_cmd);
 
   // timing partition commands
   void partition_configure(const timingcmd::TimingHwCmd& hw_cmd);

@@ -37,11 +37,17 @@ TimingHardwareManagerPDI::TimingHardwareManagerPDI(const std::string& name)
   : TimingHardwareManager(name)
 {
   register_command("conf", &TimingHardwareManagerPDI::conf);
+  register_command("start", &TimingHardwareManagerPDI::start);
+  register_command("stop", &TimingHardwareManagerPDI::stop);
+  register_command("scrap", &TimingHardwareManagerPDI::scrap);
+
 }
 
 void
 TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
 {
+  TimingHardwareManager::conf(conf_data);
+
   register_common_hw_commands_for_design();
   register_master_hw_commands_for_design();
   register_endpoint_hw_commands_for_design();
@@ -112,8 +118,25 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
   }
 
   thread_.start_working_thread();
-  start_hw_mon_gathering();
 } // NOLINT
+
+void
+TimingHardwareManagerPDI::scrap(const nlohmann::json& data)
+{
+  thread_.stop_working_thread();
+  TimingHardwareManager::scrap(data);
+}
+
+void
+TimingHardwareManagerPDI::start(const nlohmann::json& /*data*/)
+{
+  start_hw_mon_gathering();
+}
+void
+TimingHardwareManagerPDI::stop(const nlohmann::json& /*data*/)
+{
+  stop_hw_mon_gathering();
+}
 
 void
 TimingHardwareManagerPDI::register_common_hw_commands_for_design()
@@ -126,6 +149,8 @@ void
 TimingHardwareManagerPDI::register_master_hw_commands_for_design()
 {
   register_timing_hw_command("set_timestamp", &TimingHardwareManagerPDI::set_timestamp);
+  register_timing_hw_command("set_endpoint_delay", &TimingHardwareManagerPDI::set_endpoint_delay);
+
   register_timing_hw_command("partition_configure", &TimingHardwareManagerPDI::partition_configure);
   register_timing_hw_command("partition_enable", &TimingHardwareManagerPDI::partition_enable);
   register_timing_hw_command("partition_disable", &TimingHardwareManagerPDI::partition_disable);

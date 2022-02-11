@@ -59,8 +59,6 @@ public:
   HSIController(HSIController&&) = delete;                 ///< HSIController is not move-constructible
   HSIController& operator=(HSIController&&) = delete;      ///< HSIController is not move-assignable
 
-  void init(const nlohmann::json& init_data) override;
-
 private:
   hsicontroller::ConfParams m_hsi_configuration;
 

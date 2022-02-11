@@ -42,13 +42,26 @@ void
 TimingHardwareManager::init(const nlohmann::json& init_data)
 {
   // set up queues
-  auto qi = appfwk::queue_index(init_data, { "timing_cmds_queue" });  
+  auto qi = appfwk::queue_index(init_data, { "timing_cmds_queue" });
   m_hw_command_in_queue.reset(new source_t(qi["timing_cmds_queue"].inst));
+}
 
+void
+TimingHardwareManager::conf(const nlohmann::json& /*conf_data*/)
+{
   m_received_hw_commands_counter = 0;
   m_accepted_hw_commands_counter = 0;
   m_rejected_hw_commands_counter = 0;
   m_failed_hw_commands_counter = 0;
+}
+
+void
+TimingHardwareManager::scrap(const nlohmann::json& /*data*/)
+{
+  m_hw_device_map.clear();
+  m_connection_manager.reset();
+  m_timing_hw_cmd_map_.clear();
+  m_info_gatherers.clear();
 }
 
 const timing::TimingNode*
@@ -272,6 +285,16 @@ TimingHardwareManager::set_timestamp(const timingcmd::TimingHwCmd& hw_cmd)
 
   auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   design->sync_timestamp();
+}
+
+// master commands
+void
+TimingHardwareManager::set_endpoint_delay(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " set endpoint delay";
+
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  design->apply_endpoint_delay(0, 0, 0, 0, false, false);
 }
 
 // partition commands

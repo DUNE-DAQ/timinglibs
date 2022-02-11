@@ -53,13 +53,6 @@ HSIController::HSIController(const std::string& name)
 }
 
 void
-HSIController::init(const nlohmann::json& init_data)
-{
-  // set up queues
-  TimingController::init(init_data["qinfos"]);
-}
-
-void
 HSIController::do_configure(const nlohmann::json& data)
 {
   m_hsi_configuration = data.get<hsicontroller::ConfParams>();
