@@ -37,6 +37,9 @@ TimingPartitionController::TimingPartitionController(const std::string& name)
   register_command("conf", &TimingPartitionController::do_configure);
   register_command("start", &TimingPartitionController::do_start);
   register_command("stop", &TimingPartitionController::do_stop);
+  register_command("resume", &TimingPartitionController::do_resume);
+  register_command("pause", &TimingPartitionController::do_pause);
+//  register_command("scrap", &TimingPartitionController::do_scrap);
 
   // timing partition hw commands
   register_command("partition_configure", &TimingPartitionController::do_partition_configure);
@@ -50,21 +53,13 @@ TimingPartitionController::TimingPartitionController(const std::string& name)
 }
 
 void
-TimingPartitionController::init(const nlohmann::json& init_data)
-{
-  // set up queues
-  TimingController::init(init_data["qinfos"]);
-
-  auto ini = init_data.get<timingpartitioncontroller::InitParams>();
-  m_timing_device = ini.device;
-  m_managed_partition_id = ini.partition_id;
-
-  TLOG() << get_name() << " init; device: " << m_timing_device << ", managed part id: " << m_managed_partition_id;
-}
-
-void
 TimingPartitionController::do_configure(const nlohmann::json& data)
 {
+  auto conf = data.get<timingpartitioncontroller::PartitionConfParams>();
+  m_timing_device = conf.device;
+  m_managed_partition_id = conf.partition_id;
+
+  TLOG() << get_name() << " conf; device: " << m_timing_device << ", managed part id: " << m_managed_partition_id;
   do_partition_configure(data);
   do_partition_enable(data);
 }
@@ -80,6 +75,24 @@ void
 TimingPartitionController::do_stop(const nlohmann::json& data)
 {
   do_partition_stop(data);
+}
+
+//void
+//TimingPartitionController::do_scrap(const nlohmann::json& data)
+//{
+//  do_partition_disable(data);
+//}
+
+void
+TimingPartitionController::do_resume(const nlohmann::json& data)
+{
+  do_partition_enable_triggers(data);
+}
+
+void
+TimingPartitionController::do_pause(const nlohmann::json& data)
+{
+  do_partition_disable_triggers(data);
 }
 
 void
@@ -99,13 +112,7 @@ TimingPartitionController::do_partition_configure(const nlohmann::json& data)
   timingcmd::TimingHwCmd hw_cmd;
   hw_cmd.id = "partition_configure";
   hw_cmd.device = m_timing_device;
-
-  // make our configure payload with partition id of this controller
-  timingcmd::TimingPartitionConfigureCmdPayload cmd_payload;
-  timingcmd::from_json(data, cmd_payload);
-  cmd_payload.partition_id = m_managed_partition_id;
-
-  timingcmd::to_json(hw_cmd.payload, cmd_payload);
+  hw_cmd.payload = data;
 
   send_hw_cmd(hw_cmd);
   ++(m_sent_hw_command_counters.at(0).atomic);
