@@ -61,6 +61,10 @@ public:
   {
     m_info_collector = std::make_unique<opmonlib::InfoCollector>();
   }
+  virtual ~InfoGatherer()
+  {
+    if (run_gathering()) stop_gathering_thread();
+  }
 
   InfoGatherer(const InfoGatherer&) = delete;            ///< InfoGatherer is not copy-constructible
   InfoGatherer& operator=(const InfoGatherer&) = delete; ///< InfoGatherer is not copy-assignable
