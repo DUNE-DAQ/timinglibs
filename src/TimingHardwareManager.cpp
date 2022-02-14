@@ -194,6 +194,22 @@ TimingHardwareManager::stop_hw_mon_gathering(const std::string& device_name)
   }
 }
 
+bool
+TimingHardwareManager::check_hw_mon_gatherer_is_running(const std::string& device_name)
+{
+  bool gatherer_found=false;
+  bool gatherer_running=false;
+
+  for (auto it = m_info_gatherers.lower_bound(device_name); it != m_info_gatherers.end(); ++it)
+  {
+    TLOG_DEBUG(0) << get_name() << " Checking run state of info gatherer: " << it->first;
+    gatherer_found=true;
+    gatherer_running = it->second.get()->run_gathering(); 
+  }
+  if (!gatherer_found) ers::warning(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "stop", device_name));
+  return gatherer_running;  
+}
+
 // cmd stuff
 void
 TimingHardwareManager::process_hardware_commands(std::atomic<bool>& running_flag)
@@ -252,7 +268,9 @@ TimingHardwareManager::io_reset(const timingcmd::TimingHwCmd& hw_cmd)
   
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " io reset";
 
-  stop_hw_mon_gathering(hw_cmd.device);
+  // io reset disrupts hw mon gathering, so stop if running
+  bool hw_gatherer_running = check_hw_mon_gatherer_is_running(hw_cmd.device);
+  if (hw_gatherer_running) stop_hw_mon_gathering(hw_cmd.device);
 
   auto design_device = get_timing_device_plain(hw_cmd.device);
   auto design = dynamic_cast<const timing::TopDesignInterface*>(design_device);
@@ -265,7 +283,9 @@ TimingHardwareManager::io_reset(const timingcmd::TimingHwCmd& hw_cmd)
                   << " io reset, with supplied clk file: " << cmd_payload.clock_config << "and fanout mode: " << cmd_payload.fanout_mode;
     design->reset_io(cmd_payload.fanout_mode, cmd_payload.clock_config);
   }
-  start_hw_mon_gathering(hw_cmd.device);
+
+  // if hw mon gathering was running previously, start it again
+  if (hw_gatherer_running) start_hw_mon_gathering(hw_cmd.device);
 }
 
 void

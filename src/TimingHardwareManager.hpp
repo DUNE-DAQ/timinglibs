@@ -172,6 +172,7 @@ protected:
 
   virtual void start_hw_mon_gathering(const std::string& device_name = "");
   virtual void stop_hw_mon_gathering(const std::string& device_name = "");
+  virtual bool check_hw_mon_gatherer_is_running(const std::string& device_name);
 };
 
 } // namespace timinglibs
