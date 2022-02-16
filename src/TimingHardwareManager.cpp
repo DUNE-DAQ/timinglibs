@@ -42,20 +42,26 @@ void
 TimingHardwareManager::init(const nlohmann::json& init_data)
 {
   // set up queues
-  auto qinfos = init_data.get<appfwk::app::QueueInfos>();
-  for (const auto& qi : qinfos) {
-    if (!qi.name.compare("hardware_commands_in")) {
-      try {
-        m_hw_command_in_queue.reset(new source_t(qi.inst));
-      } catch (const ers::Issue& excpt) {
-        throw InvalidQueueFatalError(ERS_HERE, get_name(), qi.name, excpt);
-      }
-    }
-  }
+  auto qi = appfwk::queue_index(init_data, { "timing_cmds_queue" });
+  m_hw_command_in_queue.reset(new source_t(qi["timing_cmds_queue"].inst));
+}
+
+void
+TimingHardwareManager::conf(const nlohmann::json& /*conf_data*/)
+{
   m_received_hw_commands_counter = 0;
   m_accepted_hw_commands_counter = 0;
   m_rejected_hw_commands_counter = 0;
   m_failed_hw_commands_counter = 0;
+}
+
+void
+TimingHardwareManager::scrap(const nlohmann::json& /*data*/)
+{
+  m_hw_device_map.clear();
+  m_connection_manager.reset();
+  m_timing_hw_cmd_map_.clear();
+  m_info_gatherers.clear();
 }
 
 const timing::TimingNode*
@@ -188,6 +194,21 @@ TimingHardwareManager::stop_hw_mon_gathering(const std::string& device_name)
   }
 }
 
+std::vector<std::string>
+TimingHardwareManager::check_hw_mon_gatherer_is_running(const std::string& device_name)
+{
+  std::vector<std::string> running_gatherers;
+  for (auto it = m_info_gatherers.lower_bound(device_name); it != m_info_gatherers.end(); ++it)
+  {
+    TLOG_DEBUG(0) << get_name() << " Checking run state of info gatherer: " << it->first;
+    if (it->second.get()->run_gathering())
+    {
+      running_gatherers.push_back(it->first);
+    }
+  }
+  return running_gatherers;  
+}
+
 // cmd stuff
 void
 TimingHardwareManager::process_hardware_commands(std::atomic<bool>& running_flag)
@@ -246,7 +267,12 @@ TimingHardwareManager::io_reset(const timingcmd::TimingHwCmd& hw_cmd)
   
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " io reset";
 
-  stop_hw_mon_gathering(hw_cmd.device);
+  // io reset disrupts hw mon gathering, so stop if running
+  auto running_hw_gatherers = check_hw_mon_gatherer_is_running(hw_cmd.device);
+  for (auto& gatherer: running_hw_gatherers)
+  {
+    stop_hw_mon_gathering(gatherer);
+  }
 
   auto design_device = get_timing_device_plain(hw_cmd.device);
   auto design = dynamic_cast<const timing::TopDesignInterface*>(design_device);
@@ -259,7 +285,12 @@ TimingHardwareManager::io_reset(const timingcmd::TimingHwCmd& hw_cmd)
                   << " io reset, with supplied clk file: " << cmd_payload.clock_config << "and fanout mode: " << cmd_payload.fanout_mode;
     design->reset_io(cmd_payload.fanout_mode, cmd_payload.clock_config);
   }
-  start_hw_mon_gathering(hw_cmd.device);
+
+  // if hw mon gathering was running previously, start it again
+  for (auto& gatherer: running_hw_gatherers)
+  {
+    start_hw_mon_gathering(gatherer);
+  }
 }
 
 void
@@ -279,6 +310,16 @@ TimingHardwareManager::set_timestamp(const timingcmd::TimingHwCmd& hw_cmd)
 
   auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
   design->sync_timestamp();
+}
+
+// master commands
+void
+TimingHardwareManager::set_endpoint_delay(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " set endpoint delay";
+
+  auto design = dynamic_cast<const timing::MasterDesignInterface*>(get_timing_device_plain(hw_cmd.device));
+  design->apply_endpoint_delay(0, 0, 0, 0, false, false);
 }
 
 // partition commands

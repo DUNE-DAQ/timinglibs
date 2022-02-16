@@ -95,6 +95,7 @@ protected:
   virtual void do_stop(const nlohmann::json& obj);
 
   // Configuration
+  std::string m_hw_command_out_queue_name;
   using sink_t = dunedaq::appfwk::DAQSink<timingcmd::TimingHwCmd>;
   std::unique_ptr<sink_t> m_hw_command_out_queue;
   std::chrono::milliseconds m_hw_cmd_out_queue_timeout;

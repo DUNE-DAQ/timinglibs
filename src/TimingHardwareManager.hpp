@@ -14,6 +14,7 @@
 
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
+#include "timinglibs/timingcmd/msgp.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
 
@@ -82,10 +83,12 @@ public:
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
   virtual ~TimingHardwareManager()
   {
-    thread_.stop_working_thread();
-    stop_hw_mon_gathering();
+//    thread_.stop_working_thread();
+//    stop_hw_mon_gathering();
   }
   void init(const nlohmann::json& init_data) override;
+  virtual void conf(const nlohmann::json& conf_data);
+  virtual void scrap(const nlohmann::json& data);
 
 protected:
   // Commands
@@ -131,6 +134,7 @@ protected:
 
   // timing master commands
   void set_timestamp(const timingcmd::TimingHwCmd& hw_cmd);
+  void set_endpoint_delay(const timingcmd::TimingHwCmd& hw_cmd);
 
   // timing partition commands
   void partition_configure(const timingcmd::TimingHwCmd& hw_cmd);
@@ -168,6 +172,7 @@ protected:
 
   virtual void start_hw_mon_gathering(const std::string& device_name = "");
   virtual void stop_hw_mon_gathering(const std::string& device_name = "");
+  virtual std::vector<std::string> check_hw_mon_gatherer_is_running(const std::string& device_name);
 };
 
 } // namespace timinglibs

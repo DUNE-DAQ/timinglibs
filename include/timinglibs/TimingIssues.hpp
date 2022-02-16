@@ -135,6 +135,13 @@ ERS_DECLARE_ISSUE(timinglibs,
                   InvalidTriggerIntervalTicksValue,
                   " Trigger interval ticks value " << trigger_interval_ticks << " invalid!",
                   ((uint64_t)trigger_interval_ticks)) // NOLINT(build/unsigned)
+
+ERS_DECLARE_ISSUE_BASE(timinglibs,
+                       QueueIsNullFatalError,
+                       appfwk::GeneralDAQModuleIssue,
+                       " Queue " << queue << " is null! ",
+                       ((std::string)name),
+                       ((std::string)queue))
 } // namespace dunedaq
 
 #endif // TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGISSUES_HPP_

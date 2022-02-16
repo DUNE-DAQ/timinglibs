@@ -53,22 +53,13 @@ HSIController::HSIController(const std::string& name)
 }
 
 void
-HSIController::init(const nlohmann::json& init_data)
-{
-  // set up queues
-  TimingController::init(init_data["qinfos"]);
-
-  auto ini = init_data.get<hsicontroller::InitParams>();
-  m_timing_device = ini.device;
-
-  TLOG() << get_name() << " init; hsi device: " << m_timing_device;
-}
-
-void
 HSIController::do_configure(const nlohmann::json& data)
 {
   m_hsi_configuration = data.get<hsicontroller::ConfParams>();
+  m_timing_device = m_hsi_configuration.device;
 
+  TLOG() << get_name() << " conf; hsi device: " << m_timing_device;
+  
   // wait for network communication to timing hardware interface module to definitely be ready
   std::this_thread::sleep_for(std::chrono::microseconds(5000000));
 

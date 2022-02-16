@@ -15,6 +15,7 @@
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/cmd/Nljs.hpp"
+#include "appfwk/DAQModuleHelper.hpp"
 
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
@@ -30,6 +31,7 @@ namespace timinglibs {
 
 TimingController::TimingController(const std::string& name, uint number_hw_commands)
   : dunedaq::appfwk::DAQModule(name)
+  , m_hw_command_out_queue_name("hardware_commands_out")
   , m_hw_command_out_queue(nullptr)
   , m_hw_cmd_out_queue_timeout(100)
   , m_timing_device("")
@@ -45,16 +47,8 @@ void
 TimingController::init(const nlohmann::json& init_data)
 {
   // set up queues
-  auto qinfos = init_data.get<appfwk::app::QueueInfos>();
-  for (const auto& qi : qinfos) {
-    if (!qi.name.compare("hardware_commands_out")) {
-      try {
-        m_hw_command_out_queue.reset(new sink_t(qi.inst));
-      } catch (const ers::Issue& excpt) {
-        throw InvalidQueueFatalError(ERS_HERE, get_name(), qi.name, excpt);
-      }
-    }
-  }
+  auto qi = appfwk::queue_index(init_data, { m_hw_command_out_queue_name });
+  m_hw_command_out_queue.reset(new sink_t(qi[m_hw_command_out_queue_name].inst));
 }
 
 void
@@ -74,12 +68,15 @@ TimingController::do_stop(const nlohmann::json&)
 void
 TimingController::send_hw_cmd(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  std::string thisQueueName = m_hw_command_out_queue->get_name();
+  if (!m_hw_command_out_queue)
+  {
+    throw QueueIsNullFatalError(ERS_HERE, get_name(), m_hw_command_out_queue_name);
+  }
   try {
     m_hw_command_out_queue->push(hw_cmd, m_hw_cmd_out_queue_timeout);
   } catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt) {
     std::ostringstream oss_warn;
-    oss_warn << "push to output queue \"" << thisQueueName << "\"";
+    oss_warn << "push to output queue \"" << m_hw_command_out_queue_name << "\"";
     ers::warning(dunedaq::appfwk::QueueTimeoutExpired(
       ERS_HERE,
       get_name(),

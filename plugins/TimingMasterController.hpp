@@ -58,12 +58,12 @@ public:
   TimingMasterController& operator=(TimingMasterController&&) =
     delete; ///< TimingMasterController is not move-assignable
 
-  void init(const nlohmann::json& init_data) override;
-
 private:
   // Commands
   void do_configure(const nlohmann::json& data) override;
-
+  void do_start(const nlohmann::json& data) override;
+  void do_stop(const nlohmann::json& data) override;
+  
   void construct_master_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
 
   // timing master commands
@@ -73,6 +73,9 @@ private:
 
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;
+
+  dunedaq::utilities::WorkerThread set_endpoint_delay_thread;
+  virtual void set_endpoint_delay(std::atomic<bool>&);
 };
 } // namespace timinglibs
 } // namespace dunedaq

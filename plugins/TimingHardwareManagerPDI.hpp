@@ -85,7 +85,11 @@ public:
   TimingHardwareManagerPDI& operator=(TimingHardwareManagerPDI&&) =
     delete; ///< TimingHardwareManagerPDI is not move-assignable
 
-  void init(const nlohmann::json& init_data) override;
+  void conf(const nlohmann::json& conf_data) override;
+  void start(const nlohmann::json& data);
+  void stop(const nlohmann::json& data);
+  void scrap(const nlohmann::json& data) override;
+
   void get_info(opmonlib::InfoCollector& ci, int level) override;
 
 private:
