@@ -171,7 +171,7 @@ HSIEventToFile::write_hsievents(std::atomic<bool>& running_flag)
     }
     
     m_last_received_timestamp = event.timestamp;
-    TLOG_DEBUG(0) << "HSIEvent activity received.";
+    TLOG_DEBUG(4) << "HSIEvent activity received.";
     
     try
     {

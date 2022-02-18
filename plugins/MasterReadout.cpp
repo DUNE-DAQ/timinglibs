@@ -26,6 +26,8 @@
 #include <vector>
 
 namespace dunedaq {
+  ERS_DECLARE_ISSUE(timinglibs, InvalidEventHeader, " Invalid event header: " << std::showbase << std::hex << header, ((uint32_t)header))
+  ERS_DECLARE_ISSUE(timinglibs, IncompleteEvent, " Invalid event, n words: " << n_words, ((uint32_t)n_words))
 namespace timinglibs {
 
 MasterReadout::MasterReadout(const std::string& name)
@@ -161,19 +163,21 @@ MasterReadout::read_hsievents(std::atomic<bool>& running_flag)
 
 
       TLOG_DEBUG(5) << get_name() << ": Number of words in partition buffer: " << n_words_in_buffer;
-
-      if (partition_words.size() >= timing::g_event_size) {
+      
+      if ((partition_words.size() % timing::g_event_size) != 0) {
+	ers::error(IncompleteEvent(ERS_HERE, partition_words.size()));
+      } else {
 
         uint n_partition_events = partition_words.size() / timing::g_event_size;
-
+	
         TLOG_DEBUG(4) << get_name() << ": Have readout " << n_partition_events << " Partition Event(s) ";
 
         m_readout_counter.store(m_readout_counter.load() + n_partition_events);
         for (uint i = 0; i < n_partition_events; ++i) {
 
-          uint32_t header = partition_words.at(0 + (i * timing::g_hsi_event_size));  // NOLINT(build/unsigned)
-          uint32_t ts_low = partition_words.at(2 + (i * timing::g_hsi_event_size));  // NOLINT(build/unsigned)
-          uint32_t ts_high = partition_words.at(3 + (i * timing::g_hsi_event_size)); // NOLINT(build/unsigned)
+          uint32_t header = partition_words.at(0 + (i * timing::g_event_size));  // NOLINT(build/unsigned)
+          uint32_t ts_low = partition_words.at(2 + (i * timing::g_event_size));  // NOLINT(build/unsigned)
+          uint32_t ts_high = partition_words.at(3 + (i * timing::g_event_size)); // NOLINT(build/unsigned)
           uint32_t data = 0x0;    // NOLINT(build/unsigned)
           uint32_t trigger = 0x0; // NOLINT(build/unsigned)
 
@@ -183,7 +187,7 @@ MasterReadout::read_hsievents(std::atomic<bool>& running_flag)
           // bits 31-16 contain the HSI device ID
           uint32_t hsi_device_id = 0x0; // NOLINT(build/unsigned)
           // bits 15-0 contain the sequence counter
-          uint32_t counter = partition_words.at(4 + (i * timing::g_hsi_event_size)); // NOLINT(build/unsigned)
+          uint32_t counter = partition_words.at(4 + (i * timing::g_event_size)); // NOLINT(build/unsigned)
 
           //if (counter > 0 && counter % 60000 == 0)
             TLOG_DEBUG(3) << "Sequence counter from firmware: " << counter;
@@ -192,8 +196,11 @@ MasterReadout::read_hsievents(std::atomic<bool>& running_flag)
                         << std::bitset<32>(trigger) << ", "
                         << "ts: " << ts
                         << "\n";
-
-          dfmessages::HSIEvent event = dfmessages::HSIEvent(hsi_device_id, trigger, ts, counter);
+	  
+	  if (header != 0xaa000600) {
+	    ers::error(InvalidEventHeader(ERS_HERE,header));
+	  }
+          dfmessages::HSIEvent event = dfmessages::HSIEvent(header, trigger, ts, counter);
           m_last_readout_timestamp.store(ts);
 
           std::string thisQueueName = m_hsievent_sink->get_name();
