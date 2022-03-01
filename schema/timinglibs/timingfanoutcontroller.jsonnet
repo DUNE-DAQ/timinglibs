@@ -13,8 +13,6 @@ local cs = {
         doc="A count of very many things"),
 
     init: s.record("ConfParams", [
-        s.field("qinfos", app.QueueInfos,
-                doc="Information for a module to find its queue"),
         s.field("device", self.str, "",
                 doc="String of managed device name"),
     ], doc="TimingFanoutController configuration"),
