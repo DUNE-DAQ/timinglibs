@@ -26,6 +26,7 @@
 #include <vector>
 
 namespace dunedaq {
+  ERS_DECLARE_ISSUE(timinglibs, InvalidHSIEventHeader, " Invalid hsi buffer event header: " << std::showbase << std::hex << header, ((uint32_t)header)) // NOLINT(build/unsigned)
 namespace timinglibs {
 
 HSIReadout::HSIReadout(const std::string& name)
@@ -89,7 +90,10 @@ HSIReadout::do_configure(const nlohmann::json& obj)
     message << m_connections_file << " not found. Has TIMING_SHARE been set?";
     throw UHALConnectionsFileIssue(ERS_HERE, message.str(), excpt);
   }
-
+  if (m_cfg.hsi_device_name.empty())
+  {
+    throw UHALDeviceNameIssue(ERS_HERE, "Device name for HSIReadout should not be empty");
+  }
   m_hsi_device_name = m_cfg.hsi_device_name;
 
   try {
@@ -175,13 +179,20 @@ HSIReadout::do_hsievent_work(std::atomic<bool>& running_flag)
           // bits 15-0 contain the sequence counter
           uint32_t counter = header & 0x0000ffff; // NOLINT(build/unsigned)
 
+          if ((header >> 16) != 0xaa00) {
+            ers::error(InvalidHSIEventHeader(ERS_HERE,header));
+            continue;
+          }
+
           if (counter > 0 && counter % 60000 == 0)
+          {
             TLOG_DEBUG(3) << "Sequence counter from firmware: " << counter;
+          }
 
           TLOG_DEBUG(3) << get_name() << ": read out data: " << std::showbase << std::hex << header << ", " << ts
                         << ", " << data << ", " << std::bitset<32>(trigger) << ", "
                         << "ts: " << ts << "\n";
-
+          
           dfmessages::HSIEvent event = dfmessages::HSIEvent(hsi_device_id, trigger, ts, counter);
           m_last_readout_timestamp.store(ts);
 

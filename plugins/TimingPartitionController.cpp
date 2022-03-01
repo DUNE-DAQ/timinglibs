@@ -56,6 +56,10 @@ void
 TimingPartitionController::do_configure(const nlohmann::json& data)
 {
   auto conf = data.get<timingpartitioncontroller::PartitionConfParams>();
+  if (conf.device.empty())
+  {
+    throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
+  }
   m_timing_device = conf.device;
   m_managed_partition_id = conf.partition_id;
 

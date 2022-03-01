@@ -47,6 +47,10 @@ void
 TimingMasterController::do_configure(const nlohmann::json& data)
 {
   auto conf = data.get<timingmastercontroller::ConfParams>();
+  if (conf.device.empty())
+  {
+    throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
+  }
   m_timing_device = conf.device;
 
   TLOG() << get_name() << " conf: master, device: " << m_timing_device;
