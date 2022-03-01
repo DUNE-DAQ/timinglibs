@@ -57,7 +57,10 @@ public:
   TimingMasterController(TimingMasterController&&) = delete; ///< TimingMasterController is not move-constructible
   TimingMasterController& operator=(TimingMasterController&&) =
     delete; ///< TimingMasterController is not move-assignable
-
+  virtual ~TimingMasterController()
+  {
+    if (set_endpoint_delay_thread.thread_running()) set_endpoint_delay_thread.stop_working_thread();
+  }
 private:
   // Commands
   void do_configure(const nlohmann::json& data) override;

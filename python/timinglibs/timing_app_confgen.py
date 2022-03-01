@@ -80,7 +80,7 @@ def generate(
     queue_specs = app.QueueSpecs(sorted(queue_bare_specs, key=lambda x: x.inst))
 
     mod_specs = [
-                    mspec("thi", "TimingHardwareManagerPDI", [app.QueueInfo(name="hardware_commands_in", inst="hardware_commands", dir="input")])
+                    mspec("thi", "TimingHardwareManagerPDI", [app.QueueInfo(name="timing_cmds_queue", inst="hardware_commands", dir="input")])
                 ]
     conf_cmds = [
                 ("thi", thi.ConfParams(
@@ -459,7 +459,7 @@ def generate(
     #####
 
     # Create a list of commands
-    cmd_seq = [initcmd, confcmd, startcmd, stopcmd]
+    cmd_seq = [initcmd, confcmd, startcmd, stopcmd, scrapcmd]
 
     if MASTER_DEVICE_NAME != "":
         cmd_seq.extend( [
