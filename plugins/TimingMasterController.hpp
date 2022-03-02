@@ -77,6 +77,7 @@ private:
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;
 
+  uint m_send_endpoint_delays_period; // NOLINT(build/unsigned)
   dunedaq::utilities::WorkerThread set_endpoint_delay_thread;
   virtual void set_endpoint_delay(std::atomic<bool>&);
 };

@@ -46,6 +46,7 @@ def generate(
         GATHER_INTERVAL = 1e6,
         GATHER_INTERVAL_DEBUG = 10e6,
         MASTER_DEVICE_NAME="",
+        MASTER_SEND_DELAYS_PERIOD=0,
         MASTER_CLOCK_FILE="",
         MASTER_CLOCK_MODE=-1,
         PARTITION_IDS=[],
@@ -136,6 +137,7 @@ def generate(
         conf_cmds.extend( [
                         ("tmc0", tmc.ConfParams(
                                     device=MASTER_DEVICE_NAME,
+                                    send_endpoint_delays_period=MASTER_SEND_DELAYS_PERIOD,
                                  )),
                      ] )
 
@@ -519,6 +521,7 @@ if __name__ == '__main__':
     @click.option('-m', '--master-device-name', default="")
     @click.option('--master-clock-file', default="")
     @click.option('--master-clock-mode', default=-1)
+    @click.option('--master-send-delays-period', default=0, help="master controller continuously send delays period [ms] (to all endpoints)")
     @click.option('-p', '--partition-ids', default="0", callback=split_string)
 
     @click.option('-f', '--fanout-devices-names', callback=split_string)
@@ -549,7 +552,7 @@ if __name__ == '__main__':
     @click.argument('json_file', type=click.Path(), default='timing_app.json')
     def cli(run_number, gather_interval, gather_interval_debug, 
 
-        master_device_name, master_clock_file, master_clock_mode, partition_ids,
+        master_device_name, master_clock_file, master_clock_mode, master_send_delays_period, partition_ids,
         fanout_devices_names, fanout_clock_file,
         endpoint_device_name, endpoint_clock_file, endpoint_address, endpoint_partition,
         hsi_device_name, hsi_clock_file, hsi_endpoint_address, hsi_endpoint_partition, hsi_re_mask, hsi_fe_mask, hsi_inv_mask, hsi_source, hsi_random_rate,
@@ -566,6 +569,7 @@ if __name__ == '__main__':
                     GATHER_INTERVAL = gather_interval,
                     GATHER_INTERVAL_DEBUG = gather_interval_debug,
                     MASTER_DEVICE_NAME = master_device_name,
+                    MASTER_SEND_DELAYS_PERIOD=master_send_delays_period,
                     MASTER_CLOCK_FILE = master_clock_file,
                     MASTER_CLOCK_MODE = master_clock_mode,
                     PARTITION_IDS = partition_ids,
