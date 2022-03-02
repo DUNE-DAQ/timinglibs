@@ -59,8 +59,6 @@ public:
   TimingEndpointController& operator=(TimingEndpointController&&) =
     delete; ///< TimingEndpointController is not move-assignable
 
-  void init(const nlohmann::json& init_data) override;
-
 private:
   uint m_managed_endpoint_id;
 

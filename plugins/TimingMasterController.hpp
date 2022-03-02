@@ -57,7 +57,10 @@ public:
   TimingMasterController(TimingMasterController&&) = delete; ///< TimingMasterController is not move-constructible
   TimingMasterController& operator=(TimingMasterController&&) =
     delete; ///< TimingMasterController is not move-assignable
-
+  virtual ~TimingMasterController()
+  {
+    if (set_endpoint_delay_thread.thread_running()) set_endpoint_delay_thread.stop_working_thread();
+  }
 private:
   // Commands
   void do_configure(const nlohmann::json& data) override;
@@ -74,6 +77,7 @@ private:
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;
 
+  uint m_send_endpoint_delays_period; // NOLINT(build/unsigned)
   dunedaq::utilities::WorkerThread set_endpoint_delay_thread;
   virtual void set_endpoint_delay(std::atomic<bool>&);
 };
