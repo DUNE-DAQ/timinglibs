@@ -138,6 +138,8 @@ def generate(
                         ("tmc0", tmc.ConfParams(
                                     device=MASTER_DEVICE_NAME,
                                     send_endpoint_delays_period=MASTER_SEND_DELAYS_PERIOD,
+                                    clock_config=MASTER_CLOCK_FILE,
+                                    fanout_mode=MASTER_CLOCK_MODE,
                                  )),
                      ] )
 
@@ -521,7 +523,7 @@ if __name__ == '__main__':
     @click.option('-m', '--master-device-name', default="")
     @click.option('--master-clock-file', default="")
     @click.option('--master-clock-mode', default=-1)
-    @click.option('--master-send-delays-period', default=0, help="master controller continuously send delays period [ms] (to all endpoints)")
+    @click.option('--master-send-delays-period', default=0, help="Master controller continuously send delays period [ms] (to all endpoints). 0 for disable.")
     @click.option('-p', '--partition-ids', default="0", callback=split_string)
 
     @click.option('-f', '--fanout-devices-names', callback=split_string)
