@@ -51,7 +51,7 @@
 namespace dunedaq {
 namespace timinglibs {
 
-void
+inline void
 resolve_environment_variables(std::string& input_string)
 {
   static std::regex env_var_pattern("\\$\\{([^}]+)\\}");
@@ -118,7 +118,7 @@ protected:
 
   // retrieve top level/design object for a timing device
   template<class TIMING_DEV>
-  const TIMING_DEV& get_timing_device(const std::string& device_name);
+  TIMING_DEV get_timing_device(const std::string& device_name);
   const timing::TimingNode* get_timing_device_plain(const std::string& device_name);
 
   // timing hw cmds stuff

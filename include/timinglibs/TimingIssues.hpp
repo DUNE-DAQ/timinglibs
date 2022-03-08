@@ -70,6 +70,13 @@ ERS_DECLARE_ISSUE_BASE(timinglibs,
                        ((std::string)message),
                        ERS_EMPTY)
 
+ERS_DECLARE_ISSUE_BASE(timinglibs,
+                       UHALDeviceClassIssue,
+                       timinglibs::UHALDeviceNodeIssue,
+                       " Failed to cast device " << device << " to type " << type << " where actual_type type is " << actual_type,
+                       ((std::string)message),
+                       ((std::string)device)((std::string)type)((std::string)actual_type))
+
 ERS_DECLARE_ISSUE(timinglibs,
                   FailedToCollectOpMonInfo,
                   " Failed to collect op mon info from device: " << device_name,
