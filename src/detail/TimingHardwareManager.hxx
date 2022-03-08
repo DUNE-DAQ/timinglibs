@@ -18,10 +18,16 @@ TimingHardwareManager::register_timing_hw_command(const std::string& hw_cmd_id,
 }
 
 template<class TIMING_DEV>
-const TIMING_DEV&
+TIMING_DEV
 TimingHardwareManager::get_timing_device(const std::string& device_name)
 {
-  return dynamic_cast<const TIMING_DEV&>(*get_timing_device_plain(device_name));
+  auto device = get_timing_device_plain(device_name);
+  auto timing_device = dynamic_cast<TIMING_DEV>(device);
+  if (!timing_device)
+  {
+    throw UHALDeviceClassIssue(ERS_HERE, "Bad device cast", device_name, typeid(TIMING_DEV).name(), typeid(*device).name());
+  }
+  return timing_device;
 }
 
 } // namespace dunedaq::timinglibs
