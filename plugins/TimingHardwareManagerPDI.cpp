@@ -97,24 +97,24 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
   // only register monitor threads if we have been given the name of the device to monitor
   if (m_monitored_device_name_master.compare("")) {
     register_info_gatherer(m_gather_interval, m_monitored_device_name_master, 1);
-    register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_master, 2);
+    //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_master, 2);
   }
 
   for (auto it = m_monitored_device_names_fanout.begin(); it != m_monitored_device_names_fanout.end(); ++it) {
     if (it->compare("")) {
       register_info_gatherer(m_gather_interval, *it, 1);
-      register_info_gatherer(m_gather_interval_debug, *it, 2);
+      //register_info_gatherer(m_gather_interval_debug, *it, 2);
     }
   }
 
   if (m_monitored_device_name_endpoint.compare("")) {
     register_info_gatherer(m_gather_interval, m_monitored_device_name_endpoint, 1);
-    register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_endpoint, 2);
+    //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_endpoint, 2);
   }
 
   if (m_monitored_device_name_hsi.compare("")) {
     register_info_gatherer(m_gather_interval, m_monitored_device_name_hsi, 1);
-    register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_hsi, 2);
+    //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_hsi, 2);
   }
 
   thread_.start_working_thread();
