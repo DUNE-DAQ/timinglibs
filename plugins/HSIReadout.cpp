@@ -12,6 +12,7 @@
 #include "timinglibs/hsireadout/Nljs.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
+#include "timing/TimingIssues.hpp"
 
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/app/Nljs.hpp"
@@ -26,7 +27,8 @@
 #include <vector>
 
 namespace dunedaq {
-  ERS_DECLARE_ISSUE(timinglibs, InvalidHSIEventHeader, " Invalid hsi buffer event header: " << std::showbase << std::hex << header, ((uint32_t)header)) // NOLINT(build/unsigned)
+  ERS_DECLARE_ISSUE(timinglibs, InvalidHSIEventHeader, " Invalid hsi buffer event header: 0x" << std::hex << header, ((uint32_t)header)) // NOLINT(build/unsigned)
+  ERS_DECLARE_ISSUE(timinglibs, InvalidHSIEventTimestamp, " Invalid hsi buffer event timestamp: 0x" << std::hex << timestamp, ((uint64_t)timestamp)) // NOLINT(build/unsigned)
 namespace timinglibs {
 
 HSIReadout::HSIReadout(const std::string& name)
@@ -150,6 +152,14 @@ HSIReadout::do_hsievent_work(std::atomic<bool>& running_flag)
       uint16_t n_words_in_buffer; // NOLINT(build/unsigned)
 
       auto hsi_node = m_hsi_device->getNode<timing::HSINode>("endpoint0");
+
+      auto hsi_endpoint_ready = hsi_node.endpoint_ready();
+      if (!hsi_endpoint_ready)
+      {
+        auto hsi_endpoint_state = hsi_node.read_endpoint_state();
+        throw timing::EndpointNotReady(ERS_HERE, "HSI", hsi_endpoint_state);
+      }
+
       auto hsi_words = hsi_node.read_data_buffer(n_words_in_buffer, false, true);
 
       update_buffer_counts(n_words_in_buffer);
@@ -181,6 +191,12 @@ HSIReadout::do_hsievent_work(std::atomic<bool>& running_flag)
 
           if ((header >> 16) != 0xaa00) {
             ers::error(InvalidHSIEventHeader(ERS_HERE,header));
+            continue;
+          }
+
+          if (!ts)
+          {
+            ers::warning(InvalidHSIEventTimestamp(ERS_HERE,ts));
             continue;
           }
 
