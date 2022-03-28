@@ -160,10 +160,11 @@ HSIReadout::do_hsievent_work(std::atomic<bool>& running_flag)
         throw timing::EndpointNotReady(ERS_HERE, "HSI", hsi_endpoint_state);
       }
 
+      auto hsi_emulation_mode = hsi_node.getNode("hsi.csr.ctrl.src").read();
+      m_hsi_device->dispatch();
+
       auto hsi_words = hsi_node.read_data_buffer(n_words_in_buffer, false, true);
-
       update_buffer_counts(n_words_in_buffer);
-
       TLOG_DEBUG(5) << get_name() << ": Number of words in HSI buffer: " << n_words_in_buffer;
 
       if (hsi_words.size() >= 5) {
@@ -209,7 +210,21 @@ HSIReadout::do_hsievent_work(std::atomic<bool>& running_flag)
                         << ", " << data << ", " << std::bitset<32>(trigger) << ", "
                         << "ts: " << ts << "\n";
           
-          dfmessages::HSIEvent event = dfmessages::HSIEvent(hsi_device_id, trigger, ts, counter);
+          dfmessages::HSIEvent event;
+          
+          // In lieu of propper HSI channel to signal mapping, fake signal map when HSI firmware+hardware is in emulation mode.
+          // TODO DAQ/HSI team 24/03/22 Put in place HSI channel to signal mapping.
+
+          if (hsi_emulation_mode)
+          {
+            TLOG_DEBUG(3) << " HSI hardware is in emulation mode, faking (overwriting) signal map from firmware+hardware to have (only) bit 7 high.";
+            event = dfmessages::HSIEvent(hsi_device_id, 1UL << 7, ts, counter);
+          }
+          else
+          {
+            event = dfmessages::HSIEvent(hsi_device_id, trigger, ts, counter);
+          }
+          
           m_last_readout_timestamp.store(ts);
 
           send_hsi_event(event);
