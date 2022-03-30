@@ -28,7 +28,7 @@
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQSink.hpp"
 #include "appfwk/DAQSource.hpp"
-#include "appfwk/ThreadHelper.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
@@ -62,8 +62,6 @@ public:
   TimingPartitionController& operator=(TimingPartitionController&&) =
     delete; ///< TimingPartitionController is not move-assignable
 
-  void init(const nlohmann::json& init_data) override;
-
 private:
   uint m_managed_partition_id;
 
@@ -71,6 +69,9 @@ private:
   void do_configure(const nlohmann::json& data) override;
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
+//  void do_scrap(const nlohmann::json& data);
+  void do_resume(const nlohmann::json& data);
+  void do_pause(const nlohmann::json& data);
 
   void construct_partition_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
 

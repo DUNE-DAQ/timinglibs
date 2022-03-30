@@ -14,6 +14,7 @@
 
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
+#include "timinglibs/timingcmd/msgp.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
 
@@ -30,7 +31,7 @@
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/DAQSink.hpp"
 #include "appfwk/DAQSource.hpp"
-#include "appfwk/ThreadHelper.hpp"
+#include "utilities/WorkerThread.hpp"
 #include "appfwk/app/Nljs.hpp"
 #include "appfwk/app/Structs.hpp"
 
@@ -50,7 +51,7 @@
 namespace dunedaq {
 namespace timinglibs {
 
-void
+inline void
 resolve_environment_variables(std::string& input_string)
 {
   static std::regex env_var_pattern("\\$\\{([^}]+)\\}");
@@ -82,10 +83,11 @@ public:
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
   virtual ~TimingHardwareManager()
   {
-    thread_.stop_working_thread();
-    stop_hw_mon_gathering();
+    if (thread_.thread_running()) thread_.stop_working_thread();
   }
   void init(const nlohmann::json& init_data) override;
+  virtual void conf(const nlohmann::json& conf_data);
+  virtual void scrap(const nlohmann::json& data);
 
 protected:
   // Commands
@@ -95,7 +97,7 @@ protected:
   //  virtual void do_scrap(const nlohmann::json&);
 
   // Threading
-  dunedaq::appfwk::ThreadHelper thread_;
+  dunedaq::utilities::WorkerThread thread_;
   virtual void process_hardware_commands(std::atomic<bool>&);
 
   // Configuration
@@ -116,7 +118,7 @@ protected:
 
   // retrieve top level/design object for a timing device
   template<class TIMING_DEV>
-  const TIMING_DEV& get_timing_device(const std::string& device_name);
+  TIMING_DEV get_timing_device(const std::string& device_name);
   const timing::TimingNode* get_timing_device_plain(const std::string& device_name);
 
   // timing hw cmds stuff
@@ -131,6 +133,7 @@ protected:
 
   // timing master commands
   void set_timestamp(const timingcmd::TimingHwCmd& hw_cmd);
+  void set_endpoint_delay(const timingcmd::TimingHwCmd& hw_cmd);
 
   // timing partition commands
   void partition_configure(const timingcmd::TimingHwCmd& hw_cmd);
@@ -168,6 +171,7 @@ protected:
 
   virtual void start_hw_mon_gathering(const std::string& device_name = "");
   virtual void stop_hw_mon_gathering(const std::string& device_name = "");
+  virtual std::vector<std::string> check_hw_mon_gatherer_is_running(const std::string& device_name);
 };
 
 } // namespace timinglibs

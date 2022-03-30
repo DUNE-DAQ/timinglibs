@@ -70,6 +70,13 @@ ERS_DECLARE_ISSUE_BASE(timinglibs,
                        ((std::string)message),
                        ERS_EMPTY)
 
+ERS_DECLARE_ISSUE_BASE(timinglibs,
+                       UHALDeviceClassIssue,
+                       timinglibs::UHALDeviceNodeIssue,
+                       " Failed to cast device " << device << " to type " << type << " where actual_type type is " << actual_type,
+                       ((std::string)message),
+                       ((std::string)device)((std::string)type)((std::string)actual_type))
+
 ERS_DECLARE_ISSUE(timinglibs,
                   FailedToCollectOpMonInfo,
                   " Failed to collect op mon info from device: " << device_name,
@@ -135,6 +142,13 @@ ERS_DECLARE_ISSUE(timinglibs,
                   InvalidTriggerIntervalTicksValue,
                   " Trigger interval ticks value " << trigger_interval_ticks << " invalid!",
                   ((uint64_t)trigger_interval_ticks)) // NOLINT(build/unsigned)
+
+ERS_DECLARE_ISSUE_BASE(timinglibs,
+                       QueueIsNullFatalError,
+                       appfwk::GeneralDAQModuleIssue,
+                       " Queue " << queue << " is null! ",
+                       ((std::string)name),
+                       ((std::string)queue))
 } // namespace dunedaq
 
 #endif // TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGISSUES_HPP_

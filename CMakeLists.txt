@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(timinglibs VERSION 1.5.0)
+project(timinglibs VERSION 1.6.3)
 
 find_package(daq-cmake REQUIRED)
 

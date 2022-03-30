@@ -32,7 +32,7 @@ namespace timinglibs {
 TimingFanoutController::TimingFanoutController(const std::string& name)
   : dunedaq::timinglibs::TimingController(name, 2) // 2nd arg: how many hw commands can this module send?
 {
-  //  register_command("conf", &TimingFanoutController::do_configure);
+  register_command("conf", &TimingFanoutController::do_configure);
   //  register_command("start", &TimingFanoutController::do_start);
   //  register_command("stop", &TimingFanoutController::do_stop);
 
@@ -42,21 +42,15 @@ TimingFanoutController::TimingFanoutController(const std::string& name)
 }
 
 void
-TimingFanoutController::init(const nlohmann::json& init_data)
+TimingFanoutController::do_configure(const nlohmann::json& data)
 {
-  // set up queues
-  TimingController::init(init_data["qinfos"]);
-
-  auto ini = init_data.get<timingfanoutcontroller::InitParams>();
-  m_timing_device = ini.device;
-
+  auto conf = data.get<timingfanoutcontroller::ConfParams>();
+  if (conf.device.empty())
+  {
+    throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
+  }
+  m_timing_device = conf.device;
   TLOG() << get_name() << "conf: fanout device: " << m_timing_device;
-}
-
-void
-TimingFanoutController::do_configure(const nlohmann::json& /*data*/)
-{
-  // Placeholder for fanout config command sending
 }
 
 void

@@ -49,22 +49,17 @@ TimingEndpointController::TimingEndpointController(const std::string& name)
 }
 
 void
-TimingEndpointController::init(const nlohmann::json& init_data)
-{
-  // set up queues
-  TimingController::init(init_data["qinfos"]);
-
-  auto ini = init_data.get<timingendpointcontroller::InitParams>();
-
-  m_timing_device = ini.device;
-  m_managed_endpoint_id = ini.endpoint_id;
-
-  TLOG() << get_name() << " init: endpoint, device: " << m_timing_device;
-}
-
-void
 TimingEndpointController::do_configure(const nlohmann::json& data)
 {
+  auto conf = data.get<timingendpointcontroller::ConfParams>();
+  if (conf.device.empty())
+  {
+    throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
+  }
+  m_timing_device = conf.device;
+  m_managed_endpoint_id = conf.endpoint_id;
+
+  TLOG() << get_name() << " conf: endpoint, device: " << m_timing_device;
   do_endpoint_enable(data);
 }
 

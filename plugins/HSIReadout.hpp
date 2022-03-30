@@ -25,7 +25,7 @@
 
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQSink.hpp"
-#include "appfwk/ThreadHelper.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include "uhal/ConnectionManager.hpp"
 #include "uhal/ProtocolUDP.hpp"

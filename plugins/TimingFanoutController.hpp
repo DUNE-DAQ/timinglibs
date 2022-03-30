@@ -26,7 +26,7 @@
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQSink.hpp"
 #include "appfwk/DAQSource.hpp"
-#include "appfwk/ThreadHelper.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
@@ -57,8 +57,6 @@ public:
   TimingFanoutController(TimingFanoutController&&) = delete; ///< TimingFanoutController is not move-constructible
   TimingFanoutController& operator=(TimingFanoutController&&) =
     delete; ///< TimingFanoutController is not move-assignable
-
-  void init(const nlohmann::json& init_data) override;
 
 private:
   // Commands

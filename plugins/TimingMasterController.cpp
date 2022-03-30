@@ -30,11 +30,13 @@ namespace dunedaq {
 namespace timinglibs {
 
 TimingMasterController::TimingMasterController(const std::string& name)
-  : dunedaq::timinglibs::TimingController(name, 3) // 2nd arg: how many hw commands can this module send?
+  : dunedaq::timinglibs::TimingController(name, 4) // 2nd arg: how many hw commands can this module send?
+  , m_send_endpoint_delays_period(0)
+  , set_endpoint_delay_thread(std::bind(&TimingMasterController::set_endpoint_delay, this, std::placeholders::_1))
 {
-  // register_command("conf", &TimingMasterController::do_configure);
-  // register_command("start", &TimingMasterController::do_start);
-  // register_command("stop", &TimingMasterController::do_stop);
+  register_command("conf", &TimingMasterController::do_configure);
+  register_command("start", &TimingMasterController::do_start);
+  register_command("stop", &TimingMasterController::do_stop);
 
   // timing master hardware commands
   register_command("master_io_reset", &TimingMasterController::do_master_io_reset);
@@ -43,21 +45,39 @@ TimingMasterController::TimingMasterController(const std::string& name)
 }
 
 void
-TimingMasterController::init(const nlohmann::json& init_data)
+TimingMasterController::do_configure(const nlohmann::json& data)
 {
-  // set up queues
-  TimingController::init(init_data["qinfos"]);
-
-  auto ini = init_data.get<timingmastercontroller::InitParams>();
-  m_timing_device = ini.device;
-
-  TLOG() << get_name() << " init: master, device: " << m_timing_device;
+  auto conf = data.get<timingmastercontroller::ConfParams>();
+  if (conf.device.empty())
+  {
+    throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
+  }
+  m_timing_device = conf.device;
+  TLOG() << get_name() << " conf: master, device: " << m_timing_device;
+  m_send_endpoint_delays_period = conf.send_endpoint_delays_period;
+  if (m_send_endpoint_delays_period)
+  {
+    TLOG() << get_name() << " conf: master, will send delays with period [ms] " << m_send_endpoint_delays_period;    
+  }
+  else
+  {
+    TLOG() << get_name() << " conf: master, will not send delays";
+  }
+  do_master_io_reset(data);
+  do_master_set_timestamp(data);
 }
 
 void
-TimingMasterController::do_configure(const nlohmann::json& /*data*/)
+TimingMasterController::do_start(const nlohmann::json& data)
 {
-  // Placeholder for master configure commands
+  TimingController::do_start(data); // set sent cmd counters to 0
+  if (m_send_endpoint_delays_period) set_endpoint_delay_thread.start_working_thread();
+}
+
+void
+TimingMasterController::do_stop(const nlohmann::json& /*data*/)
+{
+  if (set_endpoint_delay_thread.thread_running()) set_endpoint_delay_thread.stop_working_thread();
 }
 
 void
@@ -104,12 +124,65 @@ TimingMasterController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
   module_info.sent_master_io_reset_cmds = m_sent_hw_command_counters.at(0).atomic.load();
   module_info.sent_master_set_timestamp_cmds = m_sent_hw_command_counters.at(1).atomic.load();
   module_info.sent_master_print_status_cmds = m_sent_hw_command_counters.at(2).atomic.load();
+  module_info.sent_set_endpoint_delay_cmds = m_sent_hw_command_counters.at(3).atomic.load();
 
   // for (uint i = 0; i < m_number_hw_commands; ++i) {
   //  module_info.sent_hw_command_counters.push_back(m_sent_hw_command_counters.at(i).atomic.load());
   //}
   ci.add(module_info);
 }
+
+// cmd stuff
+void
+TimingMasterController::set_endpoint_delay(std::atomic<bool>& running_flag)
+{
+
+  std::ostringstream starting_stream;
+  starting_stream << ": Starting set_endpoint_delay() method.";
+  TLOG_DEBUG(0) << get_name() << starting_stream.str();
+
+  while (running_flag.load() && m_send_endpoint_delays_period) {
+    timingcmd::TimingHwCmd hw_cmd;
+    construct_master_hw_cmd(hw_cmd, "set_endpoint_delay");
+    send_hw_cmd(hw_cmd);
+
+    ++(m_sent_hw_command_counters.at(3).atomic);
+    if (m_send_endpoint_delays_period)
+    {
+      auto prev_gather_time = std::chrono::steady_clock::now();
+      auto next_gather_time = prev_gather_time + std::chrono::microseconds(m_send_endpoint_delays_period);
+
+      // check running_flag periodically
+      auto slice_period = std::chrono::microseconds(10000);
+      auto next_slice_gather_time = prev_gather_time + slice_period;
+
+      bool break_flag = false;
+      while (next_gather_time > next_slice_gather_time + slice_period) {
+        if (!running_flag.load()) {
+          TLOG_DEBUG(0) << "while waiting to send delays, negative run gatherer flag detected.";
+          break_flag = true;
+          break;
+        }
+        std::this_thread::sleep_until(next_slice_gather_time);
+        next_slice_gather_time = next_slice_gather_time + slice_period;
+      }
+      if (break_flag == false) {
+        std::this_thread::sleep_until(next_gather_time);
+      }
+    }
+    else
+    {
+      TLOG() << "m_send_endpoint_delays_period is 0 and send delays thread is running! breaking loop!";
+      break;
+    }
+  }
+
+  std::ostringstream exiting_stream;
+  exiting_stream << ": Exiting set_endpoint_delay() method. Received " <<  m_sent_hw_command_counters.at(3).atomic.load()
+                 << " commands";
+  TLOG_DEBUG(0) << get_name() << exiting_stream.str();
+}
+
 } // namespace timinglibs
 } // namespace dunedaq
 

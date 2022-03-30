@@ -12,6 +12,7 @@
 #include "timinglibs/hsireadout/Nljs.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
+#include "timing/TimingIssues.hpp"
 
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/app/Nljs.hpp"
@@ -26,6 +27,8 @@
 #include <vector>
 
 namespace dunedaq {
+  ERS_DECLARE_ISSUE(timinglibs, InvalidHSIEventHeader, " Invalid hsi buffer event header: 0x" << std::hex << header, ((uint32_t)header)) // NOLINT(build/unsigned)
+  ERS_DECLARE_ISSUE(timinglibs, InvalidHSIEventTimestamp, " Invalid hsi buffer event timestamp: 0x" << std::hex << timestamp, ((uint64_t)timestamp)) // NOLINT(build/unsigned)
 namespace timinglibs {
 
 HSIReadout::HSIReadout(const std::string& name)
@@ -89,7 +92,10 @@ HSIReadout::do_configure(const nlohmann::json& obj)
     message << m_connections_file << " not found. Has TIMING_SHARE been set?";
     throw UHALConnectionsFileIssue(ERS_HERE, message.str(), excpt);
   }
-
+  if (m_cfg.hsi_device_name.empty())
+  {
+    throw UHALDeviceNameIssue(ERS_HERE, "Device name for HSIReadout should not be empty");
+  }
   m_hsi_device_name = m_cfg.hsi_device_name;
 
   try {
@@ -146,10 +152,19 @@ HSIReadout::do_hsievent_work(std::atomic<bool>& running_flag)
       uint16_t n_words_in_buffer; // NOLINT(build/unsigned)
 
       auto hsi_node = m_hsi_device->getNode<timing::HSINode>("endpoint0");
+
+      auto hsi_endpoint_ready = hsi_node.endpoint_ready();
+      if (!hsi_endpoint_ready)
+      {
+        auto hsi_endpoint_state = hsi_node.read_endpoint_state();
+        throw timing::EndpointNotReady(ERS_HERE, "HSI", hsi_endpoint_state);
+      }
+
+      auto hsi_emulation_mode = hsi_node.getNode("hsi.csr.ctrl.src").read();
+      m_hsi_device->dispatch();
+
       auto hsi_words = hsi_node.read_data_buffer(n_words_in_buffer, false, true);
-
       update_buffer_counts(n_words_in_buffer);
-
       TLOG_DEBUG(5) << get_name() << ": Number of words in HSI buffer: " << n_words_in_buffer;
 
       if (hsi_words.size() >= 5) {
@@ -175,14 +190,41 @@ HSIReadout::do_hsievent_work(std::atomic<bool>& running_flag)
           // bits 15-0 contain the sequence counter
           uint32_t counter = header & 0x0000ffff; // NOLINT(build/unsigned)
 
+          if ((header >> 16) != 0xaa00) {
+            ers::error(InvalidHSIEventHeader(ERS_HERE,header));
+            continue;
+          }
+
+          if (!ts)
+          {
+            ers::warning(InvalidHSIEventTimestamp(ERS_HERE,ts));
+            continue;
+          }
+
           if (counter > 0 && counter % 60000 == 0)
+          {
             TLOG_DEBUG(3) << "Sequence counter from firmware: " << counter;
+          }
 
           TLOG_DEBUG(3) << get_name() << ": read out data: " << std::showbase << std::hex << header << ", " << ts
                         << ", " << data << ", " << std::bitset<32>(trigger) << ", "
                         << "ts: " << ts << "\n";
+          
+          dfmessages::HSIEvent event;
+          
+          // In lieu of propper HSI channel to signal mapping, fake signal map when HSI firmware+hardware is in emulation mode.
+          // TODO DAQ/HSI team 24/03/22 Put in place HSI channel to signal mapping.
 
-          dfmessages::HSIEvent event = dfmessages::HSIEvent(hsi_device_id, trigger, ts, counter);
+          if (hsi_emulation_mode)
+          {
+            TLOG_DEBUG(3) << " HSI hardware is in emulation mode, faking (overwriting) signal map from firmware+hardware to have (only) bit 7 high.";
+            event = dfmessages::HSIEvent(hsi_device_id, 1UL << 7, ts, counter);
+          }
+          else
+          {
+            event = dfmessages::HSIEvent(hsi_device_id, trigger, ts, counter);
+          }
+          
           m_last_readout_timestamp.store(ts);
 
           send_hsi_event(event);

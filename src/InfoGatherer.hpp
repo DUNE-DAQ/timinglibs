@@ -61,6 +61,10 @@ public:
   {
     m_info_collector = std::make_unique<opmonlib::InfoCollector>();
   }
+  virtual ~InfoGatherer()
+  {
+    if (run_gathering()) stop_gathering_thread();
+  }
 
   InfoGatherer(const InfoGatherer&) = delete;            ///< InfoGatherer is not copy-constructible
   InfoGatherer& operator=(const InfoGatherer&) = delete; ///< InfoGatherer is not copy-assignable
@@ -143,12 +147,13 @@ public:
   {
     std::unique_lock info_collector_lock(m_info_collector_mutex);
     if (m_info_collector->is_empty()) {
-      TLOG() << "skipping add info for gatherer: " << get_device_name()
-             << " with gathered time: " << get_last_gathered_time();
+      TLOG_DEBUG(3) << "skipping add info for gatherer: " << get_device_name()
+             << " with gathered time: " << get_last_gathered_time() << " and level " << get_op_mon_level();
     } else {
       ic.add(label, *m_info_collector);
     }
     m_info_collector = std::make_unique<opmonlib::InfoCollector>();
+    update_last_gathered_time(0);
   }
 
 protected:

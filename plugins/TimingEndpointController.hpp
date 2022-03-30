@@ -26,7 +26,7 @@
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQSink.hpp"
 #include "appfwk/DAQSource.hpp"
-#include "appfwk/ThreadHelper.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
@@ -58,8 +58,6 @@ public:
   TimingEndpointController(TimingEndpointController&&) = delete; ///< TimingEndpointController is not move-constructible
   TimingEndpointController& operator=(TimingEndpointController&&) =
     delete; ///< TimingEndpointController is not move-assignable
-
-  void init(const nlohmann::json& init_data) override;
 
 private:
   uint m_managed_endpoint_id;

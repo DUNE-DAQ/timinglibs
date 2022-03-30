@@ -13,7 +13,7 @@
 
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/Queue.hpp"
-#include "appfwk/ThreadHelper.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include <ers/Issue.hpp>
 
@@ -54,7 +54,7 @@ protected:
 
   // Threading
   virtual void do_hsievent_work(std::atomic<bool>&) = 0;
-  dunedaq::appfwk::ThreadHelper m_thread;
+  dunedaq::utilities::WorkerThread m_thread;
 
   // Configuration
   std::string m_hsievent_send_connection;

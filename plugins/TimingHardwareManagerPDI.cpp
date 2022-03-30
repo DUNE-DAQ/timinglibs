@@ -35,29 +35,35 @@ namespace timinglibs {
 
 TimingHardwareManagerPDI::TimingHardwareManagerPDI(const std::string& name)
   : TimingHardwareManager(name)
-{}
+{
+  register_command("conf", &TimingHardwareManagerPDI::conf);
+  register_command("start", &TimingHardwareManagerPDI::start);
+  register_command("stop", &TimingHardwareManagerPDI::stop);
+  register_command("scrap", &TimingHardwareManagerPDI::scrap);
+
+}
 
 void
-TimingHardwareManagerPDI::init(const nlohmann::json& init_data)
+TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
 {
+  TimingHardwareManager::conf(conf_data);
+
   register_common_hw_commands_for_design();
   register_master_hw_commands_for_design();
   register_endpoint_hw_commands_for_design();
   register_hsi_hw_commands_for_design();
 
-  TimingHardwareManager::init(init_data["qinfos"]);
+  auto conf_params = conf_data.get<timinghardwaremanagerpdi::ConfParams>();
 
-  auto ini = init_data.get<timinghardwaremanagerpdi::InitParams>();
+  m_connections_file = conf_params.connections_file;
+  m_uhal_log_level = conf_params.uhal_log_level;
+  m_gather_interval = conf_params.gather_interval;
+  m_gather_interval_debug = conf_params.gather_interval_debug;
 
-  m_connections_file = ini.connections_file;
-  m_uhal_log_level = ini.uhal_log_level;
-  m_gather_interval = ini.gather_interval;
-  m_gather_interval_debug = ini.gather_interval_debug;
-
-  m_monitored_device_name_master = ini.monitored_device_name_master;
-  m_monitored_device_names_fanout = ini.monitored_device_names_fanout;
-  m_monitored_device_name_endpoint = ini.monitored_device_name_endpoint;
-  m_monitored_device_name_hsi = ini.monitored_device_name_hsi;
+  m_monitored_device_name_master = conf_params.monitored_device_name_master;
+  m_monitored_device_names_fanout = conf_params.monitored_device_names_fanout;
+  m_monitored_device_name_endpoint = conf_params.monitored_device_name_endpoint;
+  m_monitored_device_name_hsi = conf_params.monitored_device_name_hsi;
 
   TLOG() << get_name() << "conf: con. file before env var expansion: " << m_connections_file;
   resolve_environment_variables(m_connections_file);
@@ -91,29 +97,46 @@ TimingHardwareManagerPDI::init(const nlohmann::json& init_data)
   // only register monitor threads if we have been given the name of the device to monitor
   if (m_monitored_device_name_master.compare("")) {
     register_info_gatherer(m_gather_interval, m_monitored_device_name_master, 1);
-    register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_master, 2);
+    //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_master, 2);
   }
 
   for (auto it = m_monitored_device_names_fanout.begin(); it != m_monitored_device_names_fanout.end(); ++it) {
     if (it->compare("")) {
       register_info_gatherer(m_gather_interval, *it, 1);
-      register_info_gatherer(m_gather_interval_debug, *it, 2);
+      //register_info_gatherer(m_gather_interval_debug, *it, 2);
     }
   }
 
   if (m_monitored_device_name_endpoint.compare("")) {
     register_info_gatherer(m_gather_interval, m_monitored_device_name_endpoint, 1);
-    register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_endpoint, 2);
+    //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_endpoint, 2);
   }
 
   if (m_monitored_device_name_hsi.compare("")) {
     register_info_gatherer(m_gather_interval, m_monitored_device_name_hsi, 1);
-    register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_hsi, 2);
+    //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_hsi, 2);
   }
 
   thread_.start_working_thread();
-  start_hw_mon_gathering();
 } // NOLINT
+
+void
+TimingHardwareManagerPDI::scrap(const nlohmann::json& data)
+{
+  thread_.stop_working_thread();
+  TimingHardwareManager::scrap(data);
+}
+
+void
+TimingHardwareManagerPDI::start(const nlohmann::json& /*data*/)
+{
+  start_hw_mon_gathering();
+}
+void
+TimingHardwareManagerPDI::stop(const nlohmann::json& /*data*/)
+{
+  stop_hw_mon_gathering();
+}
 
 void
 TimingHardwareManagerPDI::register_common_hw_commands_for_design()
@@ -126,6 +149,8 @@ void
 TimingHardwareManagerPDI::register_master_hw_commands_for_design()
 {
   register_timing_hw_command("set_timestamp", &TimingHardwareManagerPDI::set_timestamp);
+  register_timing_hw_command("set_endpoint_delay", &TimingHardwareManagerPDI::set_endpoint_delay);
+
   register_timing_hw_command("partition_configure", &TimingHardwareManagerPDI::partition_configure);
   register_timing_hw_command("partition_enable", &TimingHardwareManagerPDI::partition_enable);
   register_timing_hw_command("partition_disable", &TimingHardwareManagerPDI::partition_disable);

@@ -26,7 +26,7 @@
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQSink.hpp"
 #include "appfwk/DAQSource.hpp"
-#include "appfwk/ThreadHelper.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include "rcif/cmd/Nljs.hpp"
 #include "rcif/cmd/Structs.hpp"
@@ -58,8 +58,6 @@ public:
   HSIController& operator=(const HSIController&) = delete; ///< HSIController is not copy-assignable
   HSIController(HSIController&&) = delete;                 ///< HSIController is not move-constructible
   HSIController& operator=(HSIController&&) = delete;      ///< HSIController is not move-assignable
-
-  void init(const nlohmann::json& init_data) override;
 
 private:
   hsicontroller::ConfParams m_hsi_configuration;
