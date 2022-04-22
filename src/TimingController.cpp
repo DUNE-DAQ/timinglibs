@@ -43,7 +43,6 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
   , m_timing_device("")
   , m_number_hw_commands(number_hw_commands)
   , m_sent_hw_command_counters(m_number_hw_commands)
-  , m_device_info_connection("")
   , m_device_ready_timeout(10000)
   , m_device_ready(false)
   , m_device_infos_received_count(0)

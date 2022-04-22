@@ -115,7 +115,6 @@ protected:
 
   // Interpert device opmon info
   virtual void process_device_info(ipm::Receiver::Response /*message*/) {}
-  std::string m_device_info_connection;
   std::chrono::milliseconds m_device_ready_timeout;
   std::atomic<bool> m_device_ready;
   std::atomic<uint> m_device_infos_received_count;
