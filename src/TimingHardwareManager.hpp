@@ -81,10 +81,7 @@ public:
     delete;                                                ///< TimingHardwareManager is not copy-assignable
   TimingHardwareManager(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-constructible
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
-  virtual ~TimingHardwareManager()
-  {
-    if (thread_.thread_running()) thread_.stop_working_thread();
-  }
+  virtual ~TimingHardwareManager() {}
   void init(const nlohmann::json& init_data) override;
   virtual void conf(const nlohmann::json& conf_data);
   virtual void scrap(const nlohmann::json& data);
@@ -97,14 +94,12 @@ protected:
   //  virtual void do_scrap(const nlohmann::json&);
 
   // Threading
-  dunedaq::utilities::WorkerThread thread_;
-  virtual void process_hardware_commands(std::atomic<bool>&);
+  virtual void process_hardware_command(ipm::Receiver::Response message);
 
   // Configuration
-  using source_t = dunedaq::appfwk::DAQSource<timingcmd::TimingHwCmd>;
-  std::unique_ptr<source_t> m_hw_command_in_queue;
   std::chrono::milliseconds m_queue_timeout;
-
+  std::string m_hw_cmd_connection;
+  
   // hardware polling intervals [us]
   uint m_gather_interval;
   uint m_gather_interval_debug;
@@ -166,7 +161,7 @@ protected:
   // monitoring
   std::map<std::string, std::unique_ptr<InfoGatherer>> m_info_gatherers;
 
-  void register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level);
+  void register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level, const std::string& info_connection="");
   void gather_monitor_data(InfoGatherer& gatherer);
 
   virtual void start_hw_mon_gathering(const std::string& device_name = "");

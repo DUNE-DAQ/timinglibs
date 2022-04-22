@@ -36,6 +36,10 @@
 #include <vector>
 
 namespace dunedaq {
+ERS_DECLARE_ISSUE(timinglibs,                                                                             ///< Namespace
+                  TimingMasterNotReady,                                                                   ///< Issue class name
+                  master << " timing master did not become ready in time.", ///< Message
+                  ((std::string)master) )                                                                   ///< Message parameters
 namespace timinglibs {
 
 /**
@@ -66,7 +70,7 @@ private:
   void do_configure(const nlohmann::json& data) override;
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
-  
+
   void construct_master_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
 
   // timing master commands
@@ -76,7 +80,8 @@ private:
 
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;
-
+  void process_device_info(ipm::Receiver::Response message) override;
+  
   uint m_send_endpoint_delays_period; // NOLINT(build/unsigned)
   dunedaq::utilities::WorkerThread set_endpoint_delay_thread;
   virtual void set_endpoint_delay(std::atomic<bool>&);

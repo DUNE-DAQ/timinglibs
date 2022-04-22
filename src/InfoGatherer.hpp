@@ -15,6 +15,11 @@
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 #include "opmonlib/InfoCollector.hpp"
+#include "networkmanager/NetworkManager.hpp"
+#include "serialization/Serialization.hpp"
+#include "appfwk/Queue.hpp"
+
+#include "nlohmann/json.hpp"
 
 #include <functional>
 #include <future>
@@ -50,7 +55,8 @@ public:
   explicit InfoGatherer(std::function<void(InfoGatherer&)> gather_data,
                         uint gather_interval,
                         const std::string& device_name,
-                        int op_mon_level)
+                        int op_mon_level,
+                        const std::string& device_info_network_connection="")
     : m_run_gathering(false)
     , m_gathering_thread(nullptr)
     , m_gather_interval(gather_interval)
@@ -58,6 +64,8 @@ public:
     , m_last_gathered_time(0)
     , m_op_mon_level(op_mon_level)
     , m_gather_data(gather_data)
+    , m_device_info_network_connection(device_info_network_connection)
+    , m_queue_timeout(1)
   {
     m_info_collector = std::make_unique<opmonlib::InfoCollector>();
   }
@@ -141,6 +149,8 @@ public:
   {
     std::unique_lock info_collector_lock(m_info_collector_mutex);
     device.get_info(*m_info_collector, get_op_mon_level());
+    update_last_gathered_time(std::time(nullptr));
+    send_device_info();
   }
 
   void add_info_to_collector(std::string label, opmonlib::InfoCollector& ic)
@@ -156,6 +166,48 @@ public:
     update_last_gathered_time(0);
   }
 
+private:
+  void send_device_info()
+  {
+    if (m_info_collector->is_empty())
+    {
+      TLOG_DEBUG(3) << "skipping sending info for gatherer: " << get_device_name() << ", collector empty.";
+      return;
+    }
+
+    if (m_device_info_network_connection.empty())
+    {
+      TLOG_DEBUG(3) << "skipping sending info for gatherer: " << get_device_name() << ", network connection blank";
+      return;
+    }
+    
+    auto info = m_info_collector->get_collected_infos();
+    bool was_successfully_sent = false;
+    while (!was_successfully_sent)
+    {
+      try
+      {
+        auto serialised_event = nlohmann::json::to_msgpack(info);
+  
+        networkmanager::NetworkManager::get().send_to(m_device_info_network_connection,
+                                      static_cast<const void*>(serialised_event.data()),
+                                      serialised_event.size(),
+                                      m_queue_timeout,
+                                      get_device_name());
+        TLOG_DEBUG(4) << "sent " << get_device_name() <<  " info";
+        ++m_sent_counter;
+        was_successfully_sent = true;
+      }
+      catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt)
+      {
+        std::ostringstream oss_warn;
+        oss_warn << "push to output connection \"" << m_device_info_network_connection << "\"";
+        ers::error(dunedaq::appfwk::QueueTimeoutExpired(ERS_HERE, m_device_name, oss_warn.str(), m_queue_timeout.count()));
+        ++m_failed_to_send_counter;
+      }
+    }
+  }
+
 protected:
   std::atomic<bool> m_run_gathering;
   std::unique_ptr<std::thread> m_gathering_thread;
@@ -167,6 +219,10 @@ protected:
   std::unique_ptr<opmonlib::InfoCollector> m_info_collector;
   mutable std::mutex m_info_collector_mutex;
   std::function<void(InfoGatherer&)> m_gather_data;
+  std::string m_device_info_network_connection;
+  std::atomic<uint> m_sent_counter;
+  std::atomic<uint> m_failed_to_send_counter;
+  std::chrono::milliseconds m_queue_timeout;
 };
 
 } // namespace timinglibs

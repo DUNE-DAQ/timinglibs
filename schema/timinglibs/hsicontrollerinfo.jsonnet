@@ -21,6 +21,7 @@ local info = {
       s.field("sent_hsi_start_cmds", self.uint8, doc="Number of sent hsi_start commands"),
       s.field("sent_hsi_stop_cmds", self.uint8, doc="Number of sent hsi_stop commands"),
       s.field("sent_hsi_print_status_cmds", self.uint8, doc="Number of sent hsi_print_status commands"),
+      s.field("device_infos_received_count", self.uint8, doc="Number of device opmon infos processed"),
    ], doc="HSIController information")
 };
 

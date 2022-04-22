@@ -21,6 +21,8 @@ local cs = {
             doc="A vector of fanout device names"),
     
     init: s.record("ConfParams", [
+        s.field("hw_cmd_connection", self.str, "",
+                doc="String of hardware commands connection"),
         s.field("connections_file", self.str, "",
                 doc="device connections file"),
         s.field("gather_interval", self.uint_data, 1e6,
@@ -35,6 +37,8 @@ local cs = {
                 doc="Name of timing endpoint device to be monitored"),
         s.field("monitored_device_name_hsi", self.str, "",
                 doc="Name of hsi device to be monitored"),
+        s.field("hsi_device_info_connection", self.str, "",
+            doc="String of managed hsi device info connection"),
         s.field("uhal_log_level", self.uhal_log_level, "notice",
                 doc="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug."),
     ], doc="TimingHardwareManager PD-I conf parameters"),

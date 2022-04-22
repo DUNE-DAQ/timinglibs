@@ -13,6 +13,8 @@ local cs = {
         doc="A count of very many things"),
 
     init: s.record("ConfParams", [
+        s.field("hw_cmd_connection", self.str, "",
+                doc="String of hardware commands connection"),
         s.field("device", self.str, "",
                 doc="String of managed device name"),
     ], doc="TimingFanoutController configuration"),

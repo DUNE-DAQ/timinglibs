@@ -15,6 +15,13 @@
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
+#include "timing/timingfirmwareinfo/InfoNljs.hpp"
+#include "timing/timingfirmwareinfo/InfoStructs.hpp"
+
+#include "serialization/Serialization.hpp"
+#include "ipm/Receiver.hpp"
+#include "networkmanager/NetworkManager.hpp"
+
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
 
@@ -52,8 +59,30 @@ TimingMasterController::do_configure(const nlohmann::json& data)
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
+  m_hw_command_connection =  conf.hw_cmd_connection;
   m_timing_device = conf.device;
+  
+  TimingController::do_configure(data); // configure hw command connection
+
+  do_master_io_reset(data);
+  do_master_set_timestamp(data);
+  
+  auto time_of_conf = std::chrono::high_resolution_clock::now();
+  while (!m_device_ready)
+  {
+    auto now = std::chrono::high_resolution_clock::now();
+    auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
+    
+    if (ms_since_conf > m_device_ready_timeout)
+    {
+      throw TimingMasterNotReady(ERS_HERE,m_timing_device);
+    }
+    TLOG_DEBUG(3) << "Waiting for timing master " << m_timing_device << " to become ready for (ms) " << ms_since_conf.count();
+    std::this_thread::sleep_for(std::chrono::microseconds(250000));
+  }
+
   TLOG() << get_name() << " conf: master, device: " << m_timing_device;
+
   m_send_endpoint_delays_period = conf.send_endpoint_delays_period;
   if (m_send_endpoint_delays_period)
   {
@@ -63,8 +92,7 @@ TimingMasterController::do_configure(const nlohmann::json& data)
   {
     TLOG() << get_name() << " conf: master, will not send delays";
   }
-  do_master_io_reset(data);
-  do_master_set_timestamp(data);
+
 }
 
 void
@@ -183,6 +211,39 @@ TimingMasterController::set_endpoint_delay(std::atomic<bool>& running_flag)
   TLOG_DEBUG(0) << get_name() << exiting_stream.str();
 }
 
+void
+TimingMasterController::process_device_info(ipm::Receiver::Response message)
+{
+  auto data = nlohmann::json::from_msgpack(message.data);  
+
+  timing::timingfirmwareinfo::PDIMasterMonitorData master_info;
+
+  auto master_data = data[opmonlib::JSONTags::children]["master"][opmonlib::JSONTags::properties][master_info.info_type][opmonlib::JSONTags::data];
+
+  from_json(master_data, master_info);
+
+  uint64_t master_timestamp = master_info.timestamp;
+  
+  TLOG_DEBUG(3) << "Master timestamp: 0x" << std::hex << master_timestamp;
+
+  if (master_timestamp)
+  {
+    if (!m_device_ready)
+    {
+      m_device_ready = true;
+      TLOG_DEBUG(2) << "Timing master became ready";
+    }
+  }
+  else
+  {
+    if (m_device_ready)
+    {
+      m_device_ready = false;
+      TLOG_DEBUG(2) << "Timing master no longer ready";
+    }
+  }
+  ++m_device_infos_received_count;
+}
 } // namespace timinglibs
 } // namespace dunedaq
 

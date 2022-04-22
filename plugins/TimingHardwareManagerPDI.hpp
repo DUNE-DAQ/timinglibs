@@ -98,6 +98,8 @@ private:
   std::string m_monitored_device_name_endpoint;
   std::string m_monitored_device_name_hsi;
 
+  std::string m_hsi_device_info_connection;
+
   void register_common_hw_commands_for_design();
   void register_master_hw_commands_for_design();
   void register_endpoint_hw_commands_for_design();

@@ -15,6 +15,8 @@ local cs = {
     bool_data: s.boolean("BoolData", doc="A bool"),
 
     conf: s.record("PartitionConfParams", [
+        s.field("hw_cmd_connection", self.str, "",
+                doc="String of hardware commands connection"),
         s.field("device", self.str, "",
                 doc="String of managed device name"),
         s.field("partition_id", self.uint_data, 0,

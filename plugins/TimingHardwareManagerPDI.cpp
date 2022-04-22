@@ -46,14 +46,13 @@ TimingHardwareManagerPDI::TimingHardwareManagerPDI(const std::string& name)
 void
 TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
 {
-  TimingHardwareManager::conf(conf_data);
-
   register_common_hw_commands_for_design();
   register_master_hw_commands_for_design();
   register_endpoint_hw_commands_for_design();
   register_hsi_hw_commands_for_design();
 
   auto conf_params = conf_data.get<timinghardwaremanagerpdi::ConfParams>();
+
 
   m_connections_file = conf_params.connections_file;
   m_uhal_log_level = conf_params.uhal_log_level;
@@ -64,6 +63,9 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
   m_monitored_device_names_fanout = conf_params.monitored_device_names_fanout;
   m_monitored_device_name_endpoint = conf_params.monitored_device_name_endpoint;
   m_monitored_device_name_hsi = conf_params.monitored_device_name_hsi;
+
+  m_hw_cmd_connection = conf_params.hw_cmd_connection;
+  m_hsi_device_info_connection = conf_params.hsi_device_info_connection;
 
   TLOG() << get_name() << "conf: con. file before env var expansion: " << m_connections_file;
   resolve_environment_variables(m_connections_file);
@@ -96,7 +98,7 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
   // monitoring
   // only register monitor threads if we have been given the name of the device to monitor
   if (m_monitored_device_name_master.compare("")) {
-    register_info_gatherer(m_gather_interval, m_monitored_device_name_master, 1);
+    register_info_gatherer(m_gather_interval, m_monitored_device_name_master, 1, m_hsi_device_info_connection);
     //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_master, 2);
   }
 
@@ -113,29 +115,28 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
   }
 
   if (m_monitored_device_name_hsi.compare("")) {
-    register_info_gatherer(m_gather_interval, m_monitored_device_name_hsi, 1);
+    register_info_gatherer(m_gather_interval, m_monitored_device_name_hsi, 1, m_hsi_device_info_connection);
     //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_hsi, 2);
   }
 
-  thread_.start_working_thread();
+  start_hw_mon_gathering();
+  TimingHardwareManager::conf(conf_data);
 } // NOLINT
 
 void
 TimingHardwareManagerPDI::scrap(const nlohmann::json& data)
 {
-  thread_.stop_working_thread();
   TimingHardwareManager::scrap(data);
+  stop_hw_mon_gathering();
 }
 
 void
 TimingHardwareManagerPDI::start(const nlohmann::json& /*data*/)
 {
-  start_hw_mon_gathering();
 }
 void
 TimingHardwareManagerPDI::stop(const nlohmann::json& /*data*/)
 {
-  stop_hw_mon_gathering();
 }
 
 void

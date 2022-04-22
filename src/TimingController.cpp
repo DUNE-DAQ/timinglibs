@@ -11,11 +11,18 @@
 
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
+#include "timinglibs/timingcmd/msgp.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
 
+#include "serialization/Serialization.hpp"
+#include "ipm/Receiver.hpp"
+#include "networkmanager/NetworkManager.hpp"
+
 #include "appfwk/cmd/Nljs.hpp"
 #include "appfwk/DAQModuleHelper.hpp"
+
+#include "ipm/Receiver.hpp"
 
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
@@ -31,12 +38,15 @@ namespace timinglibs {
 
 TimingController::TimingController(const std::string& name, uint number_hw_commands)
   : dunedaq::appfwk::DAQModule(name)
-  , m_hw_command_out_queue_name("hardware_commands_out")
-  , m_hw_command_out_queue(nullptr)
-  , m_hw_cmd_out_queue_timeout(100)
+  , m_hw_command_connection("")
+  , m_hw_cmd_out_timeout(100)
   , m_timing_device("")
   , m_number_hw_commands(number_hw_commands)
   , m_sent_hw_command_counters(m_number_hw_commands)
+  , m_device_info_connection("")
+  , m_device_ready_timeout(10000)
+  , m_device_ready(false)
+  , m_device_infos_received_count(0)
 {
   for (auto it = m_sent_hw_command_counters.begin(); it != m_sent_hw_command_counters.end(); ++it) {
     it->atomic.store(0);
@@ -44,11 +54,11 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
 }
 
 void
-TimingController::init(const nlohmann::json& init_data)
+TimingController::do_configure(const nlohmann::json&)
 {
-  // set up queues
-  auto qi = appfwk::queue_index(init_data, { m_hw_command_out_queue_name });
-  m_hw_command_out_queue.reset(new sink_t(qi[m_hw_command_out_queue_name].inst));
+  networkmanager::NetworkManager::get().subscribe(m_timing_device);
+  networkmanager::NetworkManager::get().register_callback(
+  m_timing_device, std::bind(&TimingController::process_device_info, this, std::placeholders::_1));
 }
 
 void
@@ -59,29 +69,34 @@ TimingController::do_start(const nlohmann::json&)
   for (auto it = m_sent_hw_command_counters.begin(); it != m_sent_hw_command_counters.end(); ++it) {
     it->atomic.store(0);
   }
+  m_device_infos_received_count=0;
 }
 
 void
-TimingController::do_stop(const nlohmann::json&)
-{}
+TimingController::do_scrap(const nlohmann::json&)
+{
+  networkmanager::NetworkManager::get().clear_callback(m_timing_device);
+  networkmanager::NetworkManager::get().unsubscribe(m_timing_device);
+}
 
 void
 TimingController::send_hw_cmd(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  if (!m_hw_command_out_queue)
-  {
-    throw QueueIsNullFatalError(ERS_HERE, get_name(), m_hw_command_out_queue_name);
-  }
-  try {
-    m_hw_command_out_queue->push(hw_cmd, m_hw_cmd_out_queue_timeout);
-  } catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt) {
-    std::ostringstream oss_warn;
-    oss_warn << "push to output queue \"" << m_hw_command_out_queue_name << "\"";
-    ers::warning(dunedaq::appfwk::QueueTimeoutExpired(
-      ERS_HERE,
-      get_name(),
-      oss_warn.str(),
-      std::chrono::duration_cast<std::chrono::milliseconds>(m_hw_cmd_out_queue_timeout).count()));
+  bool was_successfully_sent = false;
+  while (!was_successfully_sent) {
+    try {
+      auto serialised_cmd = dunedaq::serialization::serialize(hw_cmd, dunedaq::serialization::kMsgPack);
+
+      networkmanager::NetworkManager::get().send_to(m_hw_command_connection,
+                                    static_cast<const void*>(serialised_cmd.data()),
+                                    serialised_cmd.size(),
+                                    m_hw_cmd_out_timeout);
+      was_successfully_sent = true;
+    } catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt) {
+      std::ostringstream oss_warn;
+      oss_warn << "push to output connection \"" << m_hw_command_connection << "\"";
+      ers::error(dunedaq::appfwk::QueueTimeoutExpired(ERS_HERE, get_name(), oss_warn.str(), m_hw_cmd_out_timeout.count()));
+    }
   }
 }
 

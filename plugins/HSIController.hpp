@@ -26,6 +26,9 @@
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQSink.hpp"
 #include "appfwk/DAQSource.hpp"
+
+#include "ipm/Receiver.hpp"
+
 #include "utilities/WorkerThread.hpp"
 
 #include "rcif/cmd/Nljs.hpp"
@@ -67,7 +70,7 @@ private:
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
   void do_resume(const nlohmann::json& data);
-
+   
   void construct_hsi_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
 
   // timinglibs hsi commands
@@ -85,6 +88,9 @@ private:
 
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;
+  void process_device_info(ipm::Receiver::Response message) override;
+
+  std::atomic<uint> m_endpoint_state;
 };
 } // namespace timinglibs
 } // namespace dunedaq

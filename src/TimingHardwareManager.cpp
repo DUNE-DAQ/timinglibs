@@ -21,9 +21,8 @@ namespace timinglibs {
 
 TimingHardwareManager::TimingHardwareManager(const std::string& name)
   : dunedaq::appfwk::DAQModule(name)
-  , thread_(std::bind(&TimingHardwareManager::process_hardware_commands, this, std::placeholders::_1))
-  , m_hw_command_in_queue(nullptr)
   , m_queue_timeout(100)
+  , m_hw_cmd_connection("")
   , m_gather_interval(1e6)
   , m_gather_interval_debug(10e6)
   , m_connections_file("")
@@ -42,9 +41,6 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
 void
 TimingHardwareManager::init(const nlohmann::json& init_data)
 {
-  // set up queues
-  auto qi = appfwk::queue_index(init_data, { "timing_cmds_queue" });
-  m_hw_command_in_queue.reset(new source_t(qi["timing_cmds_queue"].inst));
 }
 
 void
@@ -54,11 +50,18 @@ TimingHardwareManager::conf(const nlohmann::json& /*conf_data*/)
   m_accepted_hw_commands_counter = 0;
   m_rejected_hw_commands_counter = 0;
   m_failed_hw_commands_counter = 0;
+
+  networkmanager::NetworkManager::get().start_listening(m_hw_cmd_connection);
+  networkmanager::NetworkManager::get().register_callback(
+    m_hw_cmd_connection, std::bind(&TimingHardwareManager::process_hardware_command, this, std::placeholders::_1));
 }
 
 void
 TimingHardwareManager::scrap(const nlohmann::json& /*data*/)
 {
+  networkmanager::NetworkManager::get().clear_callback(m_hw_cmd_connection);
+  networkmanager::NetworkManager::get().stop_listening(m_hw_cmd_connection);
+
   m_hw_device_map.clear();
   m_connection_manager.reset();
   m_timing_hw_cmd_map_.clear();
@@ -109,7 +112,6 @@ TimingHardwareManager::gather_monitor_data(InfoGatherer& gatherer)
     try {
       auto design = get_timing_device_plain(device_name);
       gatherer.collect_info_from_device(*design);
-      gatherer.update_last_gathered_time(std::time(nullptr));
     } catch (const std::exception& excpt) {
       ers::warning(FailedToCollectOpMonInfo(ERS_HERE, device_name, excpt));
     }
@@ -138,7 +140,7 @@ TimingHardwareManager::gather_monitor_data(InfoGatherer& gatherer)
 }
 
 void
-TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level)
+TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level, const std::string& info_connection)
 {
   std::string gatherer_name = device_name + "_level_" + std::to_string(op_mon_level);
   if (m_info_gatherers.find(gatherer_name) == m_info_gatherers.end()) {
@@ -146,7 +148,8 @@ TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::s
       std::bind(&TimingHardwareManager::gather_monitor_data, this, std::placeholders::_1),
       gather_interval,
       device_name,
-      op_mon_level);
+      op_mon_level,
+      info_connection);
 
     TLOG_DEBUG(0) << "Registering info gatherer: " << gatherer_name;
     m_info_gatherers.emplace(std::make_pair(gatherer_name, std::move(gatherer)));
@@ -201,7 +204,7 @@ TimingHardwareManager::check_hw_mon_gatherer_is_running(const std::string& devic
   std::vector<std::string> running_gatherers;
   for (auto it = m_info_gatherers.lower_bound(device_name); it != m_info_gatherers.end(); ++it)
   {
-    TLOG_DEBUG(0) << get_name() << " Checking run state of info gatherer: " << it->first;
+    TLOG_DEBUG(0) << get_name() << " Checking run state of info gatherer: " << it->first << ", and the state is " << it->second.get()->run_gathering();
     if (it->second.get()->run_gathering())
     {
       running_gatherers.push_back(it->first);
@@ -211,50 +214,43 @@ TimingHardwareManager::check_hw_mon_gatherer_is_running(const std::string& devic
 }
 
 // cmd stuff
-void
-TimingHardwareManager::process_hardware_commands(std::atomic<bool>& running_flag)
-{
 
+void
+TimingHardwareManager::process_hardware_command(ipm::Receiver::Response message)
+{
   std::ostringstream starting_stream;
-  starting_stream << ": Starting process_hardware_commands() method.";
+  starting_stream << ": Executing process_hardware_command() callback.";
   TLOG_DEBUG(0) << get_name() << starting_stream.str();
 
-  while (running_flag.load()) {
-    timingcmd::TimingHwCmd timing_hw_cmd;
+  timingcmd::TimingHwCmd timing_hw_cmd = serialization::deserialize<timingcmd::TimingHwCmd>(message.data);
 
+  ++m_received_hw_commands_counter;
+
+  TLOG_DEBUG(0) << get_name() << ": Received hardware command #" << m_received_hw_commands_counter.load()
+                << ", it is of type: " << timing_hw_cmd.id << ", targeting device: " << timing_hw_cmd.device;
+
+  std::string hw_cmd_name = timing_hw_cmd.id;
+  if (auto cmd = m_timing_hw_cmd_map_.find(hw_cmd_name); cmd != m_timing_hw_cmd_map_.end())
+  {
+
+    ++m_accepted_hw_commands_counter;
+
+    TLOG_DEBUG(0) << "Found hw cmd: " << hw_cmd_name;
     try {
-      m_hw_command_in_queue->pop(timing_hw_cmd, m_queue_timeout);
-    } catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt) {
-      // it is perfectly reasonable that there might be no commands in the queue
-      // some fraction of the times that we check, so we just continue on and try again
-      continue;
+      std::invoke(cmd->second, timing_hw_cmd);
+    } catch (const std::exception& exception) {
+      ers::error(FailedToExecuteHardwareCommand(ERS_HERE, hw_cmd_name, timing_hw_cmd.device, exception));
+      ++m_failed_hw_commands_counter;
     }
-
-    ++m_received_hw_commands_counter;
-
-    TLOG_DEBUG(0) << get_name() << ": Received hardware command #" << m_received_hw_commands_counter.load()
-                  << ", it is of type: " << timing_hw_cmd.id << ", targeting device: " << timing_hw_cmd.device;
-
-    std::string hw_cmd_name = timing_hw_cmd.id;
-    if (auto cmd = m_timing_hw_cmd_map_.find(hw_cmd_name); cmd != m_timing_hw_cmd_map_.end()) {
-
-      ++m_accepted_hw_commands_counter;
-
-      TLOG_DEBUG(0) << "Found hw cmd: " << hw_cmd_name;
-      try {
-        std::invoke(cmd->second, timing_hw_cmd);
-      } catch (const std::exception& exception) {
-        ers::error(FailedToExecuteHardwareCommand(ERS_HERE, hw_cmd_name, timing_hw_cmd.device, exception));
-        ++m_failed_hw_commands_counter;
-      }
-    } else {
-      ers::error(InvalidHardwareCommandID(ERS_HERE, hw_cmd_name));
-      ++m_rejected_hw_commands_counter;
-    }
+  }
+  else
+  {
+    ers::error(InvalidHardwareCommandID(ERS_HERE, hw_cmd_name));
+    ++m_rejected_hw_commands_counter;
   }
 
   std::ostringstream exiting_stream;
-  exiting_stream << ": Exiting process_hardware_commands() method. Received " << m_received_hw_commands_counter.load()
+  exiting_stream << ": Finished executing process_hardware_command() callback. Received " << m_received_hw_commands_counter.load()
                  << " commands";
   TLOG_DEBUG(0) << get_name() << exiting_stream.str();
 }
