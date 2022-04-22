@@ -32,6 +32,7 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
   , m_accepted_hw_commands_counter{ 0 }
   , m_rejected_hw_commands_counter{ 0 }
   , m_failed_hw_commands_counter{ 0 }
+  , m_device_info_connection("")
 {
   //  register_command("start", &TimingHardwareManager::do_start);
   //  register_command("stop", &TimingHardwareManager::do_stop);
