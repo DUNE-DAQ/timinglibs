@@ -48,7 +48,8 @@ HSIController::HSIController(const std::string& name)
   register_command("start", &HSIController::do_start);
   register_command("stop", &HSIController::do_stop);
   register_command("resume", &HSIController::do_resume);
-
+  register_command("scrap", &HSIController::do_scrap);
+  
   // timing endpoint hardware commands
   register_command("hsi_io_reset", &HSIController::do_hsi_io_reset);
   register_command("hsi_endpoint_enable", &HSIController::do_hsi_endpoint_enable);

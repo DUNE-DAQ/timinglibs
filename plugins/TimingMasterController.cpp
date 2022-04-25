@@ -44,6 +44,7 @@ TimingMasterController::TimingMasterController(const std::string& name)
   register_command("conf", &TimingMasterController::do_configure);
   register_command("start", &TimingMasterController::do_start);
   register_command("stop", &TimingMasterController::do_stop);
+  register_command("scrap", &TimingMasterController::do_scrap);
 
   // timing master hardware commands
   register_command("master_io_reset", &TimingMasterController::do_master_io_reset);

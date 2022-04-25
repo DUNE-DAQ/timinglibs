@@ -50,7 +50,7 @@ TimingPartitionController::TimingPartitionController(const std::string& name)
   register_command("stop", &TimingPartitionController::do_stop);
   register_command("resume", &TimingPartitionController::do_resume);
   register_command("pause", &TimingPartitionController::do_pause);
-//  register_command("scrap", &TimingPartitionController::do_scrap);
+  register_command("scrap", &TimingPartitionController::do_scrap);
 
   // timing partition hw commands
   register_command("partition_configure", &TimingPartitionController::do_partition_configure);
