@@ -9,6 +9,8 @@
 #include "TimingHardwareManager.hpp"
 #include "logging/Logging.hpp"
 
+#include "timing/definitions.hpp"
+
 #include <memory>
 #include <utility>
 #include <string>
@@ -317,9 +319,23 @@ void
 TimingHardwareManager::set_endpoint_delay(const timingcmd::TimingHwCmd& hw_cmd)
 {
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " set endpoint delay";
+  
+  timingcmd::TimingMasterSetEndpointDelayCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
   auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
-  design->apply_endpoint_delay(0, 0, 0, 0, false, false);
+  design->apply_endpoint_delay(cmd_payload.address, cmd_payload.coarse_delay, cmd_payload.fine_delay, cmd_payload.phase_delay, cmd_payload.measure_rtt, cmd_payload.control_sfp, cmd_payload.sfp_mux);
+}
+
+void
+TimingHardwareManager::send_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " send fl cmd";
+  timingcmd::TimingMasterSendFLCmdCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  design->send_fl_cmd(static_cast<timing::FixedLengthCommandType>(cmd_payload.fl_cmd_id), cmd_payload.channel, cmd_payload.number_of_commands_to_send);
 }
 
 // partition commands

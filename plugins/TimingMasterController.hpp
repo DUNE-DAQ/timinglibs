@@ -73,7 +73,9 @@ private:
   void do_master_io_reset(const nlohmann::json& data);
   void do_master_set_timestamp(const nlohmann::json&);
   void do_master_print_status(const nlohmann::json&);
-
+  void do_master_set_endpoint_delay(const nlohmann::json& data);
+  void do_master_send_fl_command(const nlohmann::json& data);
+  
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;
 
