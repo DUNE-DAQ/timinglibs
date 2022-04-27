@@ -11,6 +11,9 @@ local timingcmd = {
 
     uint_data: s.number("UintData", "u4", 
         doc="A PLL register bit(s) value"),
+    
+    int_data: s.number("IntData", "i4", 
+        doc="An int"),
 
     fanout_mode: s.number("FanoutMode", "i4", 
         doc="Fanout mode"),
@@ -91,7 +94,33 @@ local timingcmd = {
 
         s.field("random_rate", self.double_data,
             doc="Source of data for HSI triggering in emulation (bit 0)"),
-    ], doc="Structure for payload of hsi configure commands")
+    ], doc="Structure for payload of hsi configure commands"),
+
+    timing_master_send_fl_cmd_cmd__payload: s.record("TimingMasterSendFLCmdCmdPayload",[
+        s.field("fl_cmd_id", self.uint_data,
+            doc="ID of target endpoint"),
+        s.field("channel", self.uint_data,
+            doc="Channel on which to send command"),
+        s.field("number_of_commands_to_send", self.uint_data,
+            doc="How many commands to send"),
+    ], doc="Structure for payload of endpoint configure commands"),
+
+    timing_master_set_endpoint_delay_cmd_payload: s.record("TimingMasterSetEndpointDelayCmdPayload",[
+        s.field("address", self.uint_data,
+            doc="Endpoint address"),
+        s.field("coarse_delay", self.uint_data,
+            doc="Endpoint coarse delay"),
+        s.field("fine_delay", self.uint_data,
+            doc="Endpoint fine delay"),
+        s.field("phase_delay", self.uint_data,
+            doc="Endpoint phase delay"),
+        s.field("measure_rtt", self.bool_data,
+            doc="Measure round trip time after delay setting"),
+        s.field("control_sfp", self.bool_data,
+            doc="Control SFP or not"),
+        s.field("sfp_mux", self.int_data,
+            doc="Mux to endpoint (or not)"),
+    ], doc="Structure for payload of timing master set endpoint delay command"),
 };
 
 // Output a topologically sorted array.

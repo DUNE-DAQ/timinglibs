@@ -134,7 +134,8 @@ protected:
   // timing master commands
   void set_timestamp(const timingcmd::TimingHwCmd& hw_cmd);
   void set_endpoint_delay(const timingcmd::TimingHwCmd& hw_cmd);
-
+  void send_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd);
+  
   // timing partition commands
   void partition_configure(const timingcmd::TimingHwCmd& hw_cmd);
   void partition_enable(const timingcmd::TimingHwCmd& hw_cmd);
