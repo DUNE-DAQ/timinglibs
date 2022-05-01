@@ -18,10 +18,11 @@
 
 namespace dunedaq {
 namespace timinglibs {
-TimestampEstimator::TimestampEstimator(std::unique_ptr<appfwk::DAQSource<dfmessages::TimeSync>>& time_sync_source,
-                                       uint64_t clock_frequency_hz) // NOLINT(build/unsigned)
+TimestampEstimator::TimestampEstimator(
+  std::shared_ptr<iomanager::ReceiverConcept<dfmessages::TimeSync>> time_sync_receiver,
+  uint64_t clock_frequency_hz) // NOLINT(build/unsigned)
   : m_clock_frequency_hz(clock_frequency_hz)
-  , m_time_sync_source(time_sync_source.get())
+  , m_time_sync_receiver(time_sync_receiver)
   , m_estimator_thread(std::bind(&TimestampEstimator::estimator_thread_fn, this, std::placeholders::_1))
 {
   m_estimator_thread.start_working_thread("tde-ts-est");
@@ -29,7 +30,7 @@ TimestampEstimator::TimestampEstimator(std::unique_ptr<appfwk::DAQSource<dfmessa
 
 TimestampEstimator::TimestampEstimator(uint64_t clock_frequency_hz) // NOLINT(build/unsigned)
   : m_clock_frequency_hz(clock_frequency_hz)
-  , m_time_sync_source(nullptr)
+  , m_time_sync_receiver(nullptr)
   , m_estimator_thread(std::bind(&TimestampEstimator::estimator_thread_fn, this, std::placeholders::_1))
 {
   m_most_recent_timesync.daq_time = dfmessages::TypeDefaults::s_invalid_timestamp;
@@ -52,8 +53,8 @@ TimestampEstimator::add_timestamp_datapoint(const dfmessages::TimeSync& ts)
   dfmessages::timestamp_t estimate = m_current_timestamp_estimate.load();
   dfmessages::timestamp_diff_t diff = estimate - ts.daq_time;
   TLOG_DEBUG(10) << "Got a TimeSync timestamp = " << ts.daq_time << ", system time = " << ts.system_time
-                 << " when current timestamp estimate was " << estimate << ". diff=" << diff
-                 << " run=" << ts.run_number << " seqno=" << ts.sequence_number << " source_pid=" << ts.source_pid;
+                 << " when current timestamp estimate was " << estimate << ". diff=" << diff << " run=" << ts.run_number
+                 << " seqno=" << ts.sequence_number << " source_pid=" << ts.source_pid;
   if (m_most_recent_timesync.daq_time == dfmessages::TypeDefaults::s_invalid_timestamp ||
       ts.daq_time > m_most_recent_timesync.daq_time) {
     m_most_recent_timesync = ts;
@@ -115,23 +116,28 @@ TimestampEstimator::estimator_thread_fn(std::atomic<bool>& running_flag)
   // which we drop on the floor. This is fairly harmless: it'll just
   // slightly delay us getting to the point where we actually start
   // making the timestamp estimate
-  while (m_time_sync_source->can_pop()) {
-    dfmessages::TimeSync t{ dfmessages::TypeDefaults::s_invalid_timestamp };
-    m_time_sync_source->pop(t);
+  dfmessages::TimeSync tsync{ dfmessages::TypeDefaults::s_invalid_timestamp };
+  while (true) {
+    try {
+      tsync = m_time_sync_receiver->receive(iomanager::Receiver::s_no_block);
+    } catch (const dunedaq::iomanager::TimeoutExpired& excpt) {
+      break;
+    }
   }
 
   m_most_recent_timesync.daq_time = dfmessages::TypeDefaults::s_invalid_timestamp;
   m_current_timestamp_estimate.store(dfmessages::TypeDefaults::s_invalid_timestamp);
 
-  // time_sync_source_ is connected to an MPMC queue with multiple
+  // m_time_sync_receiver is connected to an MPMC queue with multiple
   // writers. We read whatever we can off it, and the item with the
   // largest timestamp "wins"
   while (running_flag.load()) {
     // First, update the latest timestamp
-    while (m_time_sync_source->can_pop()) {
-      dfmessages::TimeSync t{ dfmessages::TypeDefaults::s_invalid_timestamp };
-      m_time_sync_source->pop(t);
-      add_timestamp_datapoint(t);
+    try {
+      tsync = m_time_sync_receiver->receive(iomanager::Receiver::s_no_block);
+      add_timestamp_datapoint(tsync);
+    } catch (const dunedaq::iomanager::TimeoutExpired& excpt) {
+      // nothing received, we'll try again soon
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -140,9 +146,12 @@ TimestampEstimator::estimator_thread_fn(std::atomic<bool>& running_flag)
   // Drain the input queue as best we can. We're not going to do
   // anything with the TimeSync messages, so we just drop them on the
   // floor
-  while (m_time_sync_source->can_pop()) {
-    dfmessages::TimeSync t{ dfmessages::TypeDefaults::s_invalid_timestamp };
-    m_time_sync_source->pop(t);
+  while (true) {
+    try {
+      tsync = m_time_sync_receiver->receive(iomanager::Receiver::s_no_block);
+    } catch (const dunedaq::iomanager::TimeoutExpired& excpt) {
+      break;
+    }
   }
 }
 

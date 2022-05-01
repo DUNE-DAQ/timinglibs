@@ -12,24 +12,19 @@
 #ifndef TIMINGLIBS_PLUGINS_TIMINGFANOUTCONTROLLER_HPP_
 #define TIMINGLIBS_PLUGINS_TIMINGFANOUTCONTROLLER_HPP_
 
+#include "TimingController.hpp"
+
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
-
 #include "timinglibs/timingfanoutcontroller/Nljs.hpp"
 #include "timinglibs/timingfanoutcontroller/Structs.hpp"
-
 #include "timinglibs/timingfanoutcontrollerinfo/InfoNljs.hpp"
 #include "timinglibs/timingfanoutcontrollerinfo/InfoStructs.hpp"
 
-#include "TimingController.hpp"
-
 #include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQSink.hpp"
-#include "appfwk/DAQSource.hpp"
-#include "utilities/WorkerThread.hpp"
-
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include <memory>
 #include <string>

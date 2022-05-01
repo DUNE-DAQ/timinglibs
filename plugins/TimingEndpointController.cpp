@@ -8,18 +8,14 @@
  */
 
 #include "TimingEndpointController.hpp"
-
+#include "timinglibs/TimingIssues.hpp"
+#include "timinglibs/timingcmd/Nljs.hpp"
+#include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingendpointcontroller/Nljs.hpp"
 #include "timinglibs/timingendpointcontroller/Structs.hpp"
 
-#include "timinglibs/timingcmd/Nljs.hpp"
-#include "timinglibs/timingcmd/Structs.hpp"
-
-#include "timinglibs/TimingIssues.hpp"
-
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
-
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 
@@ -52,8 +48,7 @@ void
 TimingEndpointController::do_configure(const nlohmann::json& data)
 {
   auto conf = data.get<timingendpointcontroller::ConfParams>();
-  if (conf.device.empty())
-  {
+  if (conf.device.empty()) {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
   m_timing_device = conf.device;

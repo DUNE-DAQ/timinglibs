@@ -8,18 +8,13 @@
  */
 
 #include "TimingHardwareManagerPDI.hpp"
-
 #include "timinglibs/timinghardwaremanagerpdi/Nljs.hpp"
 #include "timinglibs/timinghardwaremanagerpdi/Structs.hpp"
-
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
-
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/DAQModuleHelper.hpp"
-#include "appfwk/cmd/Nljs.hpp"
-
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 

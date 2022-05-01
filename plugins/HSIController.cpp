@@ -8,20 +8,17 @@
  */
 
 #include "HSIController.hpp"
-
+#include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/hsicontroller/Nljs.hpp"
 #include "timinglibs/hsicontroller/Structs.hpp"
-
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
-#include "timinglibs/TimingIssues.hpp"
-
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
-
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
+#include "rcif/cmd/Nljs.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -59,7 +56,7 @@ HSIController::do_configure(const nlohmann::json& data)
   m_timing_device = m_hsi_configuration.device;
 
   TLOG() << get_name() << " conf; hsi device: " << m_timing_device;
-  
+
   // wait for network communication to timing hardware interface module to definitely be ready
   std::this_thread::sleep_for(std::chrono::microseconds(5000000));
 
@@ -173,7 +170,7 @@ HSIController::do_hsi_configure(const nlohmann::json& data)
   construct_hsi_hw_cmd(hw_cmd, "hsi_configure");
   hw_cmd.payload = data;
 
-  uint64_t clock_frequency = data["clock_frequency"]; // NOLINT(build/unsigned)
+  uint64_t clock_frequency = data["clock_frequency"];               // NOLINT(build/unsigned)
   uint64_t trigger_interval_ticks = data["trigger_interval_ticks"]; // NOLINT(build/unsigned)
   double emulated_signal_rate = 0;
 

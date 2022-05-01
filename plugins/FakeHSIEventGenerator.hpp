@@ -9,26 +9,17 @@
 
 #include "HSIEventSender.hpp"
 
+#include "timinglibs/TimestampEstimator.hpp"
+#include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/fakehsieventgenerator/Nljs.hpp"
 #include "timinglibs/fakehsieventgenerator/Structs.hpp"
-
 #include "timinglibs/fakehsieventgeneratorinfo/InfoNljs.hpp"
 #include "timinglibs/fakehsieventgeneratorinfo/InfoStructs.hpp"
 
-#include "timinglibs/TimingIssues.hpp"
-
-#include "timinglibs/TimestampEstimator.hpp"
-
-#include "dfmessages/HSIEvent.hpp"
-
-#include "rcif/cmd/Nljs.hpp"
-#include "rcif/cmd/Structs.hpp"
-
 #include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQSink.hpp"
+#include "dfmessages/TimeSync.hpp"
+#include "ers/Issue.hpp"
 #include "utilities/WorkerThread.hpp"
-#include <ers/Issue.hpp>
-#include <ipm/Receiver.hpp>
 
 #include <bitset>
 #include <chrono>
@@ -70,7 +61,7 @@ private:
   void do_scrap(const nlohmann::json& obj) override;
   void do_resume(const nlohmann::json& obj);
 
-  void dispatch_timesync(ipm::Receiver::Response message);
+  void dispatch_timesync(dfmessages::TimeSync message);
 
   // Threading
   void do_hsievent_work(std::atomic<bool>&) override;

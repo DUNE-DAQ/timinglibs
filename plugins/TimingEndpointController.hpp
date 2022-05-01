@@ -16,20 +16,15 @@
 
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
-
 #include "timinglibs/timingendpointcontroller/Nljs.hpp"
 #include "timinglibs/timingendpointcontroller/Structs.hpp"
-
 #include "timinglibs/timingendpointcontrollerinfo/InfoNljs.hpp"
 #include "timinglibs/timingendpointcontrollerinfo/InfoStructs.hpp"
 
 #include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQSink.hpp"
-#include "appfwk/DAQSource.hpp"
-#include "utilities/WorkerThread.hpp"
-
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include <memory>
 #include <string>

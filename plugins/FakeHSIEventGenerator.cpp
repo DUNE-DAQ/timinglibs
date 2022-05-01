@@ -8,14 +8,15 @@
  */
 
 #include "FakeHSIEventGenerator.hpp"
+
 #include "timinglibs/fakehsieventgenerator/Nljs.hpp"
-//#include "timinglibs/Issues.hpp"
 
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/app/Nljs.hpp"
-#include "dfmessages/TimeSync.hpp"
+#include "dfmessages/HSIEvent.hpp"
+#include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
-#include "networkmanager/NetworkManager.hpp"
+#include "rcif/cmd/Nljs.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -79,7 +80,7 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
   auto params = obj.get<fakehsieventgenerator::Conf>();
 
   m_hsievent_send_connection = params.hsievent_connection_name;
-  
+
   m_clock_frequency = params.clock_frequency;
   m_trigger_interval_ticks.store(params.trigger_interval_ticks);
 
@@ -109,9 +110,10 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
   m_timestamp_estimator.reset(new TimestampEstimator(m_clock_frequency));
 
   m_received_timesync_count.store(0);
-  networkmanager::NetworkManager::get().subscribe(m_timesync_topic);
-  networkmanager::NetworkManager::get().register_callback(
-    m_timesync_topic, std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
+
+  iomanager::IOManager iom;
+  iom.get_receiver<dfmessages::TimeSync>(m_timesync_topic)
+    ->add_callback(std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
 
   auto start_params = obj.get<rcif::cmd::StartParams>();
   m_trigger_interval_ticks.store(start_params.trigger_interval_ticks);
@@ -150,8 +152,8 @@ FakeHSIEventGenerator::do_stop(const nlohmann::json& /*args*/)
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_stop() method";
   m_thread.stop_working_thread();
 
-  networkmanager::NetworkManager::get().clear_callback(m_timesync_topic);
-  networkmanager::NetworkManager::get().unsubscribe(m_timesync_topic);
+  iomanager::IOManager iom;
+  iom.get_receiver<dfmessages::TimeSync>(m_timesync_topic)->remove_callback();
   TLOG() << get_name() << ": received " << m_received_timesync_count.load() << " TimeSync messages.";
 
   m_timestamp_estimator.reset(nullptr); // Calls TimestampEstimator dtor
@@ -250,17 +252,17 @@ FakeHSIEventGenerator::do_hsievent_work(std::atomic<bool>& running_flag)
 }
 
 void
-FakeHSIEventGenerator::dispatch_timesync(ipm::Receiver::Response message)
+FakeHSIEventGenerator::dispatch_timesync(dfmessages::TimeSync timesyncmsg)
 {
   ++m_received_timesync_count;
-  auto timesyncmsg = serialization::deserialize<dfmessages::TimeSync>(message.data);
   TLOG_DEBUG(13) << "Received TimeSync message with DAQ time= " << timesyncmsg.daq_time
                  << ", run=" << timesyncmsg.run_number << " (local run number is " << m_run_number << ")";
   if (m_timestamp_estimator.get() != nullptr) {
     if (timesyncmsg.run_number == m_run_number) {
       m_timestamp_estimator->add_timestamp_datapoint(timesyncmsg);
     } else {
-      TLOG_DEBUG(0) << "Discarded TimeSync message from run " << timesyncmsg.run_number << " during run " << m_run_number;
+      TLOG_DEBUG(0) << "Discarded TimeSync message from run " << timesyncmsg.run_number << " during run "
+                    << m_run_number;
     }
   }
 }
