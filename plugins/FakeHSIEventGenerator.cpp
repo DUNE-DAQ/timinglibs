@@ -252,7 +252,7 @@ FakeHSIEventGenerator::do_hsievent_work(std::atomic<bool>& running_flag)
 }
 
 void
-FakeHSIEventGenerator::dispatch_timesync(dfmessages::TimeSync timesyncmsg)
+FakeHSIEventGenerator::dispatch_timesync(dfmessages::TimeSync& timesyncmsg)
 {
   ++m_received_timesync_count;
   TLOG_DEBUG(13) << "Received TimeSync message with DAQ time= " << timesyncmsg.daq_time

@@ -61,7 +61,7 @@ private:
   void do_scrap(const nlohmann::json& obj) override;
   void do_resume(const nlohmann::json& obj);
 
-  void dispatch_timesync(dfmessages::TimeSync message);
+  void dispatch_timesync(dfmessages::TimeSync& message);
 
   // Threading
   void do_hsievent_work(std::atomic<bool>&) override;
