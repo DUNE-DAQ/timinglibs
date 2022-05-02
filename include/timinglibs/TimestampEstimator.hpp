@@ -13,7 +13,7 @@
 
 #include "timinglibs/TimingIssues.hpp"
 
-#include "appfwk/DAQSource.hpp"
+#include "iomanager/Receiver.hpp"
 #include "utilities/WorkerThread.hpp"
 
 #include "dfmessages/TimeSync.hpp"
@@ -35,7 +35,7 @@ namespace timinglibs {
 class TimestampEstimator : public TimestampEstimatorBase
 {
 public:
-  TimestampEstimator(std::unique_ptr<appfwk::DAQSource<dfmessages::TimeSync>>& time_sync_source,
+  TimestampEstimator(std::shared_ptr<iomanager::ReceiverConcept<dfmessages::TimeSync>>& time_sync_source,
                      uint64_t clock_frequency_hz); // NOLINT(build/unsigned)
 
   explicit TimestampEstimator(uint64_t clock_frequency_hz); // NOLINT(build/unsigned)
@@ -53,10 +53,11 @@ private:
   std::atomic<dfmessages::timestamp_t> m_current_timestamp_estimate{ dfmessages::TypeDefaults::s_invalid_timestamp };
 
   uint64_t m_clock_frequency_hz; // NOLINT(build/unsigned)
-  appfwk::DAQSource<dfmessages::TimeSync>* m_time_sync_source;
+  std::shared_ptr<iomanager::ReceiverConcept<dfmessages::TimeSync>> m_time_sync_source;
   utilities::WorkerThread m_estimator_thread;
   dfmessages::TimeSync m_most_recent_timesync;
   std::mutex m_datapoint_mutex;
+  std::chrono::milliseconds queueTimeout_;
 };
 
 } // namespace timinglibs

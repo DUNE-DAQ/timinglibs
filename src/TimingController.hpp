@@ -16,9 +16,9 @@
 
 #include "timinglibs/TimingIssues.hpp"
 
-#include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQSink.hpp"
-#include "appfwk/DAQSource.hpp"
+#include "appfwk/DAQModuleHelper.hpp"
+#include "iomanager/IOManager.hpp"
+#include "iomanager/Sender.hpp"
 #include "utilities/WorkerThread.hpp"
 
 #include "appfwk/app/Nljs.hpp"
@@ -96,12 +96,11 @@ protected:
 
   // Configuration
   std::string m_hw_command_out_queue_name;
-  using sink_t = dunedaq::appfwk::DAQSink<timingcmd::TimingHwCmd>;
-  std::unique_ptr<sink_t> m_hw_command_out_queue;
+  std::shared_ptr<iomanager::SenderConcept<timingcmd::TimingHwCmd>> m_hw_command_out_queue;
   std::chrono::milliseconds m_hw_cmd_out_queue_timeout;
   std::string m_timing_device;
 
-  virtual void send_hw_cmd(const timingcmd::TimingHwCmd& hw_cmd);
+  virtual void send_hw_cmd(timingcmd::TimingHwCmd& hw_cmd);
 
   // opmon
   uint m_number_hw_commands;

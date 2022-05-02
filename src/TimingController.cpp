@@ -15,7 +15,6 @@
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/cmd/Nljs.hpp"
-#include "appfwk/DAQModuleHelper.hpp"
 
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
@@ -47,8 +46,9 @@ void
 TimingController::init(const nlohmann::json& init_data)
 {
   // set up queues
-  auto qi = appfwk::queue_index(init_data, { m_hw_command_out_queue_name });
-  m_hw_command_out_queue.reset(new sink_t(qi[m_hw_command_out_queue_name].inst));
+  auto qi = appfwk::connection_index(init_data, { m_hw_command_out_queue_name });
+  iomanager::IOManager iom;
+  m_hw_command_out_queue = iom.get_sender<timingcmd::TimingHwCmd>(qi[m_hw_command_out_queue_name]);
 }
 
 void
@@ -66,18 +66,18 @@ TimingController::do_stop(const nlohmann::json&)
 {}
 
 void
-TimingController::send_hw_cmd(const timingcmd::TimingHwCmd& hw_cmd)
+TimingController::send_hw_cmd(timingcmd::TimingHwCmd& hw_cmd)
 {
   if (!m_hw_command_out_queue)
   {
     throw QueueIsNullFatalError(ERS_HERE, get_name(), m_hw_command_out_queue_name);
   }
   try {
-    m_hw_command_out_queue->push(hw_cmd, m_hw_cmd_out_queue_timeout);
-  } catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt) {
+    m_hw_command_out_queue->send(hw_cmd, m_hw_cmd_out_queue_timeout);
+  } catch (const dunedaq::iomanager::TimeoutExpired&excpt) {
     std::ostringstream oss_warn;
     oss_warn << "push to output queue \"" << m_hw_command_out_queue_name << "\"";
-    ers::warning(dunedaq::appfwk::QueueTimeoutExpired(
+    ers::warning(dunedaq::iomanager::TimeoutExpired(
       ERS_HERE,
       get_name(),
       oss_warn.str(),

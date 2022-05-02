@@ -29,8 +29,8 @@
 
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQModuleHelper.hpp"
-#include "appfwk/DAQSink.hpp"
-#include "appfwk/DAQSource.hpp"
+#include "iomanager/IOManager.hpp"
+#include "iomanager/Receiver.hpp"
 #include "utilities/WorkerThread.hpp"
 #include "appfwk/app/Nljs.hpp"
 #include "appfwk/app/Structs.hpp"
@@ -101,8 +101,7 @@ protected:
   virtual void process_hardware_commands(std::atomic<bool>&);
 
   // Configuration
-  using source_t = dunedaq::appfwk::DAQSource<timingcmd::TimingHwCmd>;
-  std::unique_ptr<source_t> m_hw_command_in_queue;
+  std::shared_ptr<iomanager::ReceiverConcept<timingcmd::TimingHwCmd>> m_hw_command_in_queue;
   std::chrono::milliseconds m_queue_timeout;
 
   // hardware polling intervals [us]

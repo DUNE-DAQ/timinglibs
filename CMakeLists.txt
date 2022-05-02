@@ -16,19 +16,20 @@ find_package(dfmessages REQUIRED)
 find_package(opmonlib REQUIRED)
 find_package(uhal REQUIRED)
 find_package(pugixml REQUIRED)
-find_package(networkmanager REQUIRED)
+find_package(iomanager REQUIRED)
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
-daq_codegen( fakehsieventgenerator.jsonnet
+daq_codegen( 
+			 timingcmd.jsonnet
+			 fakehsieventgenerator.jsonnet
 			 hsicontroller.jsonnet
 			 hsireadout.jsonnet
-			 timingcmd.jsonnet
 			 timingendpointcontroller.jsonnet
 			 timinghardwaremanagerpdi.jsonnet
 			 timingmastercontroller.jsonnet
 			 timingpartitioncontroller.jsonnet
 			 timingfanoutcontroller.jsonnet 
-			 DEP_PKGS appfwk rcif cmdlib networkmanager TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
+			 DEP_PKGS appfwk rcif cmdlib networkmanager iomanager TEMPLATES Structs.hpp.j2  Nljs.hpp.j2 )
 
 daq_codegen( timingcmd.jsonnet TEMPLATES msgp.hpp.j2 )
 
@@ -46,6 +47,7 @@ daq_codegen( fakehsieventgeneratorinfo.jsonnet
 # Dependency sets
 set(TIMINGLIBS_DEPENDENCIES 
   appfwk::appfwk
+  iomanager::iomanager
   ers::ers
   logging::logging
   opmonlib::opmonlib
@@ -66,8 +68,6 @@ daq_add_plugin(TimingEndpointController duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(FakeHSIEventGenerator duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(HSIReadout duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)
 daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES timinglibs)
-
-daq_add_plugin(TimingHwCmdNQ duneNetworkQueue LINK_LIBRARIES timinglibs nwqueueadapters::nwqueueadapters)
 
 ##############################################################################
 daq_add_unit_test(TimestampEstimatorSystem_test  LINK_LIBRARIES timinglibs)

@@ -45,8 +45,9 @@ void
 TimingHardwareManager::init(const nlohmann::json& init_data)
 {
   // set up queues
-  auto qi = appfwk::queue_index(init_data, { "timing_cmds_queue" });
-  m_hw_command_in_queue.reset(new source_t(qi["timing_cmds_queue"].inst));
+  auto qi = appfwk::connection_index(init_data, { "timing_cmds_queue" });
+  iomanager::IOManager iom;
+  m_hw_command_in_queue = iom.get_receiver<timingcmd::TimingHwCmd>(qi["timing_cmds_queue"]);
 }
 
 void
@@ -225,8 +226,8 @@ TimingHardwareManager::process_hardware_commands(std::atomic<bool>& running_flag
     timingcmd::TimingHwCmd timing_hw_cmd;
 
     try {
-      m_hw_command_in_queue->pop(timing_hw_cmd, m_queue_timeout);
-    } catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt) {
+      timing_hw_cmd = m_hw_command_in_queue->receive(m_queue_timeout);
+    } catch (const dunedaq::iomanager::TimeoutExpired& excpt) {
       // it is perfectly reasonable that there might be no commands in the queue
       // some fraction of the times that we check, so we just continue on and try again
       continue;
