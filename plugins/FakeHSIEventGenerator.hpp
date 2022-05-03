@@ -19,6 +19,7 @@
 #include "appfwk/DAQModule.hpp"
 #include "dfmessages/TimeSync.hpp"
 #include "ers/Issue.hpp"
+#include "iomanager/Receiver.hpp"
 #include "utilities/WorkerThread.hpp"
 
 #include <bitset>
@@ -62,6 +63,8 @@ private:
   void do_resume(const nlohmann::json& obj);
 
   void dispatch_timesync(dfmessages::TimeSync& message);
+
+  std::shared_ptr<iomanager::ReceiverConcept<dfmessages::TimeSync>> m_timesync_receiver;
 
   // Threading
   void do_hsievent_work(std::atomic<bool>&) override;

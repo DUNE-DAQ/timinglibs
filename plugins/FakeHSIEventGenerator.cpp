@@ -112,8 +112,8 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
   m_received_timesync_count.store(0);
 
   iomanager::IOManager iom;
-  iom.get_receiver<dfmessages::TimeSync>(m_timesync_topic)
-    ->add_callback(std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
+  m_timesync_receiver = iom.get_receiver<dfmessages::TimeSync>(m_timesync_topic);
+  m_timesync_receiver->add_callback(std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
 
   auto start_params = obj.get<rcif::cmd::StartParams>();
   m_trigger_interval_ticks.store(start_params.trigger_interval_ticks);
@@ -152,8 +152,7 @@ FakeHSIEventGenerator::do_stop(const nlohmann::json& /*args*/)
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_stop() method";
   m_thread.stop_working_thread();
 
-  iomanager::IOManager iom;
-  iom.get_receiver<dfmessages::TimeSync>(m_timesync_topic)->remove_callback();
+  m_timesync_receiver->remove_callback();
   TLOG() << get_name() << ": received " << m_received_timesync_count.load() << " TimeSync messages.";
 
   m_timestamp_estimator.reset(nullptr); // Calls TimestampEstimator dtor
