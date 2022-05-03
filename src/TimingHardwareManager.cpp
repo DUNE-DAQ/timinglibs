@@ -7,13 +7,14 @@
  */
 
 #include "TimingHardwareManager.hpp"
-#include "logging/Logging.hpp"
 
+#include "iomanager/IOManager.hpp"
+#include "logging/Logging.hpp"
 #include "timing/definitions.hpp"
 
 #include <memory>
-#include <utility>
 #include <string>
+#include <utility>
 #include <vector>
 
 #define TRACE_NAME "TimingHardwareManager" // NOLINT

@@ -10,13 +10,11 @@
 #include "HSIReadout.hpp"
 
 #include "timinglibs/hsireadout/Nljs.hpp"
-
 #include "timinglibs/TimingIssues.hpp"
 #include "timing/TimingIssues.hpp"
 
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/app/Nljs.hpp"
-
 #include "logging/Logging.hpp"
 
 #include <chrono>

@@ -14,25 +14,17 @@
 
 #include "TimingController.hpp"
 
+#include "timinglibs/hsicontroller/Nljs.hpp"
+#include "timinglibs/hsicontroller/Structs.hpp"
+#include "timinglibs/hsicontrollerinfo/InfoNljs.hpp"
+#include "timinglibs/hsicontrollerinfo/InfoStructs.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
-#include "timinglibs/hsicontroller/Nljs.hpp"
-#include "timinglibs/hsicontroller/Structs.hpp"
-
-#include "timinglibs/hsicontrollerinfo/InfoNljs.hpp"
-#include "timinglibs/hsicontrollerinfo/InfoStructs.hpp"
-
 #include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQSink.hpp"
-#include "appfwk/DAQSource.hpp"
-#include "utilities/WorkerThread.hpp"
-
-#include "rcif/cmd/Nljs.hpp"
-#include "rcif/cmd/Structs.hpp"
-
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include <memory>
 #include <string>

@@ -8,15 +8,14 @@
  */
 
 #include "TimingController.hpp"
-
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
-
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/cmd/Nljs.hpp"
-
+#include "appfwk/DAQModuleHelper.hpp"
 #include "ers/Issue.hpp"
+#include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
 
 #include <chrono>
@@ -74,7 +73,7 @@ TimingController::send_hw_cmd(timingcmd::TimingHwCmd& hw_cmd)
   }
   try {
     m_hw_command_out_queue->send(hw_cmd, m_hw_cmd_out_queue_timeout);
-  } catch (const dunedaq::iomanager::TimeoutExpired&excpt) {
+  } catch (const dunedaq::iomanager::TimeoutExpired& excpt) {
     std::ostringstream oss_warn;
     oss_warn << "push to output queue \"" << m_hw_command_out_queue_name << "\"";
     ers::warning(dunedaq::iomanager::TimeoutExpired(

@@ -12,35 +12,28 @@
 #ifndef TIMINGLIBS_SRC_TIMINGHARDWAREMANAGER_HPP_
 #define TIMINGLIBS_SRC_TIMINGHARDWAREMANAGER_HPP_
 
+#include "InfoGatherer.hpp"
+#include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingcmd/msgp.hpp"
 
-#include "timinglibs/TimingIssues.hpp"
-
-#include "InfoGatherer.hpp"
-
+#include "appfwk/DAQModule.hpp"
+#include "appfwk/DAQModuleHelper.hpp"
+#include "appfwk/app/Nljs.hpp"
+#include "appfwk/app/Structs.hpp"
+#include "ers/Issue.hpp"
+#include "iomanager/Receiver.hpp"
+#include "logging/Logging.hpp"
 #include "timing/EndpointDesignInterface.hpp"
+#include "timing/EndpointNode.hpp"
 #include "timing/FanoutDesign.hpp"
 #include "timing/HSIDesignInterface.hpp"
 #include "timing/MasterDesignInterface.hpp"
 #include "timing/TimingNode.hpp"
 #include "timing/TopDesignInterface.hpp"
-
-#include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQModuleHelper.hpp"
-#include "iomanager/IOManager.hpp"
-#include "iomanager/Receiver.hpp"
-#include "utilities/WorkerThread.hpp"
-#include "appfwk/app/Nljs.hpp"
-#include "appfwk/app/Structs.hpp"
-
-#include "ers/Issue.hpp"
-#include "logging/Logging.hpp"
-
 #include "uhal/ConnectionManager.hpp"
-
-#include "timing/EndpointNode.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include <map>
 #include <memory>
@@ -83,7 +76,8 @@ public:
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
   virtual ~TimingHardwareManager()
   {
-    if (thread_.thread_running()) thread_.stop_working_thread();
+    if (thread_.thread_running())
+      thread_.stop_working_thread();
   }
   void init(const nlohmann::json& init_data) override;
   virtual void conf(const nlohmann::json& conf_data);
@@ -101,7 +95,8 @@ protected:
   virtual void process_hardware_commands(std::atomic<bool>&);
 
   // Configuration
-  std::shared_ptr<iomanager::ReceiverConcept<timingcmd::TimingHwCmd>> m_hw_command_in_queue;
+  using source_t = dunedaq::iomanager::ReceiverConcept<timingcmd::TimingHwCmd>;
+  std::shared_ptr<source_t> m_hw_command_in_queue;
   std::chrono::milliseconds m_queue_timeout;
 
   // hardware polling intervals [us]
@@ -134,7 +129,7 @@ protected:
   void set_timestamp(const timingcmd::TimingHwCmd& hw_cmd);
   void set_endpoint_delay(const timingcmd::TimingHwCmd& hw_cmd);
   void send_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd);
-  
+
   // timing partition commands
   void partition_configure(const timingcmd::TimingHwCmd& hw_cmd);
   void partition_enable(const timingcmd::TimingHwCmd& hw_cmd);

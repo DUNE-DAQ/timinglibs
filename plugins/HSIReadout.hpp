@@ -8,30 +8,22 @@
 #define TIMINGLIBS_PLUGINS_HSIREADOUT_HPP_
 
 #include "HSIEventSender.hpp"
-
-#include "timinglibs/hsireadout/Nljs.hpp"
-#include "timinglibs/hsireadout/Structs.hpp"
-
-#include "timinglibs/hsireadoutinfo/InfoNljs.hpp"
-#include "timinglibs/hsireadoutinfo/InfoStructs.hpp"
-
 #include "TimingHardwareManager.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
-
-#include "timing/HSINode.hpp"
-
-#include "dfmessages/HSIEvent.hpp"
+#include "timinglibs/hsireadout/Nljs.hpp"
+#include "timinglibs/hsireadout/Structs.hpp"
+#include "timinglibs/hsireadoutinfo/InfoNljs.hpp"
+#include "timinglibs/hsireadoutinfo/InfoStructs.hpp"
 
 #include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQSink.hpp"
-#include "utilities/WorkerThread.hpp"
-
+#include "dfmessages/HSIEvent.hpp"
+#include "timing/HSINode.hpp"
 #include "uhal/ConnectionManager.hpp"
 #include "uhal/ProtocolUDP.hpp"
 #include "uhal/log/exception.hpp"
 #include "uhal/utilities/files.hpp"
-
+#include "utilities/WorkerThread.hpp"
 #include <ers/Issue.hpp>
 
 #include <bitset>

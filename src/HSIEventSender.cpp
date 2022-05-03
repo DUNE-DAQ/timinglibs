@@ -8,13 +8,12 @@
  */
 
 #include "HSIEventSender.hpp"
-
 #include "timinglibs/TimingIssues.hpp"
-#include "iomanager/IOManager.hpp"
-#include "appfwk/app/Nljs.hpp"
-#include "serialization/Serialization.hpp"
 
+#include "appfwk/app/Nljs.hpp"
+#include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
+#include "serialization/Serialization.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -37,13 +36,14 @@ HSIEventSender::HSIEventSender(const std::string& name)
 void
 HSIEventSender::send_hsi_event(dfmessages::HSIEvent& event, const std::string& location)
 {
-  TLOG_DEBUG(3) << get_name() << ": Sending HSIEvent to " << location << ". \n" << event.header << ", " << std::bitset<32>(event.signal_map)
-                << ", " << event.timestamp << ", " << event.sequence_counter << "\n";
+  TLOG_DEBUG(3) << get_name() << ": Sending HSIEvent to " << location << ". \n"
+                << event.header << ", " << std::bitset<32>(event.signal_map) << ", " << event.timestamp << ", "
+                << event.sequence_counter << "\n";
 
-  iomanager::IOManager iom;
   bool was_successfully_sent = false;
   while (!was_successfully_sent) {
     try {
+      iomanager::IOManager iom;
       iom.get_sender<dfmessages::HSIEvent>(location)->send(event, m_queue_timeout);
       ++m_sent_counter;
       m_last_sent_timestamp.store(event.timestamp);
