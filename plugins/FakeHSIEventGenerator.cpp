@@ -111,8 +111,7 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
 
   m_received_timesync_count.store(0);
 
-  iomanager::IOManager iom;
-  m_timesync_receiver = iom.get_receiver<dfmessages::TimeSync>(m_timesync_topic);
+  m_timesync_receiver = get_iom_receiver<dfmessages::TimeSync>(m_timesync_topic);
   m_timesync_receiver->add_callback(std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
 
   auto start_params = obj.get<rcif::cmd::StartParams>();

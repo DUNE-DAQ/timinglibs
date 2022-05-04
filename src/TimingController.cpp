@@ -46,8 +46,7 @@ TimingController::init(const nlohmann::json& init_data)
 {
   // set up queues
   auto qi = appfwk::connection_index(init_data, { m_hw_command_out_queue_name });
-  iomanager::IOManager iom;
-  m_hw_command_out_queue = iom.get_sender<timingcmd::TimingHwCmd>(qi[m_hw_command_out_queue_name]);
+  m_hw_command_out_queue = get_iom_sender<timingcmd::TimingHwCmd>(qi[m_hw_command_out_queue_name]);
 }
 
 void

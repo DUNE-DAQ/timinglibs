@@ -47,8 +47,7 @@ TimingHardwareManager::init(const nlohmann::json& init_data)
 {
   // set up queues
   auto qi = appfwk::connection_index(init_data, { "timing_cmds_queue" });
-  iomanager::IOManager iom;
-  m_hw_command_in_queue = iom.get_receiver<timingcmd::TimingHwCmd>(qi["timing_cmds_queue"]);
+  m_hw_command_in_queue = get_iom_receiver<timingcmd::TimingHwCmd>(qi["timing_cmds_queue"]);
 }
 
 void

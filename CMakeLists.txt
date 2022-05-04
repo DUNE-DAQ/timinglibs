@@ -72,7 +72,7 @@ daq_add_plugin(HSIController duneDAQModule LINK_LIBRARIES timinglibs)
 
 ##############################################################################
 daq_add_unit_test(TimestampEstimatorSystem_test  LINK_LIBRARIES timinglibs)
-daq_add_unit_test(TimestampEstimator_test        LINK_LIBRARIES timinglibs)
+#daq_add_unit_test(TimestampEstimator_test        LINK_LIBRARIES timinglibs)
 
 ##############################################################################
 daq_install()
