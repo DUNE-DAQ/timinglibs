@@ -67,7 +67,7 @@ private:
   void do_resume(const nlohmann::json& data);
   void do_pause(const nlohmann::json& data);
 
-  void construct_partition_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
+  timingcmd::TimingHwCmd construct_partition_hw_cmd(const std::string& cmd_id);
 
   // timing partition commands
   void do_partition_configure(const nlohmann::json& data);

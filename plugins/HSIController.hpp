@@ -60,7 +60,7 @@ private:
   void do_stop(const nlohmann::json& data) override;
   void do_resume(const nlohmann::json& data);
 
-  void construct_hsi_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
+  timingcmd::TimingHwCmd construct_hsi_hw_cmd(const std::string& cmd_id);
 
   // timinglibs hsi commands
   void do_hsi_io_reset(const nlohmann::json& data);

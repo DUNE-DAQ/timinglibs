@@ -60,7 +60,7 @@ private:
   // Commands
   void do_configure(const nlohmann::json& data) override;
 
-  void construct_endpoint_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
+  timingcmd::TimingHwCmd construct_endpoint_hw_cmd(const std::string& cmd_id);
 
   // timinglibs endpoint commands
   void do_endpoint_io_reset(const nlohmann::json& data);

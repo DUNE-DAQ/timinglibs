@@ -80,65 +80,67 @@ TimingMasterController::do_stop(const nlohmann::json& /*data*/)
   if (set_endpoint_delay_thread.thread_running()) set_endpoint_delay_thread.stop_working_thread();
 }
 
-void
-TimingMasterController::construct_master_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id)
+timingcmd::TimingHwCmd
+TimingMasterController::construct_master_hw_cmd(const std::string& cmd_id)
 {
+    timingcmd::TimingHwCmd hw_cmd;
   hw_cmd.id = cmd_id;
   hw_cmd.device = m_timing_device;
+  return hw_cmd;
 }
 
 void
 TimingMasterController::do_master_io_reset(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_master_hw_cmd(hw_cmd, "io_reset");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "io_reset");
   hw_cmd.payload = data;
 
-  send_hw_cmd(hw_cmd);
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(0).atomic);
 }
 
 void
 TimingMasterController::do_master_set_timestamp(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_master_hw_cmd(hw_cmd, "set_timestamp");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "set_timestamp");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(1).atomic);
 }
 
 void
 TimingMasterController::do_master_print_status(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_master_hw_cmd(hw_cmd, "print_status");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "print_status");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(2).atomic);
 }
 
 void
 TimingMasterController::do_master_set_endpoint_delay(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_master_hw_cmd(hw_cmd, "set_endpoint_delay");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "set_endpoint_delay");
   hw_cmd.payload = data;
   
   TLOG_DEBUG(2) << "set ept delay data: " << data.dump();
   
-  send_hw_cmd(hw_cmd);
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(3).atomic);
 }
 
 void
 TimingMasterController::do_master_send_fl_command(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_master_hw_cmd(hw_cmd, "send_fl_command");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "send_fl_command");
   hw_cmd.payload = data;
   
   TLOG_DEBUG(2) << "send fl cmd data: " << data.dump();
 
-  send_hw_cmd(hw_cmd);
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(4).atomic);
 }
 
@@ -169,9 +171,9 @@ TimingMasterController::set_endpoint_delay(std::atomic<bool>& running_flag)
   TLOG_DEBUG(0) << get_name() << starting_stream.str();
 
   while (running_flag.load() && m_send_endpoint_delays_period) {
-    timingcmd::TimingHwCmd hw_cmd;
-    construct_master_hw_cmd(hw_cmd, "set_endpoint_delay");
-    send_hw_cmd(hw_cmd);
+    timingcmd::TimingHwCmd hw_cmd =
+    construct_master_hw_cmd( "set_endpoint_delay");
+    send_hw_cmd(std::move(hw_cmd));
 
     ++(m_sent_hw_command_counters.at(3).atomic);
     if (m_send_endpoint_delays_period)

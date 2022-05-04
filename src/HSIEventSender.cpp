@@ -43,7 +43,8 @@ HSIEventSender::send_hsi_event(dfmessages::HSIEvent& event, const std::string& l
   bool was_successfully_sent = false;
   while (!was_successfully_sent) {
     try {
-      get_iom_sender<dfmessages::HSIEvent>(location)->send(event, m_queue_timeout);
+        dfmessages::HSIEvent event_copy(event);
+      get_iom_sender<dfmessages::HSIEvent>(location)->send(std::move(event_copy), m_queue_timeout);
       ++m_sent_counter;
       m_last_sent_timestamp.store(event.timestamp);
       was_successfully_sent = true;

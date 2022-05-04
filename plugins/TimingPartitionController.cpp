@@ -94,15 +94,17 @@ TimingPartitionController::do_pause(const nlohmann::json& data)
   do_partition_disable_triggers(data);
 }
 
-void
-TimingPartitionController::construct_partition_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id)
+timingcmd::TimingHwCmd
+TimingPartitionController::construct_partition_hw_cmd(const std::string& cmd_id)
 {
+    timingcmd::TimingHwCmd hw_cmd;
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   cmd_payload.partition_id = m_managed_partition_id;
   timingcmd::to_json(hw_cmd.payload, cmd_payload);
 
   hw_cmd.id = cmd_id;
   hw_cmd.device = m_timing_device;
+  return hw_cmd;
 }
 
 void
@@ -113,70 +115,70 @@ TimingPartitionController::do_partition_configure(const nlohmann::json& data)
   hw_cmd.device = m_timing_device;
   hw_cmd.payload = data;
 
-  send_hw_cmd(hw_cmd);
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(0).atomic);
 }
 
 void
 TimingPartitionController::do_partition_enable(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_partition_hw_cmd(hw_cmd, "partition_enable");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_partition_hw_cmd( "partition_enable");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(1).atomic);
 }
 
 void
 TimingPartitionController::do_partition_disable(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_partition_hw_cmd(hw_cmd, "partition_disable");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_partition_hw_cmd( "partition_disable");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(2).atomic);
 }
 
 void
 TimingPartitionController::do_partition_start(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_partition_hw_cmd(hw_cmd, "partition_start");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_partition_hw_cmd( "partition_start");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(3).atomic);
 }
 
 void
 TimingPartitionController::do_partition_stop(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_partition_hw_cmd(hw_cmd, "partition_stop");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_partition_hw_cmd( "partition_stop");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(4).atomic);
 }
 
 void
 TimingPartitionController::do_partition_enable_triggers(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_partition_hw_cmd(hw_cmd, "partition_enable_triggers");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_partition_hw_cmd( "partition_enable_triggers");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(5).atomic);
 }
 
 void
 TimingPartitionController::do_partition_disable_triggers(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_partition_hw_cmd(hw_cmd, "partition_disable_triggers");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_partition_hw_cmd( "partition_disable_triggers");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(6).atomic);
 }
 
 void
 TimingPartitionController::do_partition_print_status(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_partition_hw_cmd(hw_cmd, "partition_print_status");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd = 
+  construct_partition_hw_cmd( "partition_print_status");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(7).atomic);
 }
 

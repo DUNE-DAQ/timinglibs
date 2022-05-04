@@ -57,7 +57,7 @@ private:
   // Commands
   void do_configure(const nlohmann::json& data) override;
 
-  void construct_fanout_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
+  timingcmd::TimingHwCmd construct_fanout_hw_cmd(const std::string& cmd_id);
 
   // timing master commands
   void do_fanout_io_reset(const nlohmann::json& data);

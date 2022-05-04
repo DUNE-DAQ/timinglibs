@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(Basics)
   std::atomic<bool> continue_flag{ true };
   dfmessages::timestamp_t initial_ts = 1;
   dfmessages::TimeSync initial_time_sync(initial_ts);
-  sink->send(initial_time_sync, 10ms);
+  sink->send(std::move(initial_time_sync), 10ms);
   BOOST_CHECK_EQUAL(te.wait_for_valid_timestamp(continue_flag), timinglibs::TimestampEstimatorBase::kFinished);
 
   dfmessages::timestamp_t ts_now = te.get_timestamp_estimate();

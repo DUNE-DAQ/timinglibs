@@ -97,7 +97,7 @@ protected:
   std::chrono::milliseconds m_hw_cmd_out_queue_timeout;
   std::string m_timing_device;
 
-  virtual void send_hw_cmd(timingcmd::TimingHwCmd& hw_cmd);
+  virtual void send_hw_cmd(timingcmd::TimingHwCmd&& hw_cmd);
 
   // opmon
   uint m_number_hw_commands;

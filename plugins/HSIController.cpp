@@ -93,29 +93,30 @@ HSIController::do_resume(const nlohmann::json& data)
   do_hsi_configure(m_hsi_configuration);
 }
 
-void
-HSIController::construct_hsi_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id)
+timingcmd::TimingHwCmd
+HSIController::construct_hsi_hw_cmd(const std::string& cmd_id)
 {
+    timingcmd::TimingHwCmd hw_cmd;
   hw_cmd.id = cmd_id;
   hw_cmd.device = m_timing_device;
+  return hw_cmd;
 }
 
 void
 HSIController::do_hsi_io_reset(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_hsi_hw_cmd(hw_cmd, "io_reset");
+  auto hw_cmd = construct_hsi_hw_cmd("io_reset");
   hw_cmd.payload = data;
 
-  send_hw_cmd(hw_cmd);
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(0).atomic);
 }
 
 void
 HSIController::do_hsi_endpoint_enable(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_hsi_hw_cmd(hw_cmd, "endpoint_enable");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_hsi_hw_cmd("endpoint_enable");
 
   timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
   cmd_payload.endpoint_id = 0;
@@ -125,24 +126,24 @@ HSIController::do_hsi_endpoint_enable(const nlohmann::json& data)
 
   TLOG_DEBUG(0) << "ept enable hw cmd; a: " << cmd_payload.address << ", p: " << cmd_payload.partition;
 
-  send_hw_cmd(hw_cmd);
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(1).atomic);
 }
 
 void
 HSIController::do_hsi_endpoint_disable(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_hsi_hw_cmd(hw_cmd, "endpoint_disable");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_hsi_hw_cmd( "endpoint_disable");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(2).atomic);
 }
 
 void
 HSIController::do_hsi_endpoint_reset(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_hsi_hw_cmd(hw_cmd, "endpoint_reset");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_hsi_hw_cmd( "endpoint_reset");
 
   timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
   cmd_payload.endpoint_id = 0;
@@ -150,24 +151,24 @@ HSIController::do_hsi_endpoint_reset(const nlohmann::json& data)
 
   timingcmd::to_json(hw_cmd.payload, cmd_payload);
 
-  send_hw_cmd(hw_cmd);
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(3).atomic);
 }
 
 void
 HSIController::do_hsi_reset(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_hsi_hw_cmd(hw_cmd, "hsi_reset");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_hsi_hw_cmd( "hsi_reset");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(4).atomic);
 }
 
 void
 HSIController::do_hsi_configure(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_hsi_hw_cmd(hw_cmd, "hsi_configure");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_hsi_hw_cmd( "hsi_configure");
   hw_cmd.payload = data;
 
   uint64_t clock_frequency = data["clock_frequency"];               // NOLINT(build/unsigned)
@@ -184,34 +185,34 @@ HSIController::do_hsi_configure(const nlohmann::json& data)
   TLOG() << get_name() << " Setting trigger interval ticks, emulated event rate [Hz] to: " << trigger_interval_ticks
          << ", " << emulated_signal_rate;
 
-  send_hw_cmd(hw_cmd);
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(5).atomic);
 }
 
 void
 HSIController::do_hsi_start(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_hsi_hw_cmd(hw_cmd, "hsi_start");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_hsi_hw_cmd( "hsi_start");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(6).atomic);
 }
 
 void
 HSIController::do_hsi_stop(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_hsi_hw_cmd(hw_cmd, "hsi_stop");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_hsi_hw_cmd( "hsi_stop");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(7).atomic);
 }
 
 void
 HSIController::do_hsi_print_status(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_hsi_hw_cmd(hw_cmd, "hsi_print_status");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_hsi_hw_cmd( "hsi_print_status");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(8).atomic);
 }
 

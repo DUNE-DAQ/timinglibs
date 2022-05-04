@@ -64,14 +64,14 @@ TimingController::do_stop(const nlohmann::json&)
 {}
 
 void
-TimingController::send_hw_cmd(timingcmd::TimingHwCmd& hw_cmd)
+TimingController::send_hw_cmd(timingcmd::TimingHwCmd&& hw_cmd)
 {
   if (!m_hw_command_out_queue)
   {
     throw QueueIsNullFatalError(ERS_HERE, get_name(), m_hw_command_out_queue_name);
   }
   try {
-    m_hw_command_out_queue->send(hw_cmd, m_hw_cmd_out_queue_timeout);
+    m_hw_command_out_queue->send(std::move(hw_cmd), m_hw_cmd_out_queue_timeout);
   } catch (const dunedaq::iomanager::TimeoutExpired& excpt) {
     std::ostringstream oss_warn;
     oss_warn << "push to output queue \"" << m_hw_command_out_queue_name << "\"";

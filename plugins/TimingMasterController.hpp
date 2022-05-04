@@ -64,7 +64,7 @@ private:
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
 
-  void construct_master_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
+  timingcmd::TimingHwCmd construct_master_hw_cmd( const std::string& cmd_id);
 
   // timing master commands
   void do_master_io_reset(const nlohmann::json& data);
