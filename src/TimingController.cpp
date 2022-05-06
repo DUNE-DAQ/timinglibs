@@ -10,6 +10,7 @@
 #include "TimingController.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
+#include "timinglibs/timingcmd/msgp.hpp"
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/cmd/Nljs.hpp"
@@ -25,6 +26,7 @@
 #include <vector>
 
 namespace dunedaq {
+DUNE_DAQ_SERIALIZABLE(timinglibs::timingcmd::TimingHwCmd);
 namespace timinglibs {
 
 TimingController::TimingController(const std::string& name, uint number_hw_commands)

@@ -74,11 +74,8 @@ public:
     delete;                                                ///< TimingHardwareManager is not copy-assignable
   TimingHardwareManager(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-constructible
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
-  virtual ~TimingHardwareManager()
-  {
-    if (thread_.thread_running())
-      thread_.stop_working_thread();
-  }
+  virtual ~TimingHardwareManager() {}
+  
   void init(const nlohmann::json& init_data) override;
   virtual void conf(const nlohmann::json& conf_data);
   virtual void scrap(const nlohmann::json& data);
@@ -90,14 +87,11 @@ protected:
   //  virtual void do_stop(const nlohmann::json&);
   //  virtual void do_scrap(const nlohmann::json&);
 
-  // Threading
-  dunedaq::utilities::WorkerThread thread_;
-  virtual void process_hardware_commands(std::atomic<bool>&);
+  virtual void process_hardware_command(timingcmd::TimingHwCmd& timing_hw_cmd);
 
   // Configuration
   using source_t = dunedaq::iomanager::ReceiverConcept<timingcmd::TimingHwCmd>;
-  std::shared_ptr<source_t> m_hw_command_in_queue;
-  std::chrono::milliseconds m_queue_timeout;
+  std::shared_ptr<source_t> m_hw_command_receiver;
 
   // hardware polling intervals [us]
   uint m_gather_interval;
