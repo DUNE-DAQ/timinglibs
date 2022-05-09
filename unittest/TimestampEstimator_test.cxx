@@ -6,8 +6,9 @@
  * received with this code.
  */
 
-#include "appfwk/DAQSink.hpp"
-#include "appfwk/DAQSource.hpp"
+#include "iomanager/IOManager.hpp"
+#include "iomanager/Sender.hpp"
+#include "iomanager/Receiver.hpp"
 #include "timinglibs/TimestampEstimator.hpp"
 
 /**
@@ -35,11 +36,15 @@ struct DAQSinkDAQSourceTestFixture
 
   void setup()
   {
-    std::map<std::string, appfwk::QueueConfig> queue_map = {
-      { "dummy", { appfwk::QueueConfig::queue_kind::kFollyMPMCQueue, 100 } }
-    };
+    iomanager::ConnectionIds_t connections;
+    connections.emplace_back(
+      iomanager::ConnectionId{ "dummy", iomanager::ServiceType::kQueue, "TimeSync", "queue://kFollyMPMCQueue:100" });
+    
+    get_iomanager()->configure(connections);
+  }
 
-    appfwk::QueueRegistry::get().configure(queue_map);
+  void teardown() {
+      get_iomanager()->reset();
   }
 };
 
@@ -48,15 +53,16 @@ BOOST_TEST_GLOBAL_FIXTURE(DAQSinkDAQSourceTestFixture);
 BOOST_AUTO_TEST_CASE(Basics)
 {
   using namespace std::chrono_literals;
-
-  using sink_t = appfwk::DAQSink<dfmessages::TimeSync>;
-  using source_t = appfwk::DAQSource<dfmessages::TimeSync>;
-  auto sink = std::make_unique<sink_t>("dummy");
-  auto source = std::make_unique<source_t>("dummy");
+  auto queue_ref = iomanager::ConnectionRef{ "queue", "dummy" };
+  auto sink =  get_iom_sender<dfmessages::TimeSync>(queue_ref);
+  auto source = get_iom_receiver<dfmessages::TimeSync>(queue_ref);
 
   const uint64_t clock_frequency_hz = 62'500'000; // NOLINT(build/unsigned)
 
   timinglibs::TimestampEstimator te(source, clock_frequency_hz);
+
+  // allow previous run timesync queue drain check to complete
+  std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
   // There's no valid timestamp yet, because no TimeSync messages have
   // been received. We should immediately return with kInterrupted
@@ -66,7 +72,8 @@ BOOST_AUTO_TEST_CASE(Basics)
 
   std::atomic<bool> continue_flag{ true };
   dfmessages::timestamp_t initial_ts = 1;
-  sink->push(dfmessages::TimeSync(initial_ts), 10ms);
+  dfmessages::TimeSync initial_time_sync(initial_ts);
+  sink->send(std::move(initial_time_sync), 10ms);
   BOOST_CHECK_EQUAL(te.wait_for_valid_timestamp(continue_flag), timinglibs::TimestampEstimatorBase::kFinished);
 
   dfmessages::timestamp_t ts_now = te.get_timestamp_estimate();

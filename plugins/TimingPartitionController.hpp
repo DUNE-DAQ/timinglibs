@@ -14,24 +14,18 @@
 
 #include "TimingController.hpp"
 
+#include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
-
 #include "timinglibs/timingpartitioncontroller/Nljs.hpp"
 #include "timinglibs/timingpartitioncontroller/Structs.hpp"
-
 #include "timinglibs/timingpartitioncontrollerinfo/InfoNljs.hpp"
 #include "timinglibs/timingpartitioncontrollerinfo/InfoStructs.hpp"
 
-#include "timinglibs/TimingIssues.hpp"
-
 #include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQSink.hpp"
-#include "appfwk/DAQSource.hpp"
-#include "utilities/WorkerThread.hpp"
-
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include <memory>
 #include <string>
@@ -69,11 +63,11 @@ private:
   void do_configure(const nlohmann::json& data) override;
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
-//  void do_scrap(const nlohmann::json& data);
+  //  void do_scrap(const nlohmann::json& data);
   void do_resume(const nlohmann::json& data);
   void do_pause(const nlohmann::json& data);
 
-  void construct_partition_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
+  timingcmd::TimingHwCmd construct_partition_hw_cmd(const std::string& cmd_id);
 
   // timing partition commands
   void do_partition_configure(const nlohmann::json& data);

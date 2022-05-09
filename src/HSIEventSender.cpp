@@ -8,13 +8,12 @@
  */
 
 #include "HSIEventSender.hpp"
-
 #include "timinglibs/TimingIssues.hpp"
-#include "networkmanager/NetworkManager.hpp"
-#include "appfwk/app/Nljs.hpp"
-#include "serialization/Serialization.hpp"
 
+#include "appfwk/app/Nljs.hpp"
+#include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
+#include "serialization/Serialization.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -35,27 +34,24 @@ HSIEventSender::HSIEventSender(const std::string& name)
 {}
 
 void
-HSIEventSender::send_hsi_event(const dfmessages::HSIEvent& event, const std::string& location)
+HSIEventSender::send_hsi_event(dfmessages::HSIEvent& event, const std::string& location)
 {
-  TLOG_DEBUG(3) << get_name() << ": Sending HSIEvent to " << location << ". \n" << event.header << ", " << std::bitset<32>(event.signal_map)
-                << ", " << event.timestamp << ", " << event.sequence_counter << "\n";
+  TLOG_DEBUG(3) << get_name() << ": Sending HSIEvent to " << location << ". \n"
+                << event.header << ", " << std::bitset<32>(event.signal_map) << ", " << event.timestamp << ", "
+                << event.sequence_counter << "\n";
 
   bool was_successfully_sent = false;
   while (!was_successfully_sent) {
     try {
-      auto serialised_event = dunedaq::serialization::serialize(event, dunedaq::serialization::kMsgPack);
-
-      networkmanager::NetworkManager::get().send_to(location,
-                                    static_cast<const void*>(serialised_event.data()),
-                                    serialised_event.size(),
-                                    m_queue_timeout);
+        dfmessages::HSIEvent event_copy(event);
+      get_iom_sender<dfmessages::HSIEvent>(location)->send(std::move(event_copy), m_queue_timeout);
       ++m_sent_counter;
       m_last_sent_timestamp.store(event.timestamp);
       was_successfully_sent = true;
-    } catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt) {
+    } catch (const dunedaq::iomanager::TimeoutExpired& excpt) {
       std::ostringstream oss_warn;
       oss_warn << "push to output connection \"" << location << "\"";
-      ers::error(dunedaq::appfwk::QueueTimeoutExpired(ERS_HERE, get_name(), oss_warn.str(), m_queue_timeout.count()));
+      ers::error(dunedaq::iomanager::TimeoutExpired(ERS_HERE, get_name(), oss_warn.str(), m_queue_timeout.count()));
       ++m_failed_to_send_counter;
     }
   }

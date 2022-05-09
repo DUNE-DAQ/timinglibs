@@ -8,18 +8,13 @@
  */
 
 #include "TimingHardwareManagerPDI.hpp"
-
 #include "timinglibs/timinghardwaremanagerpdi/Nljs.hpp"
 #include "timinglibs/timinghardwaremanagerpdi/Structs.hpp"
-
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
-
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/DAQModuleHelper.hpp"
-#include "appfwk/cmd/Nljs.hpp"
-
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 
@@ -46,8 +41,6 @@ TimingHardwareManagerPDI::TimingHardwareManagerPDI(const std::string& name)
 void
 TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
 {
-  TimingHardwareManager::conf(conf_data);
-
   register_common_hw_commands_for_design();
   register_master_hw_commands_for_design();
   register_endpoint_hw_commands_for_design();
@@ -117,13 +110,13 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
     //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_hsi, 2);
   }
 
-  thread_.start_working_thread();
+  TimingHardwareManager::conf(conf_data);
+
 } // NOLINT
 
 void
 TimingHardwareManagerPDI::scrap(const nlohmann::json& data)
 {
-  thread_.stop_working_thread();
   TimingHardwareManager::scrap(data);
 }
 

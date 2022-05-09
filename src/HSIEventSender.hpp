@@ -9,12 +9,9 @@
 
 #include "timinglibs/TimingIssues.hpp"
 
-#include "dfmessages/HSIEvent.hpp"
-
 #include "appfwk/DAQModule.hpp"
-#include "appfwk/Queue.hpp"
+#include "dfmessages/HSIEvent.hpp"
 #include "utilities/WorkerThread.hpp"
-
 #include <ers/Issue.hpp>
 
 #include <bitset>
@@ -61,8 +58,8 @@ protected:
   std::chrono::milliseconds m_queue_timeout;
 
   // push events to HSIEvent output queue
-  virtual void send_hsi_event(const dfmessages::HSIEvent& event, const std::string& location);
-  virtual void send_hsi_event(const dfmessages::HSIEvent& event) { send_hsi_event(event, m_hsievent_send_connection); }
+  virtual void send_hsi_event(dfmessages::HSIEvent& event, const std::string& location);
+  virtual void send_hsi_event(dfmessages::HSIEvent& event) { send_hsi_event(event, m_hsievent_send_connection); }
   std::atomic<uint64_t> m_sent_counter;           // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_failed_to_send_counter; // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_last_sent_timestamp;    // NOLINT(build/unsigned)

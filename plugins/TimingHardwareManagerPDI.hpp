@@ -12,25 +12,20 @@
 #ifndef TIMINGLIBS_PLUGINS_TIMINGHARDWAREMANAGERPDI_HPP_
 #define TIMINGLIBS_PLUGINS_TIMINGHARDWAREMANAGERPDI_HPP_
 
+#include "InfoGatherer.hpp"
+#include "TimingHardwareManager.hpp"
+
+#include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
-
 #include "timinglibs/timinghardwaremanagerpdi/Nljs.hpp"
 #include "timinglibs/timinghardwaremanagerpdi/Structs.hpp"
-
 #include "timinglibs/timinghardwaremanagerpdiinfo/InfoNljs.hpp"
 #include "timinglibs/timinghardwaremanagerpdiinfo/InfoStructs.hpp"
 
-#include "TimingHardwareManager.hpp"
-
-#include "InfoGatherer.hpp"
-
-#include "timinglibs/TimingIssues.hpp"
-
-// in timing at the moment
-#include "timing/timingfirmwareinfo/InfoNljs.hpp"
-#include "timing/timingfirmwareinfo/InfoStructs.hpp"
-
+#include "appfwk/DAQModule.hpp"
+#include "ers/Issue.hpp"
+#include "logging/Logging.hpp"
 #include "timing/BoreasDesign.hpp"
 #include "timing/ChronosDesign.hpp"
 #include "timing/EndpointDesign.hpp"
@@ -39,21 +34,11 @@
 #include "timing/OuroborosDesign.hpp"
 #include "timing/OuroborosMuxDesign.hpp"
 #include "timing/OverlordDesign.hpp"
-
-#include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQModuleHelper.hpp"
-#include "appfwk/DAQSink.hpp"
-#include "appfwk/DAQSource.hpp"
-#include "utilities/WorkerThread.hpp"
-
-#include "appfwk/app/Nljs.hpp"
-#include "appfwk/app/Structs.hpp"
-
-#include "ers/Issue.hpp"
-#include "logging/Logging.hpp"
-
+#include "timing/timingfirmwareinfo/InfoNljs.hpp"
+#include "timing/timingfirmwareinfo/InfoStructs.hpp"
 #include "uhal/ConnectionManager.hpp"
 #include "uhal/utilities/files.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include <map>
 #include <memory>

@@ -8,18 +8,14 @@
  */
 
 #include "TimingEndpointController.hpp"
-
+#include "timinglibs/TimingIssues.hpp"
+#include "timinglibs/timingcmd/Nljs.hpp"
+#include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingendpointcontroller/Nljs.hpp"
 #include "timinglibs/timingendpointcontroller/Structs.hpp"
 
-#include "timinglibs/timingcmd/Nljs.hpp"
-#include "timinglibs/timingcmd/Structs.hpp"
-
-#include "timinglibs/TimingIssues.hpp"
-
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
-
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 
@@ -52,8 +48,7 @@ void
 TimingEndpointController::do_configure(const nlohmann::json& data)
 {
   auto conf = data.get<timingendpointcontroller::ConfParams>();
-  if (conf.device.empty())
-  {
+  if (conf.device.empty()) {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
   m_timing_device = conf.device;
@@ -63,25 +58,27 @@ TimingEndpointController::do_configure(const nlohmann::json& data)
   do_endpoint_enable(data);
 }
 
-void
-TimingEndpointController::construct_endpoint_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id)
+timingcmd::TimingHwCmd
+TimingEndpointController::construct_endpoint_hw_cmd( const std::string& cmd_id)
 {
+    timingcmd::TimingHwCmd hw_cmd;
   timingcmd::TimingEndpointCmdPayload cmd_payload;
   cmd_payload.endpoint_id = m_managed_endpoint_id;
   timingcmd::to_json(hw_cmd.payload, cmd_payload);
 
   hw_cmd.id = cmd_id;
   hw_cmd.device = m_timing_device;
+  return hw_cmd;
 }
 
 void
 TimingEndpointController::do_endpoint_io_reset(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_endpoint_hw_cmd(hw_cmd, "io_reset");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_endpoint_hw_cmd( "io_reset");
   hw_cmd.payload = data;
 
-  send_hw_cmd(hw_cmd);
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(0).atomic);
 }
 
@@ -100,23 +97,23 @@ TimingEndpointController::do_endpoint_enable(const nlohmann::json& data)
   timingcmd::to_json(hw_cmd.payload, cmd_payload);
 
   TLOG_DEBUG(0) << "ept enable hw cmd; a: " << cmd_payload.address << ", p: " << cmd_payload.partition;
-  send_hw_cmd(hw_cmd);
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(1).atomic);
 }
 
 void
 TimingEndpointController::do_endpoint_disable(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_endpoint_hw_cmd(hw_cmd, "endpoint_disable");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_endpoint_hw_cmd( "endpoint_disable");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(2).atomic);
 }
 
 void
 TimingEndpointController::do_endpoint_reset(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd;
+    timingcmd::TimingHwCmd hw_cmd;
   hw_cmd.id = "endpoint_reset";
   hw_cmd.device = m_timing_device;
 
@@ -125,25 +122,25 @@ TimingEndpointController::do_endpoint_reset(const nlohmann::json& data)
   cmd_payload.endpoint_id = m_managed_endpoint_id;
   timingcmd::from_json(data, cmd_payload);
 
-  send_hw_cmd(hw_cmd);
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(3).atomic);
 }
 
 void
 TimingEndpointController::do_endpoint_print_timestamp(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_endpoint_hw_cmd(hw_cmd, "endpoint_print_timestamp");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_endpoint_hw_cmd( "endpoint_print_timestamp");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(4).atomic);
 }
 
 void
 TimingEndpointController::do_endpoint_print_status(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_endpoint_hw_cmd(hw_cmd, "print_status");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_endpoint_hw_cmd( "print_status");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(5).atomic);
 }
 

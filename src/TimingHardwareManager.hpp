@@ -12,35 +12,28 @@
 #ifndef TIMINGLIBS_SRC_TIMINGHARDWAREMANAGER_HPP_
 #define TIMINGLIBS_SRC_TIMINGHARDWAREMANAGER_HPP_
 
+#include "InfoGatherer.hpp"
+#include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingcmd/msgp.hpp"
 
-#include "timinglibs/TimingIssues.hpp"
-
-#include "InfoGatherer.hpp"
-
+#include "appfwk/DAQModule.hpp"
+#include "appfwk/DAQModuleHelper.hpp"
+#include "appfwk/app/Nljs.hpp"
+#include "appfwk/app/Structs.hpp"
+#include "ers/Issue.hpp"
+#include "iomanager/Receiver.hpp"
+#include "logging/Logging.hpp"
 #include "timing/EndpointDesignInterface.hpp"
+#include "timing/EndpointNode.hpp"
 #include "timing/FanoutDesign.hpp"
 #include "timing/HSIDesignInterface.hpp"
 #include "timing/MasterDesignInterface.hpp"
 #include "timing/TimingNode.hpp"
 #include "timing/TopDesignInterface.hpp"
-
-#include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQModuleHelper.hpp"
-#include "appfwk/DAQSink.hpp"
-#include "appfwk/DAQSource.hpp"
-#include "utilities/WorkerThread.hpp"
-#include "appfwk/app/Nljs.hpp"
-#include "appfwk/app/Structs.hpp"
-
-#include "ers/Issue.hpp"
-#include "logging/Logging.hpp"
-
 #include "uhal/ConnectionManager.hpp"
-
-#include "timing/EndpointNode.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include <map>
 #include <memory>
@@ -81,10 +74,8 @@ public:
     delete;                                                ///< TimingHardwareManager is not copy-assignable
   TimingHardwareManager(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-constructible
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
-  virtual ~TimingHardwareManager()
-  {
-    if (thread_.thread_running()) thread_.stop_working_thread();
-  }
+  virtual ~TimingHardwareManager() {}
+  
   void init(const nlohmann::json& init_data) override;
   virtual void conf(const nlohmann::json& conf_data);
   virtual void scrap(const nlohmann::json& data);
@@ -96,14 +87,11 @@ protected:
   //  virtual void do_stop(const nlohmann::json&);
   //  virtual void do_scrap(const nlohmann::json&);
 
-  // Threading
-  dunedaq::utilities::WorkerThread thread_;
-  virtual void process_hardware_commands(std::atomic<bool>&);
+  virtual void process_hardware_command(timingcmd::TimingHwCmd& timing_hw_cmd);
 
   // Configuration
-  using source_t = dunedaq::appfwk::DAQSource<timingcmd::TimingHwCmd>;
-  std::unique_ptr<source_t> m_hw_command_in_queue;
-  std::chrono::milliseconds m_queue_timeout;
+  using source_t = dunedaq::iomanager::ReceiverConcept<timingcmd::TimingHwCmd>;
+  std::shared_ptr<source_t> m_hw_command_receiver;
 
   // hardware polling intervals [us]
   uint m_gather_interval;
@@ -135,7 +123,7 @@ protected:
   void set_timestamp(const timingcmd::TimingHwCmd& hw_cmd);
   void set_endpoint_delay(const timingcmd::TimingHwCmd& hw_cmd);
   void send_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd);
-  
+
   // timing partition commands
   void partition_configure(const timingcmd::TimingHwCmd& hw_cmd);
   void partition_enable(const timingcmd::TimingHwCmd& hw_cmd);
