@@ -8,16 +8,13 @@
  */
 
 #include "TimingFanoutController.hpp"
-
 #include "timinglibs/timingfanoutcontroller/Nljs.hpp"
 #include "timinglibs/timingfanoutcontroller/Structs.hpp"
-
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
-
 #include "ers/Issue.hpp"
 
 #include <chrono>
@@ -53,31 +50,33 @@ TimingFanoutController::do_configure(const nlohmann::json& data)
   TLOG() << get_name() << "conf: fanout device: " << m_timing_device;
 }
 
-void
-TimingFanoutController::construct_fanout_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id)
+timingcmd::TimingHwCmd
+TimingFanoutController::construct_fanout_hw_cmd( const std::string& cmd_id)
 {
+    timingcmd::TimingHwCmd hw_cmd;
   hw_cmd.id = cmd_id;
   hw_cmd.device = m_timing_device;
+  return hw_cmd;
 }
 
 void
 TimingFanoutController::do_fanout_io_reset(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_fanout_hw_cmd(hw_cmd, "io_reset");
+  timingcmd::TimingHwCmd hw_cmd = 
+  construct_fanout_hw_cmd( "io_reset");
   hw_cmd.payload = data;
   hw_cmd.payload["fanout_mode"] = 0; // fanout mode for fanout design
 
-  send_hw_cmd(hw_cmd);
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(0).atomic);
 }
 
 void
 TimingFanoutController::do_fanout_print_status(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd;
-  construct_fanout_hw_cmd(hw_cmd, "print_status");
-  send_hw_cmd(hw_cmd);
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_fanout_hw_cmd( "print_status");
+  send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(1).atomic);
 }
 

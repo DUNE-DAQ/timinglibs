@@ -14,28 +14,17 @@
 
 #include "TimingController.hpp"
 
+#include "timinglibs/hsicontroller/Nljs.hpp"
+#include "timinglibs/hsicontroller/Structs.hpp"
+#include "timinglibs/hsicontrollerinfo/InfoNljs.hpp"
+#include "timinglibs/hsicontrollerinfo/InfoStructs.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
-#include "timinglibs/hsicontroller/Nljs.hpp"
-#include "timinglibs/hsicontroller/Structs.hpp"
-
-#include "timinglibs/hsicontrollerinfo/InfoNljs.hpp"
-#include "timinglibs/hsicontrollerinfo/InfoStructs.hpp"
-
 #include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQSink.hpp"
-#include "appfwk/DAQSource.hpp"
-
-#include "ipm/Receiver.hpp"
-
-#include "utilities/WorkerThread.hpp"
-
-#include "rcif/cmd/Nljs.hpp"
-#include "rcif/cmd/Structs.hpp"
-
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include <memory>
 #include <string>
@@ -70,8 +59,8 @@ private:
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
   void do_resume(const nlohmann::json& data);
-   
-  void construct_hsi_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
+
+  timingcmd::TimingHwCmd construct_hsi_hw_cmd(const std::string& cmd_id);
 
   // timinglibs hsi commands
   void do_hsi_io_reset(const nlohmann::json& data);

@@ -7,22 +7,28 @@
  */
 
 #include "TimingHardwareManager.hpp"
+
+#include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
+#include "timing/definitions.hpp"
 
 #include <memory>
-#include <utility>
 #include <string>
+#include <utility>
 #include <vector>
 
 #define TRACE_NAME "TimingHardwareManager" // NOLINT
 
 namespace dunedaq {
+
+DUNE_DAQ_SERIALIZABLE(timinglibs::timingcmd::TimingHwCmd);
+
 namespace timinglibs {
 
 TimingHardwareManager::TimingHardwareManager(const std::string& name)
   : dunedaq::appfwk::DAQModule(name)
-  , m_queue_timeout(100)
-  , m_hw_cmd_connection("")
+  , m_hw_cmd_connection("timing_cmds_in")
+  , m_hw_command_receiver(nullptr)
   , m_gather_interval(1e6)
   , m_gather_interval_debug(10e6)
   , m_connections_file("")
@@ -42,6 +48,9 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
 void
 TimingHardwareManager::init(const nlohmann::json& init_data)
 {
+  // set up queues
+  auto qi = appfwk::connection_index(init_data, { m_hw_cmd_connection });
+  m_hw_command_receiver = get_iom_receiver<timingcmd::TimingHwCmd>(qi[m_hw_cmd_connection]);
 }
 
 void
@@ -52,16 +61,13 @@ TimingHardwareManager::conf(const nlohmann::json& /*conf_data*/)
   m_rejected_hw_commands_counter = 0;
   m_failed_hw_commands_counter = 0;
 
-  networkmanager::NetworkManager::get().start_listening(m_hw_cmd_connection);
-  networkmanager::NetworkManager::get().register_callback(
-    m_hw_cmd_connection, std::bind(&TimingHardwareManager::process_hardware_command, this, std::placeholders::_1));
+  m_hw_command_receiver->add_callback(std::bind(&TimingHardwareManager::process_hardware_command, this, std::placeholders::_1));
 }
 
 void
 TimingHardwareManager::scrap(const nlohmann::json& /*data*/)
 {
-  networkmanager::NetworkManager::get().clear_callback(m_hw_cmd_connection);
-  networkmanager::NetworkManager::get().stop_listening(m_hw_cmd_connection);
+  m_hw_command_receiver->remove_callback();
 
   m_hw_device_map.clear();
   m_connection_manager.reset();
@@ -217,22 +223,19 @@ TimingHardwareManager::check_hw_mon_gatherer_is_running(const std::string& devic
 // cmd stuff
 
 void
-TimingHardwareManager::process_hardware_command(ipm::Receiver::Response message)
+TimingHardwareManager::process_hardware_command(timingcmd::TimingHwCmd& timing_hw_cmd)
 {
   std::ostringstream starting_stream;
   starting_stream << ": Executing process_hardware_command() callback.";
   TLOG_DEBUG(0) << get_name() << starting_stream.str();
 
-  timingcmd::TimingHwCmd timing_hw_cmd = serialization::deserialize<timingcmd::TimingHwCmd>(message.data);
-
   ++m_received_hw_commands_counter;
 
   TLOG_DEBUG(0) << get_name() << ": Received hardware command #" << m_received_hw_commands_counter.load()
-                << ", it is of type: " << timing_hw_cmd.id << ", targeting device: " << timing_hw_cmd.device;
+                  << ", it is of type: " << timing_hw_cmd.id << ", targeting device: " << timing_hw_cmd.device;
 
   std::string hw_cmd_name = timing_hw_cmd.id;
-  if (auto cmd = m_timing_hw_cmd_map_.find(hw_cmd_name); cmd != m_timing_hw_cmd_map_.end())
-  {
+  if (auto cmd = m_timing_hw_cmd_map_.find(hw_cmd_name); cmd != m_timing_hw_cmd_map_.end()) {
 
     ++m_accepted_hw_commands_counter;
 
@@ -243,6 +246,9 @@ TimingHardwareManager::process_hardware_command(ipm::Receiver::Response message)
       ers::error(FailedToExecuteHardwareCommand(ERS_HERE, hw_cmd_name, timing_hw_cmd.device, exception));
       ++m_failed_hw_commands_counter;
     }
+  } else {
+    ers::error(InvalidHardwareCommandID(ERS_HERE, hw_cmd_name));
+    ++m_rejected_hw_commands_counter;
   }
   else
   {
@@ -314,9 +320,23 @@ void
 TimingHardwareManager::set_endpoint_delay(const timingcmd::TimingHwCmd& hw_cmd)
 {
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " set endpoint delay";
+  
+  timingcmd::TimingMasterSetEndpointDelayCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
   auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
-  design->apply_endpoint_delay(0, 0, 0, 0, false, false);
+  design->apply_endpoint_delay(cmd_payload.address, cmd_payload.coarse_delay, cmd_payload.fine_delay, cmd_payload.phase_delay, cmd_payload.measure_rtt, cmd_payload.control_sfp, cmd_payload.sfp_mux);
+}
+
+void
+TimingHardwareManager::send_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " send fl cmd";
+  timingcmd::TimingMasterSendFLCmdCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  design->send_fl_cmd(static_cast<timing::FixedLengthCommandType>(cmd_payload.fl_cmd_id), cmd_payload.channel, cmd_payload.number_of_commands_to_send);
 }
 
 // partition commands

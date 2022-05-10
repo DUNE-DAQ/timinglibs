@@ -8,18 +8,13 @@
  */
 
 #include "TimingHardwareManagerPDI.hpp"
-
 #include "timinglibs/timinghardwaremanagerpdi/Nljs.hpp"
 #include "timinglibs/timinghardwaremanagerpdi/Structs.hpp"
-
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
-
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/DAQModuleHelper.hpp"
-#include "appfwk/cmd/Nljs.hpp"
-
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 
@@ -151,6 +146,7 @@ TimingHardwareManagerPDI::register_master_hw_commands_for_design()
 {
   register_timing_hw_command("set_timestamp", &TimingHardwareManagerPDI::set_timestamp);
   register_timing_hw_command("set_endpoint_delay", &TimingHardwareManagerPDI::set_endpoint_delay);
+  register_timing_hw_command("send_fl_command", &TimingHardwareManagerPDI::send_fl_cmd);
 
   register_timing_hw_command("partition_configure", &TimingHardwareManagerPDI::partition_configure);
   register_timing_hw_command("partition_enable", &TimingHardwareManagerPDI::partition_enable);

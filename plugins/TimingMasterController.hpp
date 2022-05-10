@@ -12,24 +12,19 @@
 #ifndef TIMINGLIBS_PLUGINS_TIMINGMASTERCONTROLLER_HPP_
 #define TIMINGLIBS_PLUGINS_TIMINGMASTERCONTROLLER_HPP_
 
+#include "TimingController.hpp"
+
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
-
 #include "timinglibs/timingmastercontroller/Nljs.hpp"
 #include "timinglibs/timingmastercontroller/Structs.hpp"
-
 #include "timinglibs/timingmastercontrollerinfo/InfoNljs.hpp"
 #include "timinglibs/timingmastercontrollerinfo/InfoStructs.hpp"
 
-#include "TimingController.hpp"
-
 #include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQSink.hpp"
-#include "appfwk/DAQSource.hpp"
-#include "utilities/WorkerThread.hpp"
-
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include <memory>
 #include <string>
@@ -63,20 +58,24 @@ public:
     delete; ///< TimingMasterController is not move-assignable
   virtual ~TimingMasterController()
   {
-    if (set_endpoint_delay_thread.thread_running()) set_endpoint_delay_thread.stop_working_thread();
+    if (set_endpoint_delay_thread.thread_running())
+      set_endpoint_delay_thread.stop_working_thread();
   }
+
 private:
   // Commands
   void do_configure(const nlohmann::json& data) override;
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
 
-  void construct_master_hw_cmd(timingcmd::TimingHwCmd& hw_cmd, const std::string& cmd_id);
+  timingcmd::TimingHwCmd construct_master_hw_cmd( const std::string& cmd_id);
 
   // timing master commands
   void do_master_io_reset(const nlohmann::json& data);
   void do_master_set_timestamp(const nlohmann::json&);
   void do_master_print_status(const nlohmann::json&);
+  void do_master_set_endpoint_delay(const nlohmann::json& data);
+  void do_master_send_fl_command(const nlohmann::json& data);
 
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;

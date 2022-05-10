@@ -13,21 +13,15 @@
 #define TIMINGLIBS_SRC_TIMINGCONTROLLER_HPP_
 
 #include "timinglibs/timingcmd/Structs.hpp"
-
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQSink.hpp"
-#include "appfwk/DAQSource.hpp"
-#include "utilities/WorkerThread.hpp"
-
 #include "appfwk/app/Nljs.hpp"
 #include "appfwk/app/Structs.hpp"
-
-#include "ipm/Receiver.hpp"
-
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
+#include "iomanager/Sender.hpp"
+#include "utilities/WorkerThread.hpp"
 
 #include <memory>
 #include <string>
@@ -103,11 +97,13 @@ protected:
   virtual void do_scrap(const nlohmann::json&);
 
   // Configuration
-  std::string m_hw_command_connection;
+  std::string m_hw_command_out_connection;
   std::chrono::milliseconds m_hw_cmd_out_timeout;
+  using sink_t = dunedaq::iomanager::SenderConcept<timingcmd::TimingHwCmd>;
+  std::shared_ptr<sink_t> m_hw_command_sender;
   std::string m_timing_device;
 
-  virtual void send_hw_cmd(const timingcmd::TimingHwCmd& hw_cmd);
+  virtual void send_hw_cmd(timingcmd::TimingHwCmd&& hw_cmd);
 
   // opmon
   uint m_number_hw_commands;
