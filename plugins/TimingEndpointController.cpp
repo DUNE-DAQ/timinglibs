@@ -38,7 +38,7 @@ TimingEndpointController::TimingEndpointController(const std::string& name)
   register_command("start", &TimingEndpointController::do_start);
   register_command("stop", &TimingEndpointController::do_stop);
   register_command("scrap", &TimingEndpointController::do_scrap);
-  
+
   // timing endpoint hardware commands
   register_command("endpoint_io_reset", &TimingEndpointController::do_endpoint_io_reset);
   register_command("endpoint_enable", &TimingEndpointController::do_endpoint_enable);
@@ -201,7 +201,7 @@ TimingEndpointController::process_device_info(nlohmann::json info)
     if (!m_device_ready)
     {
       m_device_ready = true;
-      TLOG_DEBUG(2) << "Timing fanout became ready";
+      TLOG_DEBUG(2) << "Timing endpoint became ready";
     }
   }
   else
@@ -209,7 +209,7 @@ TimingEndpointController::process_device_info(nlohmann::json info)
     if (m_device_ready)
     {
       m_device_ready = false;
-      TLOG_DEBUG(2) << "Timing fanout no longer ready";
+      TLOG_DEBUG(2) << "Timing endpoint no longer ready";
     }
   }
   ++m_device_infos_received_count;
