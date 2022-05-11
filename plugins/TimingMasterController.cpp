@@ -16,10 +16,6 @@
 #include "timing/timingfirmwareinfo/InfoNljs.hpp"
 #include "timing/timingfirmwareinfo/InfoStructs.hpp"
 
-#include "serialization/Serialization.hpp"
-#include "ipm/Receiver.hpp"
-#include "networkmanager/NetworkManager.hpp"
-
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"

@@ -17,10 +17,6 @@
 #include "timing/timingfirmwareinfo/InfoNljs.hpp"
 #include "timing/timingfirmwareinfo/InfoStructs.hpp"
 
-#include "serialization/Serialization.hpp"
-#include "ipm/Receiver.hpp"
-#include "networkmanager/NetworkManager.hpp"
-
 #include "appfwk/DAQModuleHelper.hpp"
 #include "ers/Issue.hpp"
 
@@ -66,7 +62,7 @@ TimingPartitionController::do_configure(const nlohmann::json& data)
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
-    
+
   m_timing_device = conf.device;
   m_managed_partition_id = conf.partition_id;
   
