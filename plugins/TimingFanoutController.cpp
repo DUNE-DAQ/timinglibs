@@ -35,7 +35,7 @@ TimingFanoutController::TimingFanoutController(const std::string& name)
   register_command("conf", &TimingFanoutController::do_configure);
   register_command("start", &TimingFanoutController::do_start);
   register_command("stop", &TimingFanoutController::do_stop);
-  register_command("scrap", &TimingMasterController::do_scrap);
+  register_command("scrap", &TimingFanoutController::do_scrap);
   
   // timing fanout hardware commands
   register_command("fanout_io_reset", &TimingFanoutController::do_fanout_io_reset);

@@ -37,7 +37,7 @@ TimingEndpointController::TimingEndpointController(const std::string& name)
   register_command("conf", &TimingEndpointController::do_configure);
   register_command("start", &TimingEndpointController::do_start);
   register_command("stop", &TimingEndpointController::do_stop);
-  register_command("scrap", &TimingMasterController::do_scrap);
+  register_command("scrap", &TimingEndpointController::do_scrap);
   
   // timing endpoint hardware commands
   register_command("endpoint_io_reset", &TimingEndpointController::do_endpoint_io_reset);
