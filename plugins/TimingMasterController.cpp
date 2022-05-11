@@ -59,7 +59,6 @@ TimingMasterController::do_configure(const nlohmann::json& data)
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
-  m_hw_command_connection =  conf.hw_cmd_connection;
   m_timing_device = conf.device;
   
   TimingController::do_configure(data); // configure hw command connection
@@ -240,13 +239,11 @@ TimingMasterController::set_endpoint_delay(std::atomic<bool>& running_flag)
 }
 
 void
-TimingMasterController::process_device_info(ipm::Receiver::Response message)
+TimingMasterController::process_device_info(nlohmann::json info)
 {
-  auto data = nlohmann::json::from_msgpack(message.data);  
-
   timing::timingfirmwareinfo::PDIMasterMonitorData master_info;
 
-  auto master_data = data[opmonlib::JSONTags::children]["master"][opmonlib::JSONTags::properties][master_info.info_type][opmonlib::JSONTags::data];
+  auto master_data = info[opmonlib::JSONTags::children]["master"][opmonlib::JSONTags::properties][master_info.info_type][opmonlib::JSONTags::data];
 
   from_json(master_data, master_info);
 

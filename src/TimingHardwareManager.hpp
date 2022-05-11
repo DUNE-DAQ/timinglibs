@@ -93,6 +93,8 @@ protected:
   std::string m_hw_cmd_connection;
   using source_t = dunedaq::iomanager::ReceiverConcept<timingcmd::TimingHwCmd>;
   std::shared_ptr<source_t> m_hw_command_receiver;
+  std::string m_device_info_connection;
+  iomanager::connection::ConnectionRef m_device_info_connection_ref;
 
   // hardware polling intervals [us]
   uint m_gather_interval;
@@ -156,13 +158,12 @@ protected:
   // monitoring
   std::map<std::string, std::unique_ptr<InfoGatherer>> m_info_gatherers;
 
-  void register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level, const std::string& info_connection="");
+  void register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level, iomanager::connection::ConnectionRef info_connection);
   void gather_monitor_data(InfoGatherer& gatherer);
 
   virtual void start_hw_mon_gathering(const std::string& device_name = "");
   virtual void stop_hw_mon_gathering(const std::string& device_name = "");
   virtual std::vector<std::string> check_hw_mon_gatherer_is_running(const std::string& device_name);
-  std::string m_device_info_connection;
 };
 
 } // namespace timinglibs

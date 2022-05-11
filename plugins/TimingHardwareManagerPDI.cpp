@@ -48,7 +48,6 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
 
   auto conf_params = conf_data.get<timinghardwaremanagerpdi::ConfParams>();
 
-
   m_connections_file = conf_params.connections_file;
   m_uhal_log_level = conf_params.uhal_log_level;
   m_gather_interval = conf_params.gather_interval;
@@ -58,9 +57,6 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
   m_monitored_device_names_fanout = conf_params.monitored_device_names_fanout;
   m_monitored_device_name_endpoint = conf_params.monitored_device_name_endpoint;
   m_monitored_device_name_hsi = conf_params.monitored_device_name_hsi;
-
-  m_hw_cmd_connection = conf_params.hw_cmd_connection;
-  m_device_info_connection = conf_params.device_info_connection;
 
   TLOG() << get_name() << "conf: con. file before env var expansion: " << m_connections_file;
   resolve_environment_variables(m_connections_file);
@@ -93,24 +89,24 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
   // monitoring
   // only register monitor threads if we have been given the name of the device to monitor
   if (m_monitored_device_name_master.compare("")) {
-    register_info_gatherer(m_gather_interval, m_monitored_device_name_master, 1, m_device_info_connection);
+    register_info_gatherer(m_gather_interval, m_monitored_device_name_master, 1, m_device_info_connection_ref);
     //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_master, 2);
   }
 
   for (auto it = m_monitored_device_names_fanout.begin(); it != m_monitored_device_names_fanout.end(); ++it) {
     if (it->compare("")) {
-      register_info_gatherer(m_gather_interval, *it, 1);
+      register_info_gatherer(m_gather_interval, *it, 1, m_device_info_connection_ref);
       //register_info_gatherer(m_gather_interval_debug, *it, 2);
     }
   }
 
   if (m_monitored_device_name_endpoint.compare("")) {
-    register_info_gatherer(m_gather_interval, m_monitored_device_name_endpoint, 1);
+    register_info_gatherer(m_gather_interval, m_monitored_device_name_endpoint, 1, m_device_info_connection_ref);
     //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_endpoint, 2);
   }
 
   if (m_monitored_device_name_hsi.compare("")) {
-    register_info_gatherer(m_gather_interval, m_monitored_device_name_hsi, 1, m_device_info_connection);
+    register_info_gatherer(m_gather_interval, m_monitored_device_name_hsi, 1, m_device_info_connection_ref);
     //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_hsi, 2);
   }
 

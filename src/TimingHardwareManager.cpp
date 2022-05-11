@@ -22,13 +22,15 @@
 namespace dunedaq {
 
 DUNE_DAQ_SERIALIZABLE(timinglibs::timingcmd::TimingHwCmd);
+DUNE_DAQ_SERIALIZABLE(nlohmann::json);
 
 namespace timinglibs {
 
 TimingHardwareManager::TimingHardwareManager(const std::string& name)
   : dunedaq::appfwk::DAQModule(name)
-  , m_hw_cmd_connection("timing_cmds_in")
+  , m_hw_cmd_connection("timing_cmds")
   , m_hw_command_receiver(nullptr)
+  , m_device_info_connection("timing_device_info")
   , m_gather_interval(1e6)
   , m_gather_interval_debug(10e6)
   , m_connections_file("")
@@ -38,7 +40,6 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
   , m_accepted_hw_commands_counter{ 0 }
   , m_rejected_hw_commands_counter{ 0 }
   , m_failed_hw_commands_counter{ 0 }
-  , m_device_info_connection("")
 {
   //  register_command("start", &TimingHardwareManager::do_start);
   //  register_command("stop", &TimingHardwareManager::do_stop);
@@ -49,8 +50,9 @@ void
 TimingHardwareManager::init(const nlohmann::json& init_data)
 {
   // set up queues
-  auto qi = appfwk::connection_index(init_data, { m_hw_cmd_connection });
+  auto qi = appfwk::connection_index(init_data, { m_hw_cmd_connection, m_device_info_connection });
   m_hw_command_receiver = get_iom_receiver<timingcmd::TimingHwCmd>(qi[m_hw_cmd_connection]);
+  m_device_info_connection_ref = qi[m_device_info_connection];
 }
 
 void
@@ -147,7 +149,7 @@ TimingHardwareManager::gather_monitor_data(InfoGatherer& gatherer)
 }
 
 void
-TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level, const std::string& info_connection)
+TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level, iomanager::connection::ConnectionRef info_connection)
 {
   std::string gatherer_name = device_name + "_level_" + std::to_string(op_mon_level);
   if (m_info_gatherers.find(gatherer_name) == m_info_gatherers.end()) {
@@ -247,11 +249,6 @@ TimingHardwareManager::process_hardware_command(timingcmd::TimingHwCmd& timing_h
       ++m_failed_hw_commands_counter;
     }
   } else {
-    ers::error(InvalidHardwareCommandID(ERS_HERE, hw_cmd_name));
-    ++m_rejected_hw_commands_counter;
-  }
-  else
-  {
     ers::error(InvalidHardwareCommandID(ERS_HERE, hw_cmd_name));
     ++m_rejected_hw_commands_counter;
   }

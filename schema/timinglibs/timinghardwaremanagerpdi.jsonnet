@@ -21,8 +21,6 @@ local cs = {
             doc="A vector of fanout device names"),
     
     init: s.record("ConfParams", [
-        s.field("hw_cmd_connection", self.str, "",
-                doc="String of hardware commands connection"),
         s.field("connections_file", self.str, "",
                 doc="device connections file"),
         s.field("gather_interval", self.uint_data, 1e6,

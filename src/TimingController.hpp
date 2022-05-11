@@ -21,6 +21,7 @@
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 #include "iomanager/Sender.hpp"
+#include "iomanager/Receiver.hpp"
 #include "utilities/WorkerThread.hpp"
 
 #include <memory>
@@ -87,7 +88,7 @@ public:
   TimingController(TimingController&&) = delete;                 ///< TimingController is not move-constructible
   TimingController& operator=(TimingController&&) = delete;      ///< TimingController is not move-assignable
 
-  void init(const nlohmann::json& /*init_data*/) override {}
+  void init(const nlohmann::json& init_data) override;
 
 protected:
   // DAQModule commands
@@ -102,6 +103,8 @@ protected:
   using sink_t = dunedaq::iomanager::SenderConcept<timingcmd::TimingHwCmd>;
   std::shared_ptr<sink_t> m_hw_command_sender;
   std::string m_timing_device;
+  using source_t = dunedaq::iomanager::ReceiverConcept<nlohmann::json>;
+  std::shared_ptr<source_t> m_device_info_receiver;
 
   virtual void send_hw_cmd(timingcmd::TimingHwCmd&& hw_cmd);
 
@@ -110,7 +113,7 @@ protected:
   std::vector<AtomicUInt64> m_sent_hw_command_counters;
 
   // Interpert device opmon info
-  virtual void process_device_info(ipm::Receiver::Response /*message*/) {}
+  virtual void process_device_info(nlohmann::json /*message*/) {}
   std::chrono::milliseconds m_device_ready_timeout;
   std::atomic<bool> m_device_ready;
   std::atomic<uint> m_device_infos_received_count;

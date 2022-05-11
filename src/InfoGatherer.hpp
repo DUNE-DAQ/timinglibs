@@ -15,9 +15,8 @@
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 #include "opmonlib/InfoCollector.hpp"
-#include "networkmanager/NetworkManager.hpp"
-#include "serialization/Serialization.hpp"
-#include "appfwk/Queue.hpp"
+#include "iomanager/Sender.hpp"
+#include "iomanager/IOManager.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -38,6 +37,10 @@ ERS_DECLARE_ISSUE(timinglibs,                                 // Namespace
                   "Gather Threading Issue detected: " << err, // Message
                   ((std::string)err))                         // Message parameters
 
+ERS_DECLARE_ISSUE(timinglibs,
+                  DeviceInfoSendFailed,
+                  " Failed to send send " << device << " device info to " << destination << ".",
+                  ((std::string)device)((std::string)destination))
 namespace timinglibs {
 
 /**
@@ -56,7 +59,7 @@ public:
                         uint gather_interval,
                         const std::string& device_name,
                         int op_mon_level,
-                        const std::string& device_info_network_connection="")
+                        iomanager::connection::ConnectionRef device_info_connection_ref)
     : m_run_gathering(false)
     , m_gathering_thread(nullptr)
     , m_gather_interval(gather_interval)
@@ -64,11 +67,35 @@ public:
     , m_last_gathered_time(0)
     , m_op_mon_level(op_mon_level)
     , m_gather_data(gather_data)
-    , m_device_info_network_connection(device_info_network_connection)
+    , m_device_info_connection_ref(device_info_connection_ref)
+    , m_hw_info_sender(nullptr)
+    , m_sent_counter(0)
+    , m_failed_to_send_counter(0)
+    , m_queue_timeout(1)
+  {
+    m_info_collector = std::make_unique<opmonlib::InfoCollector>();
+    m_hw_info_sender = get_iom_sender<nlohmann::json>(m_device_info_connection_ref);
+  }
+
+  explicit InfoGatherer(std::function<void(InfoGatherer&)> gather_data,
+                        uint gather_interval,
+                        const std::string& device_name,
+                        int op_mon_level)
+    : m_run_gathering(false)
+    , m_gathering_thread(nullptr)
+    , m_gather_interval(gather_interval)
+    , m_device_name(device_name)
+    , m_last_gathered_time(0)
+    , m_op_mon_level(op_mon_level)
+    , m_gather_data(gather_data)
+    , m_hw_info_sender(nullptr)
+    , m_sent_counter(0)
+    , m_failed_to_send_counter(0)
     , m_queue_timeout(1)
   {
     m_info_collector = std::make_unique<opmonlib::InfoCollector>();
   }
+
   virtual ~InfoGatherer()
   {
     if (run_gathering()) stop_gathering_thread();
@@ -175,34 +202,26 @@ private:
       return;
     }
 
-    if (m_device_info_network_connection.empty())
+    if (!m_hw_info_sender)
     {
-      TLOG_DEBUG(3) << "skipping sending info for gatherer: " << get_device_name() << ", network connection blank";
+      TLOG_DEBUG(3) << "skipping sending info for gatherer: " << get_device_name();
       return;
     }
     
-    auto info = m_info_collector->get_collected_infos();
+    nlohmann::json info = m_info_collector->get_collected_infos();
     bool was_successfully_sent = false;
     while (!was_successfully_sent)
     {
       try
       {
-        auto serialised_event = nlohmann::json::to_msgpack(info);
-  
-        networkmanager::NetworkManager::get().send_to(m_device_info_network_connection,
-                                      static_cast<const void*>(serialised_event.data()),
-                                      serialised_event.size(),
-                                      m_queue_timeout,
-                                      get_device_name());
+        m_hw_info_sender->send(std::move(info), m_queue_timeout, get_device_name());
         TLOG_DEBUG(4) << "sent " << get_device_name() <<  " info";
         ++m_sent_counter;
         was_successfully_sent = true;
       }
-      catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt)
+      catch (const dunedaq::iomanager::TimeoutExpired& excpt)
       {
-        std::ostringstream oss_warn;
-        oss_warn << "push to output connection \"" << m_device_info_network_connection << "\"";
-        ers::error(dunedaq::appfwk::QueueTimeoutExpired(ERS_HERE, m_device_name, oss_warn.str(), m_queue_timeout.count()));
+        ers::error(DeviceInfoSendFailed(ERS_HERE, m_device_name, m_device_info_connection_ref.uid));
         ++m_failed_to_send_counter;
       }
     }
@@ -219,7 +238,9 @@ protected:
   std::unique_ptr<opmonlib::InfoCollector> m_info_collector;
   mutable std::mutex m_info_collector_mutex;
   std::function<void(InfoGatherer&)> m_gather_data;
-  std::string m_device_info_network_connection;
+  iomanager::connection::ConnectionRef m_device_info_connection_ref;
+  using sink_t = dunedaq::iomanager::SenderConcept<nlohmann::json>;
+  std::shared_ptr<sink_t> m_hw_info_sender;
   std::atomic<uint> m_sent_counter;
   std::atomic<uint> m_failed_to_send_counter;
   std::chrono::milliseconds m_queue_timeout;

@@ -15,8 +15,6 @@ local cs = {
         doc="Fanout mode"),
 
     conf: s.record("ConfParams", [
-        s.field("hw_cmd_connection", self.str, "",
-                doc="String of hardware commands connection"),
         s.field("device", self.str, "",
                 doc="String of managed device name"),
         s.field("send_endpoint_delays_period", self.uint_data, 0,

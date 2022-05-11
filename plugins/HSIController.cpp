@@ -14,6 +14,10 @@
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
+#include "timing/timingfirmwareinfo/InfoNljs.hpp"
+#include "timing/timingfirmwareinfo/InfoStructs.hpp"
+
+#include "opmonlib/JSONTags.hpp"
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
@@ -55,7 +59,6 @@ HSIController::do_configure(const nlohmann::json& data)
 {
   m_hsi_configuration = data.get<hsicontroller::ConfParams>();
   m_timing_device = m_hsi_configuration.device;
-  m_hw_command_connection =  m_hsi_configuration.hw_cmd_connection;
   
   TimingController::do_configure(data); // configure hw command connection
 
@@ -250,13 +253,11 @@ HSIController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 }
 
 void
-HSIController::process_device_info(ipm::Receiver::Response message)
+HSIController::process_device_info(nlohmann::json info)
 {
-  auto data = nlohmann::json::from_msgpack(message.data);  
-
   timing::timingfirmwareinfo::HSIFirmwareMonitorData hsi_info;
 
-  auto hsi_data = data[opmonlib::JSONTags::children]["hsi"][opmonlib::JSONTags::properties][hsi_info.info_type][opmonlib::JSONTags::data];
+  auto hsi_data = info[opmonlib::JSONTags::children]["hsi"][opmonlib::JSONTags::properties][hsi_info.info_type][opmonlib::JSONTags::data];
 
   from_json(hsi_data, hsi_info);
 

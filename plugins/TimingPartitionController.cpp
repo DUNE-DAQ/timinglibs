@@ -66,8 +66,7 @@ TimingPartitionController::do_configure(const nlohmann::json& data)
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
-  m_hw_command_connection =  conf.hw_cmd_connection;
-  
+    
   m_timing_device = conf.device;
   m_managed_partition_id = conf.partition_id;
   
@@ -218,15 +217,13 @@ TimingPartitionController::do_partition_print_status(const nlohmann::json&)
 }
 
 void
-TimingPartitionController::process_device_info(ipm::Receiver::Response message)
+TimingPartitionController::process_device_info(nlohmann::json info)
 {
-  auto data = nlohmann::json::from_msgpack(message.data);  
-
   timing::timingfirmwareinfo::TimingPartitionMonitorData partition_info;
 
   std::string partition_label = "partition"+std::to_string(m_managed_partition_id);
   
-  auto partition_data = data[opmonlib::JSONTags::children]["master"]
+  auto partition_data = info[opmonlib::JSONTags::children]["master"]
                             [opmonlib::JSONTags::children][partition_label]
                             [opmonlib::JSONTags::properties][partition_info.info_type][opmonlib::JSONTags::data];
 

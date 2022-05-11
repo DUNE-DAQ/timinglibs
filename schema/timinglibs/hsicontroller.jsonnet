@@ -19,8 +19,6 @@ local cs = {
          doc="A double"),
 
     conf: s.record("ConfParams",[
-        s.field("hw_cmd_connection", self.str, "",
-            doc="String of hardware commands connection"),
         s.field("device", self.str, "",
             doc="String of managed device name"),
         s.field("clock_frequency", self.size,
