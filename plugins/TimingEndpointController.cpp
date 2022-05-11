@@ -14,6 +14,9 @@
 #include "timinglibs/timingendpointcontroller/Nljs.hpp"
 #include "timinglibs/timingendpointcontroller/Structs.hpp"
 
+#include "timing/timingendpointinfo/InfoNljs.hpp"
+#include "timing/timingendpointinfo/InfoStructs.hpp"
+
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
@@ -53,9 +56,28 @@ TimingEndpointController::do_configure(const nlohmann::json& data)
   }
   m_timing_device = conf.device;
   m_managed_endpoint_id = conf.endpoint_id;
+  
+  TimingController::do_configure(data); // configure hw command connection
+
+  do_endpoint_io_reset(data);
+  std::this_thread::sleep_for(std::chrono::microseconds(8000000));
+  do_endpoint_enable(data);
+  
+  auto time_of_conf = std::chrono::high_resolution_clock::now();
+  while (!m_device_ready)
+  {
+    auto now = std::chrono::high_resolution_clock::now();
+    auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
+    
+    if (ms_since_conf > m_device_ready_timeout)
+    {
+      throw TimingEndpointNotReady(ERS_HERE,m_timing_device,m_endpoint_state);
+    }
+    TLOG_DEBUG(3) << "Waiting for timing endpoint " << m_timing_device << " to become ready for (ms) " << ms_since_conf.count();
+    std::this_thread::sleep_for(std::chrono::microseconds(250000));
+  }
 
   TLOG() << get_name() << " conf: endpoint, device: " << m_timing_device;
-  do_endpoint_enable(data);
 }
 
 timingcmd::TimingHwCmd
@@ -157,6 +179,39 @@ TimingEndpointController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
   module_info.sent_endpoint_print_status_cmds = m_sent_hw_command_counters.at(4).atomic.load();
   module_info.sent_endpoint_print_timestamp_cmds = m_sent_hw_command_counters.at(5).atomic.load();
   ci.add(module_info);
+}
+
+void
+TimingEndpointController::process_device_info(nlohmann::json info)
+{
+  timing::timingendpointinfo::TimingEndpointInfo ept_info;
+
+  auto ept_data = info[opmonlib::JSONTags::children]["endpoint"][opmonlib::JSONTags::properties][ept_info.info_type][opmonlib::JSONTags::data];
+
+  from_json(ept_data, ept_info);
+
+  m_endpoint_state = ept_info.state;
+  bool ready = ept_info.ready;
+
+  TLOG_DEBUG(3) << "state: 0x" << std::hex << m_endpoint_state << ", ready: " << ready;
+
+  if (m_endpoint_state == 0x8 && ready)
+  {
+    if (!m_device_ready)
+    {
+      m_device_ready = true;
+      TLOG_DEBUG(2) << "Timing fanout became ready";
+    }
+  }
+  else
+  {
+    if (m_device_ready)
+    {
+      m_device_ready = false;
+      TLOG_DEBUG(2) << "Timing fanout no longer ready";
+    }
+  }
+  ++m_device_infos_received_count;
 }
 } // namespace timinglibs
 } // namespace dunedaq
