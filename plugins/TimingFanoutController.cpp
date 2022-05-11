@@ -33,9 +33,10 @@ TimingFanoutController::TimingFanoutController(const std::string& name)
   : dunedaq::timinglibs::TimingController(name, 2) // 2nd arg: how many hw commands can this module send?
 {
   register_command("conf", &TimingFanoutController::do_configure);
-  //  register_command("start", &TimingFanoutController::do_start);
-  //  register_command("stop", &TimingFanoutController::do_stop);
-
+  register_command("start", &TimingFanoutController::do_start);
+  register_command("stop", &TimingFanoutController::do_stop);
+  register_command("scrap", &TimingMasterController::do_scrap);
+  
   // timing fanout hardware commands
   register_command("fanout_io_reset", &TimingFanoutController::do_fanout_io_reset);
   register_command("fanout_print_status", &TimingFanoutController::do_fanout_print_status);

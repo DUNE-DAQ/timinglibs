@@ -37,7 +37,8 @@ TimingEndpointController::TimingEndpointController(const std::string& name)
   register_command("conf", &TimingEndpointController::do_configure);
   register_command("start", &TimingEndpointController::do_start);
   register_command("stop", &TimingEndpointController::do_stop);
-
+  register_command("scrap", &TimingMasterController::do_scrap);
+  
   // timing endpoint hardware commands
   register_command("endpoint_io_reset", &TimingEndpointController::do_endpoint_io_reset);
   register_command("endpoint_enable", &TimingEndpointController::do_endpoint_enable);
@@ -60,7 +61,7 @@ TimingEndpointController::do_configure(const nlohmann::json& data)
   TimingController::do_configure(data); // configure hw command connection
 
   do_endpoint_io_reset(data);
-  std::this_thread::sleep_for(std::chrono::microseconds(8000000));
+  std::this_thread::sleep_for(std::chrono::microseconds(7000000));
   do_endpoint_enable(data);
   
   auto time_of_conf = std::chrono::high_resolution_clock::now();
