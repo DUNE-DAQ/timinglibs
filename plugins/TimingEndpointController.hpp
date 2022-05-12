@@ -72,6 +72,8 @@ private:
 
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;
+  void process_device_info(nlohmann::json info) override;
+  uint32_t m_endpoint_state;
 };
 } // namespace timinglibs
 } // namespace dunedaq

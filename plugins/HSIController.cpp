@@ -14,6 +14,10 @@
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
+#include "timing/timingfirmwareinfo/InfoNljs.hpp"
+#include "timing/timingfirmwareinfo/InfoStructs.hpp"
+
+#include "opmonlib/JSONTags.hpp"
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
@@ -36,7 +40,8 @@ HSIController::HSIController(const std::string& name)
   register_command("start", &HSIController::do_start);
   register_command("stop", &HSIController::do_stop);
   register_command("resume", &HSIController::do_resume);
-
+  register_command("scrap", &HSIController::do_scrap);
+  
   // timing endpoint hardware commands
   register_command("hsi_io_reset", &HSIController::do_hsi_io_reset);
   register_command("hsi_endpoint_enable", &HSIController::do_hsi_endpoint_enable);
@@ -54,15 +59,27 @@ HSIController::do_configure(const nlohmann::json& data)
 {
   m_hsi_configuration = data.get<hsicontroller::ConfParams>();
   m_timing_device = m_hsi_configuration.device;
-
-  TLOG() << get_name() << " conf; hsi device: " << m_timing_device;
-
-  // wait for network communication to timing hardware interface module to definitely be ready
-  std::this_thread::sleep_for(std::chrono::microseconds(5000000));
+  
+  TimingController::do_configure(data); // configure hw command connection
 
   do_hsi_reset(data);
   do_hsi_endpoint_reset(data);
   do_hsi_configure(data);
+
+  auto time_of_conf = std::chrono::high_resolution_clock::now();
+  while (!m_device_ready)
+  {
+    auto now = std::chrono::high_resolution_clock::now();
+    auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
+    
+    if (ms_since_conf > m_device_ready_timeout)
+    {
+      throw TimingEndpointNotReady(ERS_HERE,"HSI ("+m_timing_device+")", m_endpoint_state);
+    }
+    TLOG_DEBUG(3) << "Waiting for HSI endpoint to become ready for (ms) " << ms_since_conf.count();
+    std::this_thread::sleep_for(std::chrono::microseconds(250000));
+  }
+  TLOG() << get_name() << " conf; hsi device: " << m_timing_device;
 }
 
 void
@@ -230,7 +247,41 @@ HSIController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
   module_info.sent_hsi_start_cmds = m_sent_hw_command_counters.at(6).atomic.load();
   module_info.sent_hsi_stop_cmds = m_sent_hw_command_counters.at(7).atomic.load();
   module_info.sent_hsi_print_status_cmds = m_sent_hw_command_counters.at(8).atomic.load();
+  module_info.device_infos_received_count = m_device_infos_received_count;
+
   ci.add(module_info);
+}
+
+void
+HSIController::process_device_info(nlohmann::json info)
+{
+  timing::timingfirmwareinfo::HSIFirmwareMonitorData hsi_info;
+
+  auto hsi_data = info[opmonlib::JSONTags::children]["hsi"][opmonlib::JSONTags::properties][hsi_info.info_type][opmonlib::JSONTags::data];
+
+  from_json(hsi_data, hsi_info);
+
+  m_endpoint_state = hsi_info.endpoint_state;
+  
+  TLOG_DEBUG(3) << "HSI ept state: 0x" << std::hex << m_endpoint_state;
+
+  if (hsi_info.endpoint_state == 0x8)
+  {
+    if (!m_device_ready)
+    {
+      m_device_ready = true;
+      TLOG_DEBUG(2) << "HSI endpoint became ready";
+    }
+  }
+  else
+  {
+    if (m_device_ready)
+    {
+      m_device_ready = false;
+      TLOG_DEBUG(2) << "HSI endpoint no longer ready";
+    }
+  }
+  ++m_device_infos_received_count;
 }
 } // namespace timinglibs
 } // namespace dunedaq

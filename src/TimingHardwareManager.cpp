@@ -22,12 +22,15 @@
 namespace dunedaq {
 
 DUNE_DAQ_SERIALIZABLE(timinglibs::timingcmd::TimingHwCmd);
+DUNE_DAQ_SERIALIZABLE(nlohmann::json);
 
 namespace timinglibs {
 
 TimingHardwareManager::TimingHardwareManager(const std::string& name)
   : dunedaq::appfwk::DAQModule(name)
+  , m_hw_cmd_connection("timing_cmds")
   , m_hw_command_receiver(nullptr)
+  , m_device_info_connection("timing_device_info")
   , m_gather_interval(1e6)
   , m_gather_interval_debug(10e6)
   , m_connections_file("")
@@ -47,8 +50,9 @@ void
 TimingHardwareManager::init(const nlohmann::json& init_data)
 {
   // set up queues
-  auto qi = appfwk::connection_index(init_data, { "timing_cmds_in" });
-  m_hw_command_receiver = get_iom_receiver<timingcmd::TimingHwCmd>(qi["timing_cmds_in"]);
+  auto qi = appfwk::connection_index(init_data, { m_hw_cmd_connection, m_device_info_connection });
+  m_hw_command_receiver = get_iom_receiver<timingcmd::TimingHwCmd>(qi[m_hw_cmd_connection]);
+  m_device_info_connection_ref = qi[m_device_info_connection];
 }
 
 void
@@ -117,7 +121,6 @@ TimingHardwareManager::gather_monitor_data(InfoGatherer& gatherer)
     try {
       auto design = get_timing_device_plain(device_name);
       gatherer.collect_info_from_device(*design);
-      gatherer.update_last_gathered_time(std::time(nullptr));
     } catch (const std::exception& excpt) {
       ers::warning(FailedToCollectOpMonInfo(ERS_HERE, device_name, excpt));
     }
@@ -146,7 +149,7 @@ TimingHardwareManager::gather_monitor_data(InfoGatherer& gatherer)
 }
 
 void
-TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level)
+TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level, iomanager::connection::ConnectionRef info_connection)
 {
   std::string gatherer_name = device_name + "_level_" + std::to_string(op_mon_level);
   if (m_info_gatherers.find(gatherer_name) == m_info_gatherers.end()) {
@@ -154,7 +157,8 @@ TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::s
       std::bind(&TimingHardwareManager::gather_monitor_data, this, std::placeholders::_1),
       gather_interval,
       device_name,
-      op_mon_level);
+      op_mon_level,
+      info_connection);
 
     TLOG_DEBUG(0) << "Registering info gatherer: " << gatherer_name;
     m_info_gatherers.emplace(std::make_pair(gatherer_name, std::move(gatherer)));
@@ -209,7 +213,7 @@ TimingHardwareManager::check_hw_mon_gatherer_is_running(const std::string& devic
   std::vector<std::string> running_gatherers;
   for (auto it = m_info_gatherers.lower_bound(device_name); it != m_info_gatherers.end(); ++it)
   {
-    TLOG_DEBUG(0) << get_name() << " Checking run state of info gatherer: " << it->first;
+    TLOG_DEBUG(0) << get_name() << " Checking run state of info gatherer: " << it->first << ", and the state is " << it->second.get()->run_gathering();
     if (it->second.get()->run_gathering())
     {
       running_gatherers.push_back(it->first);
@@ -219,10 +223,10 @@ TimingHardwareManager::check_hw_mon_gatherer_is_running(const std::string& devic
 }
 
 // cmd stuff
+
 void
 TimingHardwareManager::process_hardware_command(timingcmd::TimingHwCmd& timing_hw_cmd)
 {
-
   std::ostringstream starting_stream;
   starting_stream << ": Executing process_hardware_command() callback.";
   TLOG_DEBUG(0) << get_name() << starting_stream.str();
@@ -234,6 +238,7 @@ TimingHardwareManager::process_hardware_command(timingcmd::TimingHwCmd& timing_h
 
   std::string hw_cmd_name = timing_hw_cmd.id;
   if (auto cmd = m_timing_hw_cmd_map_.find(hw_cmd_name); cmd != m_timing_hw_cmd_map_.end()) {
+
     ++m_accepted_hw_commands_counter;
 
     TLOG_DEBUG(0) << "Found hw cmd: " << hw_cmd_name;

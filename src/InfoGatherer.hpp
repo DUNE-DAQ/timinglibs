@@ -15,6 +15,10 @@
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 #include "opmonlib/InfoCollector.hpp"
+#include "iomanager/Sender.hpp"
+#include "iomanager/IOManager.hpp"
+
+#include "nlohmann/json.hpp"
 
 #include <functional>
 #include <future>
@@ -33,6 +37,10 @@ ERS_DECLARE_ISSUE(timinglibs,                                 // Namespace
                   "Gather Threading Issue detected: " << err, // Message
                   ((std::string)err))                         // Message parameters
 
+ERS_DECLARE_ISSUE(timinglibs,
+                  DeviceInfoSendFailed,
+                  " Failed to send send " << device << " device info to " << destination << ".",
+                  ((std::string)device)((std::string)destination))
 namespace timinglibs {
 
 /**
@@ -50,6 +58,28 @@ public:
   explicit InfoGatherer(std::function<void(InfoGatherer&)> gather_data,
                         uint gather_interval,
                         const std::string& device_name,
+                        int op_mon_level,
+                        iomanager::connection::ConnectionRef device_info_connection_ref)
+    : m_run_gathering(false)
+    , m_gathering_thread(nullptr)
+    , m_gather_interval(gather_interval)
+    , m_device_name(device_name)
+    , m_last_gathered_time(0)
+    , m_op_mon_level(op_mon_level)
+    , m_gather_data(gather_data)
+    , m_device_info_connection_ref(device_info_connection_ref)
+    , m_hw_info_sender(nullptr)
+    , m_sent_counter(0)
+    , m_failed_to_send_counter(0)
+    , m_queue_timeout(1)
+  {
+    m_info_collector = std::make_unique<opmonlib::InfoCollector>();
+    m_hw_info_sender = get_iom_sender<nlohmann::json>(m_device_info_connection_ref);
+  }
+
+  explicit InfoGatherer(std::function<void(InfoGatherer&)> gather_data,
+                        uint gather_interval,
+                        const std::string& device_name,
                         int op_mon_level)
     : m_run_gathering(false)
     , m_gathering_thread(nullptr)
@@ -58,9 +88,14 @@ public:
     , m_last_gathered_time(0)
     , m_op_mon_level(op_mon_level)
     , m_gather_data(gather_data)
+    , m_hw_info_sender(nullptr)
+    , m_sent_counter(0)
+    , m_failed_to_send_counter(0)
+    , m_queue_timeout(1)
   {
     m_info_collector = std::make_unique<opmonlib::InfoCollector>();
   }
+
   virtual ~InfoGatherer()
   {
     if (run_gathering()) stop_gathering_thread();
@@ -141,6 +176,8 @@ public:
   {
     std::unique_lock info_collector_lock(m_info_collector_mutex);
     device.get_info(*m_info_collector, get_op_mon_level());
+    update_last_gathered_time(std::time(nullptr));
+    send_device_info();
   }
 
   void add_info_to_collector(std::string label, opmonlib::InfoCollector& ic)
@@ -156,6 +193,40 @@ public:
     update_last_gathered_time(0);
   }
 
+private:
+  void send_device_info()
+  {
+    if (m_info_collector->is_empty())
+    {
+      TLOG_DEBUG(3) << "skipping sending info for gatherer: " << get_device_name() << ", collector empty.";
+      return;
+    }
+
+    if (!m_hw_info_sender)
+    {
+      TLOG_DEBUG(3) << "skipping sending info for gatherer: " << get_device_name();
+      return;
+    }
+    
+    nlohmann::json info = m_info_collector->get_collected_infos();
+    bool was_successfully_sent = false;
+    while (!was_successfully_sent)
+    {
+      try
+      {
+        m_hw_info_sender->send(std::move(info), m_queue_timeout, get_device_name());
+        TLOG_DEBUG(4) << "sent " << get_device_name() <<  " info";
+        ++m_sent_counter;
+        was_successfully_sent = true;
+      }
+      catch (const dunedaq::iomanager::TimeoutExpired& excpt)
+      {
+        ers::error(DeviceInfoSendFailed(ERS_HERE, m_device_name, m_device_info_connection_ref.uid));
+        ++m_failed_to_send_counter;
+      }
+    }
+  }
+
 protected:
   std::atomic<bool> m_run_gathering;
   std::unique_ptr<std::thread> m_gathering_thread;
@@ -167,6 +238,12 @@ protected:
   std::unique_ptr<opmonlib::InfoCollector> m_info_collector;
   mutable std::mutex m_info_collector_mutex;
   std::function<void(InfoGatherer&)> m_gather_data;
+  iomanager::connection::ConnectionRef m_device_info_connection_ref;
+  using sink_t = dunedaq::iomanager::SenderConcept<nlohmann::json>;
+  std::shared_ptr<sink_t> m_hw_info_sender;
+  std::atomic<uint> m_sent_counter;
+  std::atomic<uint> m_failed_to_send_counter;
+  std::chrono::milliseconds m_queue_timeout;
 };
 
 } // namespace timinglibs

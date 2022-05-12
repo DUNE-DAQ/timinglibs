@@ -21,6 +21,7 @@
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 #include "iomanager/Sender.hpp"
+#include "iomanager/Receiver.hpp"
 #include "utilities/WorkerThread.hpp"
 
 #include <memory>
@@ -28,6 +29,11 @@
 #include <vector>
 
 namespace dunedaq {
+ERS_DECLARE_ISSUE(timinglibs,                                                                                         ///< Namespace
+                  TimingEndpointNotReady,                                                                             ///< Issue class name
+                  endpoint << " timing endpoint did not become ready in time. State 0x" << std::hex << state, ///< Message
+                  ((std::string)endpoint)((uint)state)                                                                ///< Message parameters
+)
 namespace timinglibs {
 
 template<typename T>
@@ -85,23 +91,32 @@ public:
   void init(const nlohmann::json& init_data) override;
 
 protected:
-  // Commands
-  virtual void do_configure(const nlohmann::json& obj) = 0;
-  virtual void do_start(const nlohmann::json& obj);
-  virtual void do_stop(const nlohmann::json& obj);
+  // DAQModule commands
+  virtual void do_configure(const nlohmann::json&);
+  virtual void do_start(const nlohmann::json&);
+  virtual void do_stop(const nlohmann::json&) {}
+  virtual void do_scrap(const nlohmann::json&);
 
   // Configuration
-  std::string m_hw_command_out_queue_name;
+  std::string m_hw_command_out_connection;
+  std::chrono::milliseconds m_hw_cmd_out_timeout;
   using sink_t = dunedaq::iomanager::SenderConcept<timingcmd::TimingHwCmd>;
-  std::shared_ptr<sink_t> m_hw_command_out_queue;
-  std::chrono::milliseconds m_hw_cmd_out_queue_timeout;
+  std::shared_ptr<sink_t> m_hw_command_sender;
   std::string m_timing_device;
+  using source_t = dunedaq::iomanager::ReceiverConcept<nlohmann::json>;
+  std::shared_ptr<source_t> m_device_info_receiver;
 
   virtual void send_hw_cmd(timingcmd::TimingHwCmd&& hw_cmd);
 
   // opmon
   uint m_number_hw_commands;
   std::vector<AtomicUInt64> m_sent_hw_command_counters;
+
+  // Interpert device opmon info
+  virtual void process_device_info(nlohmann::json /*message*/) = 0;
+  std::chrono::milliseconds m_device_ready_timeout;
+  std::atomic<bool> m_device_ready;
+  std::atomic<uint> m_device_infos_received_count;
 };
 } // namespace timinglibs
 } // namespace dunedaq

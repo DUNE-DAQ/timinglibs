@@ -35,6 +35,8 @@ local cs = {
                 doc="Name of timing endpoint device to be monitored"),
         s.field("monitored_device_name_hsi", self.str, "",
                 doc="Name of hsi device to be monitored"),
+        s.field("device_info_connection", self.str, "",
+            doc="String of managed hsi device info connection"),
         s.field("uhal_log_level", self.uhal_log_level, "notice",
                 doc="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug."),
     ], doc="TimingHardwareManager PD-I conf parameters"),

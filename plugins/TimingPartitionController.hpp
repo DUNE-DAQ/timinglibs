@@ -32,6 +32,10 @@
 #include <vector>
 
 namespace dunedaq {
+ERS_DECLARE_ISSUE(timinglibs,                                                                             ///< Namespace
+                  TimingPartitionNotReady,                                                                   ///< Issue class name
+                  "Timing partitiion " << partition_id << " of timing master " << master << " did not become ready in time.", ///< Message
+                  ((std::string)master)((uint)partition_id) )   
 namespace timinglibs {
 
 /**
@@ -66,6 +70,12 @@ private:
   //  void do_scrap(const nlohmann::json& data);
   void do_resume(const nlohmann::json& data);
   void do_pause(const nlohmann::json& data);
+  void do_scrap(const nlohmann::json& data);
+
+  uint16_t m_partition_trigger_mask;
+  bool m_partition_control_rate_enabled;
+  bool m_partition_spill_gate_enabled;
+
 
   timingcmd::TimingHwCmd construct_partition_hw_cmd(const std::string& cmd_id);
 
@@ -81,6 +91,7 @@ private:
 
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;
+  void process_device_info(nlohmann::json info) override;
 };
 } // namespace timinglibs
 } // namespace dunedaq
