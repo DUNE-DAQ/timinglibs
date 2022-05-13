@@ -66,6 +66,8 @@ private:
   // timing master commands
   void do_fanout_io_reset(const nlohmann::json& data);
   void do_fanout_print_status(const nlohmann::json&);
+  void do_fanout_endpoint_enable(const nlohmann::json&);
+  void do_fanout_endpoint_reset(const nlohmann::json&);
 
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;
