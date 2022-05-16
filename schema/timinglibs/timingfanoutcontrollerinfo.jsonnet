@@ -10,6 +10,8 @@ local info = {
    info: s.record("Info", [
        s.field("sent_io_reset_cmds", self.uint8, doc="Number of sent io_reset commands"),
        s.field("sent_print_status_cmds", self.uint8, doc="Number of sent print_status commands"),
+       s.field("sent_fanout_endpoint_enable_cmds", self.uint8, doc="Number of sent fanout_endpoint_enable commands"),
+       s.field("sent_fanout_endpoint_reset_cmds", self.uint8, doc="Number of sent fanout_endpoint_reset commands"),
    ], doc="TimingFanoutController information")
 };
 
