@@ -21,7 +21,6 @@ import dunedaq.rcif.cmd as rcif # rcif
 import dunedaq.timinglibs.timingcmd as tcmd
 
 from appfwk.utils import mcmd, mspec, mrccmd, acmd
-from appfwk.conf_utils import make_system_command_datas,generate_boot, write_json_files, add_one_command_data
 
 import json
 import math
