@@ -9,9 +9,6 @@ moo.io.default_load_path = get_moo_model_path()
 # Load configuration types
 import moo.otypes
 moo.otypes.load_types('rcif/cmd.jsonnet')
-moo.otypes.load_types('appfwk/cmd.jsonnet')
-moo.otypes.load_types('appfwk/app.jsonnet')
-
 moo.otypes.load_types('timinglibs/timingcmd.jsonnet')
 moo.otypes.load_types('timinglibs/timinghardwaremanagerpdi.jsonnet')
 moo.otypes.load_types('timinglibs/timingmastercontroller.jsonnet')
@@ -21,13 +18,6 @@ moo.otypes.load_types('timinglibs/timingendpointcontroller.jsonnet')
 moo.otypes.load_types('timinglibs/hsicontroller.jsonnet')
 
 # Import new types
-from appfwk.utils import acmd, mcmd
-from daqconf.core.app import App, ModuleGraph
-from daqconf.core.daqmodule import DAQModule
-from daqconf.core.conf_utils import Direction, AppConnection
-from daqconf.core.system import System
-from daqconf.core.metadata import write_metadata_file
-
 import dunedaq.rcif.cmd as rccmd # AddressedCmd, 
 import dunedaq.timinglibs.timingcmd as tcmd
 import dunedaq.timinglibs.timinghardwaremanagerpdi as thi
@@ -36,6 +26,13 @@ import dunedaq.timinglibs.timingpartitioncontroller as tpc
 import dunedaq.timinglibs.timingendpointcontroller as tec
 import dunedaq.timinglibs.hsicontroller as hsi
 import dunedaq.timinglibs.timingfanoutcontroller as tfc
+
+from appfwk.utils import acmd
+from daqconf.core.app import App, ModuleGraph
+from daqconf.core.daqmodule import DAQModule
+from daqconf.core.conf_utils import Direction, AppConnection
+from daqconf.core.system import System
+from daqconf.core.metadata import write_metadata_file
 
 import json
 import math
