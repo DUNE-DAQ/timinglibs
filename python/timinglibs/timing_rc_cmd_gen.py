@@ -8,20 +8,10 @@ moo.io.default_load_path = get_moo_model_path()
 
 # Load configuration types
 import moo.otypes
-moo.otypes.load_types('appfwk/cmd.jsonnet')
-moo.otypes.load_types('appfwk/app.jsonnet')
-moo.otypes.load_types('cmdlib/cmd.jsonnet')
-moo.otypes.load_types('rcif/cmd.jsonnet')
 moo.otypes.load_types('timinglibs/timingcmd.jsonnet')
-
-# Import new types
-import dunedaq.cmdlib.cmd as cmdlib # Command
-import dunedaq.rcif.cmd as rcif # rcif
-
 import dunedaq.timinglibs.timingcmd as tcmd
 
-from appfwk.utils import mcmd, mspec, mrccmd, acmd
-from appfwk.conf_utils import make_system_command_datas,generate_boot, write_json_files, add_one_command_data
+from appfwk.utils import acmd
 
 import json
 import math

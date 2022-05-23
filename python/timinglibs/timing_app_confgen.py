@@ -8,9 +8,6 @@ moo.io.default_load_path = get_moo_model_path()
 
 # Load configuration types
 import moo.otypes
-moo.otypes.load_types('appfwk/cmd.jsonnet')
-moo.otypes.load_types('appfwk/app.jsonnet')
-moo.otypes.load_types('cmdlib/cmd.jsonnet')
 moo.otypes.load_types('rcif/cmd.jsonnet')
 moo.otypes.load_types('timinglibs/timingcmd.jsonnet')
 moo.otypes.load_types('timinglibs/timinghardwaremanagerpdi.jsonnet')
@@ -21,11 +18,7 @@ moo.otypes.load_types('timinglibs/timingendpointcontroller.jsonnet')
 moo.otypes.load_types('timinglibs/hsicontroller.jsonnet')
 
 # Import new types
-import dunedaq.appfwk.cmd as cmd # AddressedCmd, 
-import dunedaq.appfwk.app as app # Queue spec
-import dunedaq.cmdlib.cmd as cmdlib # Command
-import dunedaq.rcif.cmd as rcif # rcif
-
+import dunedaq.rcif.cmd as rccmd # AddressedCmd, 
 import dunedaq.timinglibs.timingcmd as tcmd
 import dunedaq.timinglibs.timinghardwaremanagerpdi as thi
 import dunedaq.timinglibs.timingmastercontroller as tmc
@@ -34,7 +27,12 @@ import dunedaq.timinglibs.timingendpointcontroller as tec
 import dunedaq.timinglibs.hsicontroller as hsi
 import dunedaq.timinglibs.timingfanoutcontroller as tfc
 
-from appfwk.utils import mcmd, mspec, mrccmd
+from appfwk.utils import acmd
+from daqconf.core.app import App, ModuleGraph
+from daqconf.core.daqmodule import DAQModule
+from daqconf.core.conf_utils import Direction, AppConnection
+from daqconf.core.system import System
+from daqconf.core.metadata import write_metadata_file
 
 import json
 import math
@@ -43,6 +41,7 @@ CLOCK_SPEED_HZ=50000000
 
 def generate(
         RUN_NUMBER = 333, 
+        CONNECTIONS_FILE="${TIMING_SHARE}/config/etc/connections.xml",
         GATHER_INTERVAL = 1e6,
         GATHER_INTERVAL_DEBUG = 10e6,
         MASTER_DEVICE_NAME="",
@@ -69,439 +68,280 @@ def generate(
         PART_SPILL_GATE_ENABLED=True,
         PART_RATE_CONTROL_ENABLED=True,
         UHAL_LOG_LEVEL="notice",
-        OUTPUT_PATH=".",
+        OUTPUT_PATH="./timing_app",
     ):
     
     # Define modules and queues
-    queue_bare_specs = [
-            app.QueueSpec(inst="hardware_commands", kind='StdDeQueue', capacity=100),
-        ]
-
-    # Only needed to reproduce the same order as when using jsonnet
-    queue_specs = app.QueueSpecs(sorted(queue_bare_specs, key=lambda x: x.inst))
-
-    mod_specs = [
-                    mspec("thi", "TimingHardwareManagerPDI", [app.QueueInfo(name="timing_cmds_queue", inst="hardware_commands", dir="input")])
-                ]
-    conf_cmds = [
-                ("thi", thi.ConfParams(
-                                           connections_file="${TIMING_SHARE}/config/etc/connections.xml",
-                                           gather_interval=GATHER_INTERVAL,
-                                           gather_interval_debug=GATHER_INTERVAL_DEBUG,
-                                           monitored_device_name_master=MASTER_DEVICE_NAME,
-                                           monitored_device_names_fanout=FANOUT_DEVICES_NAMES,
-                                           monitored_device_name_endpoint=ENDPOINT_DEVICE_NAME,
-                                           monitored_device_name_hsi=HSI_DEVICE_NAME,
-                                           uhal_log_level=UHAL_LOG_LEVEL
-                                    )),
-            ]
     
+    thi_modules = [ 
+                DAQModule( name="thi",
+                                plugin="TimingHardwareManagerPDI",
+                                conf= thi.ConfParams(connections_file=CONNECTIONS_FILE,
+                                                       gather_interval=GATHER_INTERVAL,
+                                                       gather_interval_debug=GATHER_INTERVAL_DEBUG,
+                                                       monitored_device_name_master=MASTER_DEVICE_NAME,
+                                                       monitored_device_names_fanout=FANOUT_DEVICES_NAMES,
+                                                       monitored_device_name_endpoint=ENDPOINT_DEVICE_NAME,
+                                                       monitored_device_name_hsi=HSI_DEVICE_NAME,
+                                                       uhal_log_level=UHAL_LOG_LEVEL)),
+                ]
+    
+    controller_modules = []
+    custom_cmds=[]
+
     ## master and partition controllers
+    master_controller_mod_name="tmc"
+    
     if MASTER_DEVICE_NAME != "":
+        controller_modules.extend( [DAQModule(name = master_controller_mod_name,
+                    plugin = "TimingMasterController",
+                    conf = tmc.ConfParams(
+                                        device=MASTER_DEVICE_NAME,
+                                        send_endpoint_delays_period=0,
+                                        clock_config=MASTER_CLOCK_FILE,
+                                        fanout_mode=MASTER_CLOCK_MODE,
+                                        ))])
 
-        mod_specs.extend( [ mspec("tmc0", "TimingMasterController", [app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output")]) ] )
 
+        custom_cmds.extend( [
+                                ("master_configure", acmd([("tmc", tmc.ConfParams(
+                                            device=MASTER_DEVICE_NAME,
+                                            send_endpoint_delays_period=MASTER_SEND_DELAYS_PERIOD,
+                                            clock_config=MASTER_CLOCK_FILE,
+                                            fanout_mode=MASTER_CLOCK_MODE,
+                                                                ))])),
+                                ("master_io_reset", acmd([("tmc", tcmd.IOResetCmdPayload(
+                                                  clock_config=MASTER_CLOCK_FILE,
+                                                  fanout_mode=MASTER_CLOCK_MODE,
+                                                  soft=False
+                                                  ))])),
+                                ("master_set_timestamp", acmd([("tmc",None)])),
+                                ("master_print_status",  acmd([("tmc",None)])),
+                            ] )
+
+        ###
         tpc_mods=[]
         for partition_id in PARTITION_IDS:
 
-            tpc_mods.append( mspec("tpc{}".format(partition_id), "TimingPartitionController", [app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output")]) )
-        mod_specs.extend( tpc_mods )
-
+            tpc_mods.append( DAQModule(name = f"tpc{partition_id}",
+                         plugin = "TimingPartitionController",
+                         conf = tpc.PartitionConfParams(
+                                             device=MASTER_DEVICE_NAME,
+                                             partition_id=partition_id,
+                                             trigger_mask=PART_TRIGGER_MASK,
+                                             spill_gate_enabled=PART_SPILL_GATE_ENABLED,
+                                             rate_control_enabled=PART_RATE_CONTROL_ENABLED,
+                                             )))
+        custom_cmds.extend( [
+                                ("partition_configure", acmd([("tpc*", tpc.PartitionConfParams(
+                                                                device=MASTER_DEVICE_NAME,
+                                                                partition_id=partition_id,
+                                                                trigger_mask=PART_TRIGGER_MASK,
+                                                                spill_gate_enabled=PART_SPILL_GATE_ENABLED,
+                                                                rate_control_enabled=PART_RATE_CONTROL_ENABLED,
+                                                            ))])),
+                                ("partition_enable", acmd([("tpc.*", None)])),
+                                ("partition_disable", acmd([("tpc.*", None)])),
+                                ("partition_start", acmd([("tpc.*", None)])),
+                                ("partition_stop", acmd([("tpc.*", None)])),
+                                ("partition_enable_triggers", acmd([("tpc.*", None)])),
+                                ("partition_disable_triggers", acmd([("tpc.*", None)])),
+                                ("partition_print_status", acmd([("tpc.*", None)])),
+                            ] )
+        controller_modules.extend( tpc_mods )
+        
+        
     ## fanout controller
     for i,fanout_device_name in enumerate(FANOUT_DEVICES_NAMES):
-        mod_specs.extend( [ mspec("tfc{}".format(i), "TimingFanoutController", [app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output")]) ] )
+        controller_modules.extend( [DAQModule(name = "tfc{}".format(i),
+                        plugin = "TimingFanoutController",
+                        conf = tfc.ConfParams(
+                                            device=fanout_device_name,
+                                            clock_config=FANOUT_CLOCK_FILE,
+                                            ))]
+                        )
+        custom_cmds.extend( [
+                            ("fanout_configure", acmd([("tfc*", tfc.ConfParams(
+                                    device=fanout_device_name,
+                                    ))])),
+
+                            ("fanout_io_reset", acmd([("tfc.*", tcmd.IOResetCmdPayload(
+                                                                  clock_config=FANOUT_CLOCK_FILE,
+                                                                    soft=False
+                                                    ))])),
+                             ("fanout_print_status", acmd([("tfc.*", None)])),
+                         ] )
 
     ## endpoint controllers
     if ENDPOINT_DEVICE_NAME != "":
-        mod_specs.extend( [ mspec("tec0", "TimingEndpointController", [app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output")]) ] )
+        controller_modules.extend( [DAQModule(name = "tec0",
+                        plugin = "TimingEndpointController",
+                        conf = tec.ConfParams(
+                                            device=ENDPOINT_DEVICE_NAME,
+                                            endpoint_id=0,
+                                            address=ENDPOINT_ADDRESS,
+                                            partition=ENDPOINT_PARTITION
+                                            ))] )
+        custom_cmds.extend( [
+                            
+                            ("endpoint_io_reset", acmd([("tec.*", tcmd.IOResetCmdPayload(
+                                                           clock_config=ENDPOINT_CLOCK_FILE,
+                                                            soft=False
+                                                        ))])),
 
-    ## hsi controllers
-    if HSI_DEVICE_NAME != "":
-        mod_specs.extend( [ mspec("hsi0", "HSIController", [app.QueueInfo(name="hardware_commands_out", inst="hardware_commands", dir="output")]) ] )
 
-    init_specs = app.Init(queues=queue_specs, modules=mod_specs)
+                            ("endpoint_enable", acmd([("tec.*", tcmd.TimingEndpointConfigureCmdPayload(
+                                                                          address=ENDPOINT_ADDRESS,
+                                                                          partition=ENDPOINT_PARTITION
+                                                                          ))])),
+                            ("endpoint_disable", acmd([("tec.*", None)])),
+
+                            ("endpoint_reset",   acmd([("tec.*", tcmd.TimingEndpointConfigureCmdPayload(
+                                                                          address=ENDPOINT_ADDRESS,
+                                                                          partition=ENDPOINT_PARTITION
+                                                                          ))])),
+                            ("endpoint_print_status", acmd([("tec.*", None)])),
+
+                            ])
     
-    jstr = json.dumps(init_specs.pod(), indent=4, sort_keys=True)
-    print(jstr)
-
-    initcmd = rcif.RCCommand(
-        id=cmdlib.CmdId("init"),
-        entry_state="NONE",
-        exit_state="INITIAL",
-        data=init_specs
-    )
-
-    ## conf command
-
-    if MASTER_DEVICE_NAME != "":
-        conf_cmds.extend( [
-                        ("tmc0", tmc.ConfParams(
-                                    device=MASTER_DEVICE_NAME,
-                                    send_endpoint_delays_period=MASTER_SEND_DELAYS_PERIOD,
-                                    clock_config=MASTER_CLOCK_FILE,
-                                    fanout_mode=MASTER_CLOCK_MODE,
-                                 )),
-                     ] )
-
-        for partition_id in PARTITION_IDS:
-            conf_cmds.extend( [
-                            ("tpc{}".format(partition_id), tpc.PartitionConfParams(
-                                                            device=MASTER_DEVICE_NAME,
-                                                            partition_id=partition_id,
-                                                            trigger_mask=PART_TRIGGER_MASK,
-                                                            spill_gate_enabled=PART_SPILL_GATE_ENABLED,
-                                                            rate_control_enabled=PART_RATE_CONTROL_ENABLED,
-                                                        )),
-                        ] )
-    
-        for i,fanout_device_name in enumerate(FANOUT_DEVICES_NAMES):
-            conf_cmds.extend( [
-                            ("tfc{}".format(i), tfc.ConfParams(
-                                    device=fanout_device_name,
-                                    )),
-                         ] )
-
-    if ENDPOINT_DEVICE_NAME != "":
-        conf_cmds.extend( [
-                        ("tec0", tec.ConfParams(
-                                device=ENDPOINT_DEVICE_NAME,
-                                address=ENDPOINT_ADDRESS,
-                                partition=ENDPOINT_PARTITION
-                                )),
-                     ] )
-
     trigger_interval_ticks=0
+    ## hsi controllers
     if HSI_DEVICE_NAME != "":
         if HSI_RANDOM_RATE > 0:
             trigger_interval_ticks=math.floor((1/HSI_RANDOM_RATE) * CLOCK_SPEED_HZ)
         else:
             console.log('WARNING! Emulated trigger rate of 0 will not disable signal emulation in real HSI hardware! To disable emulated HSI triggers, use  option: "--hsi-source 0" or mask all signal bits', style="bold red")
+        
+        startpars = rccmd.StartParams(run=RUN_NUMBER, trigger_interval_ticks = trigger_interval_ticks)
+        resumepars = rccmd.ResumeParams(trigger_interval_ticks = trigger_interval_ticks)
 
-        conf_cmds.extend( [
-                        ("hsi0", hsi.ConfParams(
-                                device=HSI_DEVICE_NAME,
-                                clock_frequency=CLOCK_SPEED_HZ,
-                                trigger_interval_ticks=trigger_interval_ticks,
-                                address=HSI_ENDPOINT_ADDRESS,
-                                partition=HSI_ENDPOINT_PARTITION,
-                                rising_edge_mask=HSI_RE_MASK,                   
-                                falling_edge_mask=HSI_FE_MASK,
-                                invert_edge_mask=HSI_INV_MASK,
-                                data_source=HSI_SOURCE,
-                                )),
-                     ] )
+        controller_modules.extend( [ DAQModule(name="hsic",
+                                plugin = "HSIController",
+                                conf = hsi.ConfParams( device=HSI_DEVICE_NAME,
+                                                        clock_frequency=CLOCK_SPEED_HZ,
+                                                        trigger_interval_ticks=trigger_interval_ticks,
+                                                        address=HSI_ENDPOINT_ADDRESS,
+                                                        partition=HSI_ENDPOINT_PARTITION,
+                                                        rising_edge_mask=HSI_RE_MASK,
+                                                        falling_edge_mask=HSI_FE_MASK,
+                                                        invert_edge_mask=HSI_INV_MASK,
+                                                        data_source=HSI_SOURCE),
+                                extra_commands = {"start": startpars,
+                                                  "resume": resumepars}), ] )
+        custom_cmds.extend( [
 
-    confcmd = mrccmd("conf", "INITIAL", "CONFIGURED", conf_cmds)
+                            ("hsi_io_reset", acmd([("hsi.*", tcmd.IOResetCmdPayload(
+                                                                      clock_config=HSI_CLOCK_FILE,
+                                                                      soft=False
+                                                                      ))])),
+                            ("hsi_endpoint_enable", acmd([("hsi.*", tcmd.TimingEndpointConfigureCmdPayload(
+                                                                      address=HSI_ENDPOINT_ADDRESS,
+                                                                      partition=HSI_ENDPOINT_PARTITION
+                                                                      ))])),
 
-    jstr = json.dumps(confcmd.pod(), indent=4, sort_keys=True)
-    print(jstr)
+                            ("hsi_endpoint_disable", acmd([("hsi.*", None)])),
 
-    startpars = rcif.StartParams(run=RUN_NUMBER, trigger_interval_ticks = trigger_interval_ticks)
-    startcmd = mrccmd("start", "CONFIGURED", "RUNNING", [
-            ("thi", startpars),
-            ("tmc.*", startpars),
-            ("tpc.*", startpars),
-            ("tfc.*", startpars),
-            ("tec.*", startpars),
-            ("hsi.*", startpars),
-        ])
+                            ("hsi_endpoint_reset",   acmd([("hsi.*", tcmd.TimingEndpointConfigureCmdPayload(
+                                                                          address=HSI_ENDPOINT_ADDRESS,
+                                                                          partition=HSI_ENDPOINT_PARTITION
+                                                                          ))])),
+                            ("hsi_reset", acmd([("hsi.*", None)])),
 
-    jstr = json.dumps(startcmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nStart\n\n", jstr)
+                            ("hsi_configure", acmd([("hsi.*", tcmd.HSIConfigureCmdPayload(
+                                                                  rising_edge_mask=HSI_RE_MASK,                   
+                                                                  falling_edge_mask=HSI_FE_MASK,
+                                                                  invert_edge_mask=HSI_INV_MASK,
+                                                                  data_source=HSI_SOURCE,
+                                                                  random_rate=HSI_RANDOM_RATE
+                                                                  ))])),
+                            ("hsi_start", acmd([("hsi.*", None)])),
+                            ("hsi_stop", acmd([("hsi.*", None)])),
+                            ("hsi_print_status", acmd([("hsi.*", None)])),
+                        ])
+    debug=False
+    partition_name="timing"
+    THI_HOST="it064574.users.bris.ac.uk"
+    CONTROLLER_HOST="it064574.users.bris.ac.uk"
 
-    stopcmd = mrccmd("stop", "RUNNING", "CONFIGURED", [
-            ("thi", None),
-            ("tmc.*", None),
-            ("tpc.*", None),
-            ("tfc.*", None),
-            ("tec.*", None),
-            ("hsi.*", None),
-        ])
+    devices=[]
 
-    jstr = json.dumps(stopcmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nStop\n\n", jstr)
-
-
-    scrapcmd = mcmd("scrap", [
-            ("thi", None),
-            ("tmc.*", None),
-            ("tpc.*", None),
-            ("tfc.*", None),
-            ("tec.*", None),
-            ("hsi.*", None),
-        ])
-
-    jstr = json.dumps(scrapcmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nScrap\n\n", jstr)
-
-    ## timing specific commands
-
-    # master commands
-    master_io_reset_cmd = mcmd("master_io_reset", [
-            ("tmc.*", tcmd.IOResetCmdPayload(
-                      clock_config=MASTER_CLOCK_FILE,
-                      fanout_mode=MASTER_CLOCK_MODE,
-                      soft=False
-                      )),
-        ])
-    jstr = json.dumps(master_io_reset_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nMaster IO reset\n\n", jstr)
-
-
-    master_set_timestamp_cmd = mcmd("master_set_timestamp", [
-            ("tmc.*", None),
-        ])
-    jstr = json.dumps(master_set_timestamp_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nMaster set timestamp\n\n", jstr)
-
-
-    master_print_status_cmd = mcmd("master_print_status", [
-            ("tmc.*", None),
-        ])
-    jstr = json.dumps(master_print_status_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nMaster print status\n\n", jstr)
-
-
-    # partition commands
-    partition_configure_cmd = mcmd("partition_configure", [
-            ("tpc.*", tpc.PartitionConfParams(
-                      trigger_mask=PART_TRIGGER_MASK,
-                      spill_gate_enabled=PART_SPILL_GATE_ENABLED,
-                      rate_control_enabled=PART_RATE_CONTROL_ENABLED,
-                      )),
-        ])
-    jstr = json.dumps(partition_configure_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nPartition configure\n\n", jstr)
-
-
-    partition_enable_cmd = mcmd("partition_enable", [
-            ("tpc.*", None),
-        ])
-    jstr = json.dumps(partition_enable_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nPartition enable\n\n", jstr)
-
-
-    partition_disable_cmd = mcmd("partition_disable", [
-            ("tpc.*", None),
-        ])
-    jstr = json.dumps(partition_disable_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nPartition disable\n\n", jstr)
-
-
-    partition_start_cmd = mcmd("partition_start", [
-            ("tpc.*", None),
-        ])
-    jstr = json.dumps(partition_start_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nPartition start\n\n", jstr)
-
-
-    partition_stop_cmd = mcmd("partition_stop", [
-            ("tpc.*", None),
-        ])
-    jstr = json.dumps(partition_stop_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nPartition stop\n\n", jstr)
-
-
-    partition_enable_triggers_cmd = mcmd("partition_enable_triggers", [
-            ("tpc.*", None),
-        ])
-    jstr = json.dumps(partition_enable_triggers_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nPartition enable triggers\n\n", jstr)
-
-
-    partition_disable_triggers_cmd = mcmd("partition_disable_triggers", [
-            ("tpc.*", None),
-        ])
-    jstr = json.dumps(partition_disable_triggers_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nPartition disable triggers\n\n", jstr)
-
-
-    partition_print_status_cmd = mcmd("partition_print_status", [
-            ("tpc.*", None),
-        ])
-    jstr = json.dumps(partition_print_status_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nPartition print status\n\n", jstr)
-
-    # fanout commands
-    fanout_io_reset_cmd = mcmd("fanout_io_reset", [
-            ("tfc.*", tcmd.IOResetCmdPayload(
-                      clock_config=FANOUT_CLOCK_FILE,
-                      soft=False
-                      )),
-        ])
-    jstr = json.dumps(fanout_io_reset_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nFanout IO reset\n\n", jstr)
-
-
-    fanout_print_status_cmd = mcmd("fanout_print_status", [
-            ("tfc.*", None),
-        ])
-    jstr = json.dumps(fanout_print_status_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nFanout print status\n\n", jstr)
-
-    # hsi commands
-    hsi_io_reset_cmd = mcmd("hsi_io_reset", [
-            ("hsi.*", tcmd.IOResetCmdPayload(
-                      clock_config=HSI_CLOCK_FILE,
-                      soft=False
-                      )),
-        ])
-    jstr = json.dumps(hsi_io_reset_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nHSI IO reset\n\n", jstr)
-
-
-    hsi_endpoint_enable_cmd = mcmd("hsi_endpoint_enable", [
-            ("hsi.*", tcmd.TimingEndpointConfigureCmdPayload(
-                      address=HSI_ENDPOINT_ADDRESS,
-                      partition=HSI_ENDPOINT_PARTITION
-                      )),
-        ])
-    jstr = json.dumps(hsi_endpoint_enable_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nHSI endpoint enable\n\n", jstr)
-
-
-    hsi_endpoint_disable_cmd = mcmd("hsi_endpoint_disable", [
-            ("hsi.*", None),
-        ])
-    jstr = json.dumps(hsi_endpoint_disable_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nHSI endpoint disable\n\n", jstr)
-
-
-    hsi_endpoint_reset_cmd = mcmd("hsi_endpoint_reset", [
-            ("hsi.*", tcmd.TimingEndpointConfigureCmdPayload(
-                      address=HSI_ENDPOINT_ADDRESS,
-                      partition=HSI_ENDPOINT_PARTITION
-                      )),
-        ])
-    jstr = json.dumps(hsi_endpoint_reset_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nHSI endpoint reset\n\n", jstr)
-
-
-    hsi_reset_cmd = mcmd("hsi_reset", [
-            ("hsi.*", None),
-        ])
-    jstr = json.dumps(hsi_reset_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nHSI reset\n\n", jstr)
-
-
-    hsi_configure_cmd = mcmd("hsi_configure", [
-            ("hsi.*", tcmd.HSIConfigureCmdPayload(
-                      rising_edge_mask=HSI_RE_MASK,                   
-                      falling_edge_mask=HSI_FE_MASK,
-                      invert_edge_mask=HSI_INV_MASK,
-                      data_source=HSI_SOURCE,
-                      random_rate=HSI_RANDOM_RATE
-                      )),
-        ])
-    jstr = json.dumps(hsi_configure_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nHSI configure\n\n", jstr)
-
-    hsi_start_cmd = mcmd("hsi_start", [
-            ("hsi.*", None),
-        ])
-    jstr = json.dumps(hsi_start_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nHSI start\n\n", jstr)
-
-    hsi_stop_cmd = mcmd("hsi_stop", [
-            ("hsi.*", None),
-        ])
-    jstr = json.dumps(hsi_stop_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nHSI stop\n\n", jstr)
-
-
-    hsi_print_status_cmd = mcmd("hsi_print_status", [
-            ("hsi.*", None),
-        ])
-    jstr = json.dumps(hsi_print_status_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nHSI print status\n\n", jstr)
-
-
-
-    # endpoint commands
-    endpoint_io_reset_cmd = mcmd("endpoint_io_reset", [
-            ("tec.*", tcmd.IOResetCmdPayload(
-                      clock_config=ENDPOINT_CLOCK_FILE,
-                      soft=False
-                      )),
-        ])
-    jstr = json.dumps(endpoint_io_reset_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nEndpoint IO reset\n\n", jstr)
-
-
-    endpoint_enable_cmd = mcmd("endpoint_enable", [
-            ("tec.*", tcmd.TimingEndpointConfigureCmdPayload(
-                      address=ENDPOINT_ADDRESS,
-                      partition=ENDPOINT_PARTITION
-                      )),
-        ])
-    jstr = json.dumps(endpoint_enable_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nEndpoint enable\n\n", jstr)
-
-
-    endpoint_disable_cmd = mcmd("endpoint_disable", [
-            ("tec.*", None),
-        ])
-    jstr = json.dumps(endpoint_disable_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nEndpoint disable\n\n", jstr)
-
-
-    endpoint_reset_cmd = mcmd("endpoint_reset", [
-            ("tec.*", tcmd.TimingEndpointConfigureCmdPayload(
-                      address=ENDPOINT_ADDRESS,
-                      partition=ENDPOINT_PARTITION
-                      )),
-        ])
-    jstr = json.dumps(endpoint_reset_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nEndpoint reset\n\n", jstr)
-
-
-    endpoint_print_status_cmd = mcmd("endpoint_print_status", [
-            ("tec.*", None),
-        ])
-    jstr = json.dumps(endpoint_print_status_cmd.pod(), indent=4, sort_keys=True)
-    print("="*80+"\nEndpoint print status\n\n", jstr)
-    #####
-
-    # Create a list of commands
-    cmd_seq = [initcmd, confcmd, startcmd, stopcmd, scrapcmd]
-
-    if MASTER_DEVICE_NAME != "":
-        cmd_seq.extend( [
-                        master_io_reset_cmd, master_set_timestamp_cmd, master_print_status_cmd,
-                        partition_configure_cmd, partition_enable_cmd, partition_disable_cmd, 
-                        partition_start_cmd, partition_stop_cmd, 
-                        partition_enable_triggers_cmd, partition_disable_triggers_cmd, 
-                        partition_print_status_cmd
-                        ] )
+    controllers_graph = ModuleGraph(controller_modules)
+    if ENDPOINT_DEVICE_NAME:
+        devices.append(ENDPOINT_DEVICE_NAME)
+        controllers_graph.add_endpoint("timing_cmds", "tec0.timing_cmds", Direction.OUT)
+        controllers_graph.add_endpoint("timing_device_info", "tec0.timing_device_info", Direction.IN, [ENDPOINT_DEVICE_NAME])
     
-    if len(FANOUT_DEVICES_NAMES) != 0:
-        cmd_seq.extend( [
-                        fanout_io_reset_cmd, fanout_print_status_cmd,
-                        ] )
+    if MASTER_DEVICE_NAME:
+        devices.append(MASTER_DEVICE_NAME)
+        controllers_graph.add_endpoint("timing_cmds", f"{master_controller_mod_name}.timing_cmds", Direction.OUT)
+        controllers_graph.add_endpoint("timing_device_info", f"{master_controller_mod_name}.timing_device_info", Direction.IN, [MASTER_DEVICE_NAME])
 
-    if ENDPOINT_DEVICE_NAME != "":
-        cmd_seq.extend( [
-                        endpoint_io_reset_cmd, 
-                        endpoint_enable_cmd, endpoint_disable_cmd, 
-                        endpoint_reset_cmd, endpoint_print_status_cmd
-                        ] )
+    for i,fanout_device_name in enumerate(FANOUT_DEVICES_NAMES):
 
-    if HSI_DEVICE_NAME != "":
-        cmd_seq.extend( [
-                        hsi_io_reset_cmd,
-                        hsi_endpoint_enable_cmd,
-                        hsi_endpoint_disable_cmd,
-                        hsi_endpoint_reset_cmd,
-                        hsi_reset_cmd,
-                        hsi_configure_cmd,
-                        hsi_start_cmd,
-                        hsi_stop_cmd,
-                        hsi_print_status_cmd,
-                        ] )
+        devices.append(fanout_device_name)
+        controllers_graph.add_endpoint("timing_cmds", f"tfc{i}.timing_cmds", Direction.OUT)
+        controllers_graph.add_endpoint("timing_device_info", f"tfc{i}.timing_device_info", Direction.IN, [fanout_device_name])
 
-    # Print them as json (to be improved/moved out)
-    jstr = json.dumps([c.pod() for c in cmd_seq], indent=4, sort_keys=True)
-    return jstr
+    thi_graph = ModuleGraph(thi_modules)
+    thi_graph.add_endpoint("timing_cmds", "thi.timing_cmds", Direction.IN)
+    thi_graph.add_endpoint("timing_device_info", "thi.timing_device_info", Direction.OUT, devices)
+
+    thi_app = App(modulegraph=thi_graph, host=THI_HOST)
+    controllers_app = App(modulegraph=controllers_graph, host=CONTROLLER_HOST)
+
+    controllers_app_name="ctrls"
+
+    the_system = System()
+    the_system.apps["thi"]=thi_app
+    the_system.apps[controllers_app_name]=controllers_app
+
+    ers_settings=dict()
+
+    use_kafka = False
+    disable_trace=False
+    info_svc_uri="file://info_${APP_NAME}_${APP_PORT}.json"
+    
+    ers_settings["INFO"] =    "erstrace,throttle,lstdout"
+    ers_settings["WARNING"] = "erstrace,throttle,lstdout"
+    ers_settings["ERROR"] =   "erstrace,throttle,lstdout"
+    ers_settings["FATAL"] =   "erstrace,lstdout"
+    
+    ####################################################################
+    # Application command data generation
+    ####################################################################
+    from daqconf.core.conf_utils import make_app_command_data
+    # Arrange per-app command data into the format used by util.write_json_files()
+    app_command_datas = {
+        name : make_app_command_data(the_system, app, name, verbose=debug)
+        for name,app in the_system.apps.items()
+    }
+
+    # Make boot.json config
+    from daqconf.core.conf_utils import make_system_command_datas,generate_boot, write_json_files
+    system_command_datas = make_system_command_datas(the_system, verbose=debug)
+    # Override the default boot.json with the one from minidaqapp
+    boot = generate_boot(the_system.apps, ers_settings=ers_settings, info_svc_uri=info_svc_uri,
+                              disable_trace=disable_trace, use_kafka=use_kafka)
+
+    system_command_datas['boot'] = boot
+
+    write_json_files(app_command_datas, system_command_datas, OUTPUT_PATH, verbose=debug)
+
+    console.log(f"timing app config generated in {OUTPUT_PATH}")
+    
+    write_metadata_file(OUTPUT_PATH, "timing_app_confgen")
+
+    data_dir = f"{OUTPUT_PATH}/data"
+
+    for c,d in custom_cmds:
+        cfg = {
+            "apps": {controllers_app_name: f'data/{controllers_app_name}_{c}'}
+        }
+        with open(f"{OUTPUT_PATH}/{c}.json", 'w') as f:
+            json.dump(cfg, f, indent=4, sort_keys=True)
+
+        with open(f'{data_dir}/{controllers_app_name}_{c}.json', 'w') as f:
+            json.dump(d.pod(), f, indent=4, sort_keys=True)
 
 def split_string(ctx, param, value):
     if value is None:
@@ -517,6 +357,8 @@ if __name__ == '__main__':
 
     @click.command(context_settings=CONTEXT_SETTINGS)
     @click.option('-r', '--run-number', default=333)
+    @click.option('-c', '--connections-file', default="${TIMING_SHARE}/config/etc/connections.xml", help='Path to timing hardware connections file')
+
     @click.option('-g', '--gather-interval', default=1e6)
     @click.option('-d', '--gather-interval-debug', default=10e6)
 
@@ -551,23 +393,23 @@ if __name__ == '__main__':
 
     @click.option('-u', '--uhal-log-level', default="notice")
     @click.option('-o', '--output-path', type=click.Path(), default='.')
-    @click.argument('json_file', type=click.Path(), default='timing_app.json')
-    def cli(run_number, gather_interval, gather_interval_debug, 
+    @click.argument('json_dir', type=click.Path(), default='timing_app')
+    def cli(run_number, connections_file, gather_interval, gather_interval_debug, 
 
         master_device_name, master_clock_file, master_clock_mode, master_send_delays_period, partition_ids,
         fanout_devices_names, fanout_clock_file,
         endpoint_device_name, endpoint_clock_file, endpoint_address, endpoint_partition,
         hsi_device_name, hsi_clock_file, hsi_endpoint_address, hsi_endpoint_partition, hsi_re_mask, hsi_fe_mask, hsi_inv_mask, hsi_source, hsi_random_rate,
         part_trig_mask, part_spill_gate, part_rate_control,
-        uhal_log_level, output_path, json_file):
+        uhal_log_level, output_path, json_dir):
         """
           JSON_FILE: Input raw data file.
           JSON_FILE: Output json configuration file.
         """
 
-        with open(json_file, 'w') as f:
-            f.write(generate(
+        generate(
                     RUN_NUMBER = run_number, 
+                    CONNECTIONS_FILE=connections_file,
                     GATHER_INTERVAL = gather_interval,
                     GATHER_INTERVAL_DEBUG = gather_interval_debug,
                     MASTER_DEVICE_NAME = master_device_name,
@@ -594,10 +436,7 @@ if __name__ == '__main__':
                     PART_SPILL_GATE_ENABLED=part_spill_gate,
                     PART_RATE_CONTROL_ENABLED=part_rate_control,
                     UHAL_LOG_LEVEL = uhal_log_level,
-                    OUTPUT_PATH = output_path,
-                ))
-
-        print(f"'{json_file}' generation completed.")
-
+                    OUTPUT_PATH = json_dir,
+                )
     cli()
     
