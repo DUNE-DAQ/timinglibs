@@ -69,6 +69,7 @@ def generate(
         PART_RATE_CONTROL_ENABLED=True,
         UHAL_LOG_LEVEL="notice",
         OUTPUT_PATH="./timing_app",
+        DEBUG=False,
     ):
     
     # Define modules and queues
@@ -115,8 +116,8 @@ def generate(
                                                   fanout_mode=MASTER_CLOCK_MODE,
                                                   soft=False
                                                   ))])),
-                                ("master_set_timestamp", acmd([("tmc",None)])),
-                                ("master_print_status",  acmd([("tmc",None)])),
+                                #("master_set_timestamp", acmd([("tmc",None)])),
+                                #("master_print_status",  acmd([("tmc",None)])),
                             ] )
 
         ###
@@ -140,13 +141,13 @@ def generate(
                                                                 spill_gate_enabled=PART_SPILL_GATE_ENABLED,
                                                                 rate_control_enabled=PART_RATE_CONTROL_ENABLED,
                                                             ))])),
-                                ("partition_enable", acmd([("tpc.*", None)])),
-                                ("partition_disable", acmd([("tpc.*", None)])),
-                                ("partition_start", acmd([("tpc.*", None)])),
-                                ("partition_stop", acmd([("tpc.*", None)])),
-                                ("partition_enable_triggers", acmd([("tpc.*", None)])),
-                                ("partition_disable_triggers", acmd([("tpc.*", None)])),
-                                ("partition_print_status", acmd([("tpc.*", None)])),
+                                #("partition_enable", acmd([("tpc.*", None)])),
+                                #("partition_disable", acmd([("tpc.*", None)])),
+                                #("partition_start", acmd([("tpc.*", None)])),
+                                #("partition_stop", acmd([("tpc.*", None)])),
+                                #("partition_enable_triggers", acmd([("tpc.*", None)])),
+                                #("partition_disable_triggers", acmd([("tpc.*", None)])),
+                                #("partition_print_status", acmd([("tpc.*", None)])),
                             ] )
         controller_modules.extend( tpc_mods )
         
@@ -169,7 +170,7 @@ def generate(
                                                                   clock_config=FANOUT_CLOCK_FILE,
                                                                     soft=False
                                                     ))])),
-                             ("fanout_print_status", acmd([("tfc.*", None)])),
+                             #("fanout_print_status", acmd([("tfc.*", None)])),
                          ] )
 
     ## endpoint controllers
@@ -194,13 +195,13 @@ def generate(
                                                                           address=ENDPOINT_ADDRESS,
                                                                           partition=ENDPOINT_PARTITION
                                                                           ))])),
-                            ("endpoint_disable", acmd([("tec.*", None)])),
+                            #("endpoint_disable", acmd([("tec.*", None)])),
 
                             ("endpoint_reset",   acmd([("tec.*", tcmd.TimingEndpointConfigureCmdPayload(
                                                                           address=ENDPOINT_ADDRESS,
                                                                           partition=ENDPOINT_PARTITION
                                                                           ))])),
-                            ("endpoint_print_status", acmd([("tec.*", None)])),
+                            #("endpoint_print_status", acmd([("tec.*", None)])),
 
                             ])
     
@@ -239,13 +240,13 @@ def generate(
                                                                       partition=HSI_ENDPOINT_PARTITION
                                                                       ))])),
 
-                            ("hsi_endpoint_disable", acmd([("hsi.*", None)])),
+                            #("hsi_endpoint_disable", acmd([("hsi.*", None)])),
 
                             ("hsi_endpoint_reset",   acmd([("hsi.*", tcmd.TimingEndpointConfigureCmdPayload(
                                                                           address=HSI_ENDPOINT_ADDRESS,
                                                                           partition=HSI_ENDPOINT_PARTITION
                                                                           ))])),
-                            ("hsi_reset", acmd([("hsi.*", None)])),
+                            #("hsi_reset", acmd([("hsi.*", None)])),
 
                             ("hsi_configure", acmd([("hsi.*", tcmd.HSIConfigureCmdPayload(
                                                                   rising_edge_mask=HSI_RE_MASK,                   
@@ -254,11 +255,10 @@ def generate(
                                                                   data_source=HSI_SOURCE,
                                                                   random_rate=HSI_RANDOM_RATE
                                                                   ))])),
-                            ("hsi_start", acmd([("hsi.*", None)])),
-                            ("hsi_stop", acmd([("hsi.*", None)])),
-                            ("hsi_print_status", acmd([("hsi.*", None)])),
+                            #("hsi_start", acmd([("hsi.*", None)])),
+                            #("hsi_stop", acmd([("hsi.*", None)])),
+                            #("hsi_print_status", acmd([("hsi.*", None)])),
                         ])
-    debug=False
     partition_name="timing"
     THI_HOST="it064574.users.bris.ac.uk"
     CONTROLLER_HOST="it064574.users.bris.ac.uk"
@@ -269,22 +269,28 @@ def generate(
     if ENDPOINT_DEVICE_NAME:
         devices.append(ENDPOINT_DEVICE_NAME)
         controllers_graph.add_endpoint("timing_cmds", "tec0.timing_cmds", Direction.OUT)
-        controllers_graph.add_endpoint("timing_device_info", "tec0.timing_device_info", Direction.IN, [ENDPOINT_DEVICE_NAME])
     
     if MASTER_DEVICE_NAME:
         devices.append(MASTER_DEVICE_NAME)
         controllers_graph.add_endpoint("timing_cmds", f"{master_controller_mod_name}.timing_cmds", Direction.OUT)
-        controllers_graph.add_endpoint("timing_device_info", f"{master_controller_mod_name}.timing_device_info", Direction.IN, [MASTER_DEVICE_NAME])
+        for partition_id in PARTITION_IDS:
+            controllers_graph.add_endpoint("timing_cmds", f"tpc{partition_id}.timing_cmds", Direction.OUT)
 
     for i,fanout_device_name in enumerate(FANOUT_DEVICES_NAMES):
 
         devices.append(fanout_device_name)
         controllers_graph.add_endpoint("timing_cmds", f"tfc{i}.timing_cmds", Direction.OUT)
-        controllers_graph.add_endpoint("timing_device_info", f"tfc{i}.timing_device_info", Direction.IN, [fanout_device_name])
+
+    if HSI_DEVICE_NAME:
+        devices.append(HSI_DEVICE_NAME)
+        controllers_graph.add_endpoint("timing_cmds", f"hsic.timing_cmds", Direction.OUT)
+
+    if len(devices):
+        controllers_graph.add_endpoint(None, None, Direction.IN, set(devices))
 
     thi_graph = ModuleGraph(thi_modules)
     thi_graph.add_endpoint("timing_cmds", "thi.timing_cmds", Direction.IN)
-    thi_graph.add_endpoint("timing_device_info", "thi.timing_device_info", Direction.OUT, devices)
+    thi_graph.add_endpoint("timing_device_info", "thi.timing_device_info", Direction.OUT, set(devices))
 
     thi_app = App(modulegraph=thi_graph, host=THI_HOST)
     controllers_app = App(modulegraph=controllers_graph, host=CONTROLLER_HOST)
@@ -312,20 +318,20 @@ def generate(
     from daqconf.core.conf_utils import make_app_command_data
     # Arrange per-app command data into the format used by util.write_json_files()
     app_command_datas = {
-        name : make_app_command_data(the_system, app, name, verbose=debug)
+        name : make_app_command_data(the_system, app, name, verbose=DEBUG)
         for name,app in the_system.apps.items()
     }
 
     # Make boot.json config
     from daqconf.core.conf_utils import make_system_command_datas,generate_boot, write_json_files
-    system_command_datas = make_system_command_datas(the_system, verbose=debug)
+    system_command_datas = make_system_command_datas(the_system, verbose=DEBUG)
     # Override the default boot.json with the one from minidaqapp
     boot = generate_boot(the_system.apps, ers_settings=ers_settings, info_svc_uri=info_svc_uri,
                               disable_trace=disable_trace, use_kafka=use_kafka)
 
     system_command_datas['boot'] = boot
 
-    write_json_files(app_command_datas, system_command_datas, OUTPUT_PATH, verbose=debug)
+    write_json_files(app_command_datas, system_command_datas, OUTPUT_PATH, verbose=DEBUG)
 
     console.log(f"timing app config generated in {OUTPUT_PATH}")
     
@@ -392,7 +398,7 @@ if __name__ == '__main__':
     @click.option('--part-rate-control', type=bool, default=True)
 
     @click.option('-u', '--uhal-log-level', default="notice")
-    @click.option('-o', '--output-path', type=click.Path(), default='.')
+    @click.option('--debug', default=False, is_flag=True, help="Switch to get a lot of printout and dot files")
     @click.argument('json_dir', type=click.Path(), default='timing_app')
     def cli(run_number, connections_file, gather_interval, gather_interval_debug, 
 
@@ -401,7 +407,7 @@ if __name__ == '__main__':
         endpoint_device_name, endpoint_clock_file, endpoint_address, endpoint_partition,
         hsi_device_name, hsi_clock_file, hsi_endpoint_address, hsi_endpoint_partition, hsi_re_mask, hsi_fe_mask, hsi_inv_mask, hsi_source, hsi_random_rate,
         part_trig_mask, part_spill_gate, part_rate_control,
-        uhal_log_level, output_path, json_dir):
+        uhal_log_level, debug, json_dir):
         """
           JSON_FILE: Input raw data file.
           JSON_FILE: Output json configuration file.
@@ -437,6 +443,7 @@ if __name__ == '__main__':
                     PART_RATE_CONTROL_ENABLED=part_rate_control,
                     UHAL_LOG_LEVEL = uhal_log_level,
                     OUTPUT_PATH = json_dir,
+                    DEBUG = debug,
                 )
     cli()
     
