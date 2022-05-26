@@ -24,6 +24,7 @@ namespace timinglibs {
 class TimestampEstimatorBase
 {
 public:
+  virtual ~TimestampEstimatorBase() = default;
   virtual dfmessages::timestamp_t get_timestamp_estimate() const = 0;
 
   enum WaitStatus
