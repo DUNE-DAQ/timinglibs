@@ -30,7 +30,7 @@ import dunedaq.timinglibs.timingfanoutcontroller as tfc
 from appfwk.utils import acmd
 from daqconf.core.app import App, ModuleGraph
 from daqconf.core.daqmodule import DAQModule
-from daqconf.core.conf_utils import Direction, AppConnection
+from daqconf.core.conf_utils import Direction
 from daqconf.core.system import System
 from daqconf.core.metadata import write_metadata_file
 
@@ -116,8 +116,8 @@ def generate(
                                                   fanout_mode=MASTER_CLOCK_MODE,
                                                   soft=False
                                                   ))])),
-                                #("master_set_timestamp", acmd([("tmc",None)])),
-                                #("master_print_status",  acmd([("tmc",None)])),
+                                ("master_set_timestamp", acmd([("tmc",None)])),
+                                ("master_print_status",  acmd([("tmc",None)])),
                             ] )
 
         ###
@@ -141,13 +141,13 @@ def generate(
                                                                 spill_gate_enabled=PART_SPILL_GATE_ENABLED,
                                                                 rate_control_enabled=PART_RATE_CONTROL_ENABLED,
                                                             ))])),
-                                #("partition_enable", acmd([("tpc.*", None)])),
-                                #("partition_disable", acmd([("tpc.*", None)])),
-                                #("partition_start", acmd([("tpc.*", None)])),
-                                #("partition_stop", acmd([("tpc.*", None)])),
-                                #("partition_enable_triggers", acmd([("tpc.*", None)])),
-                                #("partition_disable_triggers", acmd([("tpc.*", None)])),
-                                #("partition_print_status", acmd([("tpc.*", None)])),
+                                ("partition_enable", acmd([("tpc.*", None)])),
+                                ("partition_disable", acmd([("tpc.*", None)])),
+                                ("partition_start", acmd([("tpc.*", None)])),
+                                ("partition_stop", acmd([("tpc.*", None)])),
+                                ("partition_enable_triggers", acmd([("tpc.*", None)])),
+                                ("partition_disable_triggers", acmd([("tpc.*", None)])),
+                                ("partition_print_status", acmd([("tpc.*", None)])),
                             ] )
         controller_modules.extend( tpc_mods )
         
@@ -170,7 +170,7 @@ def generate(
                                                                   clock_config=FANOUT_CLOCK_FILE,
                                                                     soft=False
                                                     ))])),
-                             #("fanout_print_status", acmd([("tfc.*", None)])),
+                             ("fanout_print_status", acmd([("tfc.*", None)])),
                          ] )
 
     ## endpoint controllers
@@ -195,13 +195,13 @@ def generate(
                                                                           address=ENDPOINT_ADDRESS,
                                                                           partition=ENDPOINT_PARTITION
                                                                           ))])),
-                            #("endpoint_disable", acmd([("tec.*", None)])),
+                            ("endpoint_disable", acmd([("tec.*", None)])),
 
                             ("endpoint_reset",   acmd([("tec.*", tcmd.TimingEndpointConfigureCmdPayload(
                                                                           address=ENDPOINT_ADDRESS,
                                                                           partition=ENDPOINT_PARTITION
                                                                           ))])),
-                            #("endpoint_print_status", acmd([("tec.*", None)])),
+                            ("endpoint_print_status", acmd([("tec.*", None)])),
 
                             ])
     
@@ -240,13 +240,13 @@ def generate(
                                                                       partition=HSI_ENDPOINT_PARTITION
                                                                       ))])),
 
-                            #("hsi_endpoint_disable", acmd([("hsi.*", None)])),
+                            ("hsi_endpoint_disable", acmd([("hsi.*", None)])),
 
                             ("hsi_endpoint_reset",   acmd([("hsi.*", tcmd.TimingEndpointConfigureCmdPayload(
                                                                           address=HSI_ENDPOINT_ADDRESS,
                                                                           partition=HSI_ENDPOINT_PARTITION
                                                                           ))])),
-                            #("hsi_reset", acmd([("hsi.*", None)])),
+                            ("hsi_reset", acmd([("hsi.*", None)])),
 
                             ("hsi_configure", acmd([("hsi.*", tcmd.HSIConfigureCmdPayload(
                                                                   rising_edge_mask=HSI_RE_MASK,                   
@@ -255,9 +255,9 @@ def generate(
                                                                   data_source=HSI_SOURCE,
                                                                   random_rate=HSI_RANDOM_RATE
                                                                   ))])),
-                            #("hsi_start", acmd([("hsi.*", None)])),
-                            #("hsi_stop", acmd([("hsi.*", None)])),
-                            #("hsi_print_status", acmd([("hsi.*", None)])),
+                            ("hsi_start", acmd([("hsi.*", None)])),
+                            ("hsi_stop", acmd([("hsi.*", None)])),
+                            ("hsi_print_status", acmd([("hsi.*", None)])),
                         ])
     partition_name="timing"
     THI_HOST="it064574.users.bris.ac.uk"
