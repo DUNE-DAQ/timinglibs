@@ -74,6 +74,7 @@ private:
   std::string m_connections_file;
   std::unique_ptr<uhal::ConnectionManager> m_connection_manager;
   std::unique_ptr<uhal::HwInterface> m_hsi_device;
+  std::atomic<daqdataformats::run_number_t> m_run_number;
 
   void do_hsievent_work(std::atomic<bool>&) override;
 

@@ -16,6 +16,7 @@
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/app/Nljs.hpp"
 #include "logging/Logging.hpp"
+#include "rcif/cmd/Nljs.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -108,9 +109,11 @@ HSIReadout::do_configure(const nlohmann::json& obj)
 }
 
 void
-HSIReadout::do_start(const nlohmann::json& /*args*/)
+HSIReadout::do_start(const nlohmann::json& args)
 {
   TLOG() << get_name() << ": Entering do_start() method";
+  auto start_params = args.get<rcif::cmd::StartParams>();
+  m_run_number.store(start_params.run);
   m_thread.start_working_thread("read-hsi-events");
   TLOG() << get_name() << " successfully started";
   TLOG() << get_name() << ": Exiting do_start() method";
@@ -216,11 +219,11 @@ HSIReadout::do_hsievent_work(std::atomic<bool>& running_flag)
           if (hsi_emulation_mode)
           {
             TLOG_DEBUG(3) << " HSI hardware is in emulation mode, faking (overwriting) signal map from firmware+hardware to have (only) bit 7 high.";
-            event = dfmessages::HSIEvent(hsi_device_id, 1UL << 7, ts, counter);
+            event = dfmessages::HSIEvent(hsi_device_id, 1UL << 7, ts, counter, m_run_number);
           }
           else
           {
-            event = dfmessages::HSIEvent(hsi_device_id, trigger, ts, counter);
+            event = dfmessages::HSIEvent(hsi_device_id, trigger, ts, counter, m_run_number);
           }
           
           m_last_readout_timestamp.store(ts);
