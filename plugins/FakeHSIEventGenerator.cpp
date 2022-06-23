@@ -235,7 +235,7 @@ FakeHSIEventGenerator::do_hsievent_work(std::atomic<bool>& running_flag)
 
       m_last_generated_timestamp.store(ts);
 
-      dfmessages::HSIEvent event = dfmessages::HSIEvent(m_hsi_device_id, signal_map, ts, m_generated_counter);
+      dfmessages::HSIEvent event = dfmessages::HSIEvent(m_hsi_device_id, signal_map, ts, m_generated_counter, m_run_number);
       send_hsi_event(event);
     } else {
       continue;

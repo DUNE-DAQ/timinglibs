@@ -17,6 +17,7 @@
 #include "timinglibs/fakehsieventgeneratorinfo/InfoStructs.hpp"
 
 #include "appfwk/DAQModule.hpp"
+#include "daqdataformats/Types.hpp"
 #include "dfmessages/TimeSync.hpp"
 #include "ers/Issue.hpp"
 #include "iomanager/Receiver.hpp"
