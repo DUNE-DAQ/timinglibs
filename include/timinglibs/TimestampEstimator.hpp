@@ -33,9 +33,9 @@ namespace timinglibs {
 class TimestampEstimator : public TimestampEstimatorBase
 {
 public:
-  TimestampEstimator(std::shared_ptr<iomanager::ReceiverConcept<dfmessages::TimeSync>> time_sync_receiver,
-                     uint64_t clock_frequency_hz); // NOLINT(build/unsigned)
 
+  TimestampEstimator(dfmessages::run_number_t run_number, uint64_t clock_frequency_hz); // NOLINT(build/unsigned)
+  
   explicit TimestampEstimator(uint64_t clock_frequency_hz); // NOLINT(build/unsigned)
 
   virtual ~TimestampEstimator();
@@ -44,18 +44,17 @@ public:
 
   void add_timestamp_datapoint(const dfmessages::TimeSync& ts);
 
+  void timesync_callback(dfmessages::TimeSync& tsync);
+
 private:
-  void estimator_thread_fn(std::atomic<bool>& running_flag);
 
   // The estimate of the current timestamp
   std::atomic<dfmessages::timestamp_t> m_current_timestamp_estimate{ dfmessages::TypeDefaults::s_invalid_timestamp };
 
   uint64_t m_clock_frequency_hz; // NOLINT(build/unsigned)
-  std::shared_ptr<iomanager::ReceiverConcept<dfmessages::TimeSync>> m_time_sync_receiver;
-  utilities::WorkerThread m_estimator_thread;
   dfmessages::TimeSync m_most_recent_timesync;
   std::mutex m_datapoint_mutex;
-  std::chrono::milliseconds queueTimeout_;
+  dfmessages::run_number_t m_run_number {0};
 };
 
 } // namespace timinglibs

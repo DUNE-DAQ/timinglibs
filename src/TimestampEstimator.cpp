@@ -18,31 +18,21 @@
 
 namespace dunedaq {
 namespace timinglibs {
-TimestampEstimator::TimestampEstimator(
-  std::shared_ptr<iomanager::ReceiverConcept<dfmessages::TimeSync>> time_sync_receiver,
-  uint64_t clock_frequency_hz) // NOLINT(build/unsigned)
+TimestampEstimator::TimestampEstimator(dfmessages::run_number_t run_number, uint64_t clock_frequency_hz) // NOLINT(build/unsigned)
   : m_clock_frequency_hz(clock_frequency_hz)
-  , m_time_sync_receiver(time_sync_receiver)
-  , m_estimator_thread(std::bind(&TimestampEstimator::estimator_thread_fn, this, std::placeholders::_1))
-  , queueTimeout_(10)
+    , m_run_number(run_number)
 {
-  m_estimator_thread.start_working_thread("tde-ts-est");
+    m_most_recent_timesync.daq_time = dfmessages::TypeDefaults::s_invalid_timestamp;
 }
 
 TimestampEstimator::TimestampEstimator(uint64_t clock_frequency_hz) // NOLINT(build/unsigned)
-  : m_clock_frequency_hz(clock_frequency_hz)
-  , m_time_sync_receiver(nullptr)
-  , m_estimator_thread(std::bind(&TimestampEstimator::estimator_thread_fn, this, std::placeholders::_1))
+    : m_clock_frequency_hz(clock_frequency_hz)
 {
-  m_most_recent_timesync.daq_time = dfmessages::TypeDefaults::s_invalid_timestamp;
-  m_current_timestamp_estimate.store(dfmessages::TypeDefaults::s_invalid_timestamp);
+    m_most_recent_timesync.daq_time = dfmessages::TypeDefaults::s_invalid_timestamp;
 }
 
 TimestampEstimator::~TimestampEstimator()
 {
-  if (m_estimator_thread.thread_running()) {
-    m_estimator_thread.stop_working_thread();
-  }
 }
 
 void
@@ -105,55 +95,12 @@ TimestampEstimator::add_timestamp_datapoint(const dfmessages::TimeSync& ts)
   }
 }
 
-void
-TimestampEstimator::estimator_thread_fn(std::atomic<bool>& running_flag)
+void 
+TimestampEstimator::timesync_callback(dfmessages::TimeSync& tsync)
 {
-  // This loop is a hack to deal with the fact that there might be
-  // leftover TimeSync messages from the previous run, because
-  // ModuleLevelTrigger is stopped before the readout modules
-  // that send the TimeSyncs. So we pop everything we can at
-  // startup. This will definitely get all of the TimeSyncs from the
-  // previous run. It *may* also get TimeSyncs from the current run,
-  // which we drop on the floor. This is fairly harmless: it'll just
-  // slightly delay us getting to the point where we actually start
-  // making the timestamp estimate
-  dfmessages::TimeSync tsync{ dfmessages::TypeDefaults::s_invalid_timestamp };
-  while (true) {
-    try {
-      tsync = m_time_sync_receiver->receive(iomanager::Receiver::s_no_block);
-    } catch (const dunedaq::iomanager::TimeoutExpired& excpt) {
-      break;
+    if (tsync.run_number == m_run_number) {
+        add_timestamp_datapoint(tsync);
     }
-  }
-
-  m_most_recent_timesync.daq_time = dfmessages::TypeDefaults::s_invalid_timestamp;
-  m_current_timestamp_estimate.store(dfmessages::TypeDefaults::s_invalid_timestamp);
-
-  // m_time_sync_receiver is connected to an MPMC queue with multiple
-  // writers. We read whatever we can off it, and the item with the
-  // largest timestamp "wins"
-  while (running_flag.load()) {
-    // First, update the latest timestamp
-    try {
-      tsync = m_time_sync_receiver->receive(iomanager::Receiver::s_no_block);
-      add_timestamp_datapoint(tsync);
-    } catch (const dunedaq::iomanager::TimeoutExpired& excpt) {
-      // nothing received, we'll try again soon
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  }
-
-  // Drain the input queue as best we can. We're not going to do
-  // anything with the TimeSync messages, so we just drop them on the
-  // floor
-  while (true) {
-    try {
-      tsync = m_time_sync_receiver->receive(iomanager::Receiver::s_no_block);
-    } catch (const dunedaq::iomanager::TimeoutExpired& excpt) {
-      break;
-    }
-  }
 }
 
 } // namespace timinglibs
