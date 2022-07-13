@@ -139,9 +139,9 @@ ERS_DECLARE_ISSUE(timinglibs,
                   ((std::string)action)((std::string)device))
 
 ERS_DECLARE_ISSUE(timinglibs,
-                  InvalidTriggerIntervalTicksValue,
-                  " Trigger interval ticks value " << trigger_interval_ticks << " invalid!",
-                  ((uint64_t)trigger_interval_ticks)) // NOLINT(build/unsigned)
+                  InvalidTriggerRateValue,
+                  " Trigger rate value " << trigger_rate << " invalid!",
+                  ((uint64_t)trigger_rate)) // NOLINT(build/unsigned)
 
 ERS_DECLARE_ISSUE_BASE(timinglibs,
                        QueueIsNullFatalError,

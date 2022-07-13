@@ -58,7 +58,7 @@ private:
   void do_configure(const nlohmann::json& data) override;
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
-  void do_resume(const nlohmann::json& data);
+  void do_change_rate(const nlohmann::json& data);
 
   timingcmd::TimingHwCmd construct_hsi_hw_cmd(const std::string& cmd_id);
 
@@ -80,6 +80,8 @@ private:
   void process_device_info(nlohmann::json info) override;
 
   std::atomic<uint> m_endpoint_state;
+  uint64_t m_clock_frequency;                     // NOLINT(build/unsigned)
+
 };
 } // namespace timinglibs
 } // namespace dunedaq
