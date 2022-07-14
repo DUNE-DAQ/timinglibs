@@ -115,12 +115,17 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
   m_timesync_receiver->add_callback(std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
 
   auto start_params = obj.get<rcif::cmd::StartParams>();
-  m_trigger_rate.store(start_params.trigger_rate);
+  if (start_params.trigger_rate>0) {
+    m_trigger_rate.store(start_params.trigger_rate);
 
-  // time between HSI events [us]
-  m_event_period.store(1.e6 / m_trigger_rate.load());
-  TLOG() << get_name() << " Setting trigger rate, event period [us] to: " << m_trigger_rate.load() << ", "
-         << m_event_period.load();
+    // time between HSI events [us]
+    m_event_period.store(1.e6 / m_trigger_rate.load());
+    TLOG() << get_name() << " Setting trigger rate, event period [us] to: " << m_trigger_rate.load() << ", "
+           << m_event_period.load();
+  } else {
+    TLOG() << get_name() << " Using trigger rate, event period [us]: " << m_trigger_rate.load() << ", "
+           << m_event_period.load();
+  }
   m_run_number.store(start_params.run);
 
   m_thread.start_working_thread("fake-tsd-gen");
