@@ -176,7 +176,7 @@ TimingHardwareManagerPDI::register_hsi_hw_commands_for_design()
 
 // partition commands
 void
-TimingHardwareManager::partition_configure(const timingcmd::TimingHwCmd& hw_cmd)
+TimingHardwareManagerPDI::partition_configure(const timingcmd::TimingHwCmd& hw_cmd)
 {
   timingcmd::TimingPartitionConfigureCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
@@ -191,7 +191,7 @@ TimingHardwareManager::partition_configure(const timingcmd::TimingHwCmd& hw_cmd)
 }
 
 void
-TimingHardwareManager::partition_enable(const timingcmd::TimingHwCmd& hw_cmd)
+TimingHardwareManagerPDI::partition_enable(const timingcmd::TimingHwCmd& hw_cmd)
 {
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
@@ -204,7 +204,7 @@ TimingHardwareManager::partition_enable(const timingcmd::TimingHwCmd& hw_cmd)
 }
 
 void
-TimingHardwareManager::partition_disable(const timingcmd::TimingHwCmd& hw_cmd)
+TimingHardwareManagerPDI::partition_disable(const timingcmd::TimingHwCmd& hw_cmd)
 {
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
@@ -217,7 +217,7 @@ TimingHardwareManager::partition_disable(const timingcmd::TimingHwCmd& hw_cmd)
 }
 
 void
-TimingHardwareManager::partition_start(const timingcmd::TimingHwCmd& hw_cmd)
+TimingHardwareManagerPDI::partition_start(const timingcmd::TimingHwCmd& hw_cmd)
 {
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
@@ -230,7 +230,7 @@ TimingHardwareManager::partition_start(const timingcmd::TimingHwCmd& hw_cmd)
 }
 
 void
-TimingHardwareManager::partition_stop(const timingcmd::TimingHwCmd& hw_cmd)
+TimingHardwareManagerPDI::partition_stop(const timingcmd::TimingHwCmd& hw_cmd)
 {
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
@@ -243,7 +243,7 @@ TimingHardwareManager::partition_stop(const timingcmd::TimingHwCmd& hw_cmd)
 }
 
 void
-TimingHardwareManager::partition_enable_triggers(const timingcmd::TimingHwCmd& hw_cmd)
+TimingHardwareManagerPDI::partition_enable_triggers(const timingcmd::TimingHwCmd& hw_cmd)
 {
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
@@ -257,7 +257,7 @@ TimingHardwareManager::partition_enable_triggers(const timingcmd::TimingHwCmd& h
 }
 
 void
-TimingHardwareManager::partition_disable_triggers(const timingcmd::TimingHwCmd& hw_cmd)
+TimingHardwareManagerPDI::partition_disable_triggers(const timingcmd::TimingHwCmd& hw_cmd)
 {
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
@@ -270,7 +270,7 @@ TimingHardwareManager::partition_disable_triggers(const timingcmd::TimingHwCmd& 
 }
 
 void
-TimingHardwareManager::partition_print_status(const timingcmd::TimingHwCmd& hw_cmd)
+TimingHardwareManagerPDI::partition_print_status(const timingcmd::TimingHwCmd& hw_cmd)
 {
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);

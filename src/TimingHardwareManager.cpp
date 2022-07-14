@@ -347,7 +347,7 @@ TimingHardwareManager::endpoint_enable(const timingcmd::TimingHwCmd& hw_cmd)
                 << ", part: " << cmd_payload.partition;
 
   auto design = get_timing_device<const timing::EndpointDesignInterface*>(hw_cmd.device);
-  design->get_endpoint_node_plain(cmd_payload.endpoint_id)->enable(cmd_payload.partition, cmd_payload.address);
+  design->get_endpoint_node_plain(cmd_payload.endpoint_id)->enable(cmd_payload.address, cmd_payload.partition);
 }
 
 void
@@ -372,7 +372,7 @@ TimingHardwareManager::endpoint_reset(const timingcmd::TimingHwCmd& hw_cmd)
                 << ", part: " << cmd_payload.partition;
 
   auto design = get_timing_device<const timing::EndpointDesignInterface*>(hw_cmd.device);
-  design->get_endpoint_node_plain(cmd_payload.endpoint_id)->reset(cmd_payload.partition, cmd_payload.address);
+  design->get_endpoint_node_plain(cmd_payload.endpoint_id)->reset(cmd_payload.address, cmd_payload.partition);
 }
 
 // hsi commands
