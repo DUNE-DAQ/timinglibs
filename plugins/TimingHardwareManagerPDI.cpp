@@ -14,6 +14,8 @@
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/TimingIssues.hpp"
 
+#include "timing/PDIMasterNode.hpp"
+
 #include "appfwk/DAQModuleHelper.hpp"
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
@@ -170,6 +172,114 @@ TimingHardwareManagerPDI::register_hsi_hw_commands_for_design()
   register_timing_hw_command("hsi_start", &TimingHardwareManagerPDI::hsi_start);
   register_timing_hw_command("hsi_stop", &TimingHardwareManagerPDI::hsi_stop);
   register_timing_hw_command("hsi_print_status", &TimingHardwareManagerPDI::hsi_print_status);
+}
+
+// partition commands
+void
+TimingHardwareManager::partition_configure(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionConfigureCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " configure";
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  auto partition = design->get_master_node<timing::PDIMasterNode>()->get_partition_node(cmd_payload.partition_id);
+
+  partition.reset();
+  partition.configure(cmd_payload.trigger_mask, cmd_payload.spill_gate_enabled, cmd_payload.rate_control_enabled);
+}
+
+void
+TimingHardwareManager::partition_enable(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " enable";
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  auto partition = design->get_master_node<timing::PDIMasterNode>()->get_partition_node(cmd_payload.partition_id);
+  partition.enable(true);
+}
+
+void
+TimingHardwareManager::partition_disable(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " disable";
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  auto partition = design->get_master_node<timing::PDIMasterNode>()->get_partition_node(cmd_payload.partition_id);
+  partition.enable(false);
+}
+
+void
+TimingHardwareManager::partition_start(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " start";
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  auto partition = design->get_master_node<timing::PDIMasterNode>()->get_partition_node(cmd_payload.partition_id);
+  partition.start();
+}
+
+void
+TimingHardwareManager::partition_stop(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " stop";
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  auto partition = design->get_master_node<timing::PDIMasterNode>()->get_partition_node(cmd_payload.partition_id);
+  partition.stop();
+}
+
+void
+TimingHardwareManager::partition_enable_triggers(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id
+                << " start triggers";
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  auto partition = design->get_master_node<timing::PDIMasterNode>()->get_partition_node(cmd_payload.partition_id);
+  partition.enable_triggers(true);
+}
+
+void
+TimingHardwareManager::partition_disable_triggers(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " partition " << cmd_payload.partition_id << " stop triggers";
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  auto partition = design->get_master_node<timing::PDIMasterNode>()->get_partition_node(cmd_payload.partition_id);
+  partition.enable_triggers(false);
+}
+
+void
+TimingHardwareManager::partition_print_status(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingPartitionCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " print partition " << cmd_payload.partition_id << " status";
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  auto partition = design->get_master_node<timing::PDIMasterNode>()->get_partition_node(cmd_payload.partition_id);
+  TLOG() << std::endl << partition.get_status();
 }
 
 void

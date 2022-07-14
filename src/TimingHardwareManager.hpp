@@ -128,14 +128,14 @@ protected:
   void send_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd);
 
   // timing partition commands
-  void partition_configure(const timingcmd::TimingHwCmd& hw_cmd);
-  void partition_enable(const timingcmd::TimingHwCmd& hw_cmd);
-  void partition_disable(const timingcmd::TimingHwCmd& hw_cmd);
-  void partition_start(const timingcmd::TimingHwCmd& hw_cmd);
-  void partition_stop(const timingcmd::TimingHwCmd& hw_cmd);
-  void partition_enable_triggers(const timingcmd::TimingHwCmd& hw_cmd);
-  void partition_disable_triggers(const timingcmd::TimingHwCmd& hw_cmd);
-  void partition_print_status(const timingcmd::TimingHwCmd& hw_cmd);
+  virtual void partition_configure(const timingcmd::TimingHwCmd& hw_cmd) = 0;
+  virtual void partition_enable(const timingcmd::TimingHwCmd& hw_cmd) = 0;
+  virtual void partition_disable(const timingcmd::TimingHwCmd& hw_cmd) = 0;
+  virtual void partition_start(const timingcmd::TimingHwCmd& hw_cmd) = 0;
+  virtual void partition_stop(const timingcmd::TimingHwCmd& hw_cmd) = 0;
+  virtual void partition_enable_triggers(const timingcmd::TimingHwCmd& hw_cmd) = 0;
+  virtual void partition_disable_triggers(const timingcmd::TimingHwCmd& hw_cmd) = 0;
+  virtual void partition_print_status(const timingcmd::TimingHwCmd& hw_cmd) = 0;
 
   // timing endpoint commands
   void endpoint_enable(const timingcmd::TimingHwCmd& hw_cmd);

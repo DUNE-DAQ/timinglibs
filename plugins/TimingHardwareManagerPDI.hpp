@@ -77,6 +77,16 @@ public:
 
   void get_info(opmonlib::InfoCollector& ci, int level) override;
 
+  // timing partition commands
+  void partition_configure(const timingcmd::TimingHwCmd& hw_cmd) override;
+  void partition_enable(const timingcmd::TimingHwCmd& hw_cmd) override;
+  void partition_disable(const timingcmd::TimingHwCmd& hw_cmd) override;
+  void partition_start(const timingcmd::TimingHwCmd& hw_cmd) override;
+  void partition_stop(const timingcmd::TimingHwCmd& hw_cmd) override;
+  void partition_enable_triggers(const timingcmd::TimingHwCmd& hw_cmd) override;
+  void partition_disable_triggers(const timingcmd::TimingHwCmd& hw_cmd) override;
+  void partition_print_status(const timingcmd::TimingHwCmd& hw_cmd) override;
+
 private:
   std::string m_monitored_device_name_master;
   std::vector<std::string> m_monitored_device_names_fanout;
