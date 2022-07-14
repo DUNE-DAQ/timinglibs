@@ -82,7 +82,11 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
   m_hsievent_send_connection = params.hsievent_connection_name;
 
   m_clock_frequency = params.clock_frequency;
-  m_trigger_rate.store(params.trigger_rate);
+  if (params.trigger_rate>0)
+    m_trigger_rate.store(params.trigger_rate);
+  else
+    ers::fatal(InvalidTriggerRateValue(ERS_HERE, params.trigger_rate));
+
 
   // time between HSI events [us]
   m_event_period.store(1.e6 / m_trigger_rate.load());
