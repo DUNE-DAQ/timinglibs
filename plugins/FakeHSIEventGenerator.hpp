@@ -61,7 +61,7 @@ private:
   void do_start(const nlohmann::json& obj) override;
   void do_stop(const nlohmann::json& obj) override;
   void do_scrap(const nlohmann::json& obj) override;
-  void do_resume(const nlohmann::json& obj);
+  void do_change_rate(const nlohmann::json& obj);
 
   void dispatch_timesync(dfmessages::TimeSync& message);
 
@@ -85,7 +85,7 @@ private:
   uint32_t generate_signal_map(); // NOLINT(build/unsigned)
 
   uint64_t m_clock_frequency;                     // NOLINT(build/unsigned)
-  std::atomic<uint64_t> m_trigger_interval_ticks; // NOLINT(build/unsigned)
+  std::atomic<float> m_trigger_rate; // NOLINT(build/unsigned)
   std::atomic<uint64_t> m_event_period;           // NOLINT(build/unsigned)
   int64_t m_timestamp_offset;
 

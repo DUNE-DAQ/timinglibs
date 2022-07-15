@@ -33,8 +33,8 @@ FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
   , m_random_generator()
   , m_uniform_distribution(0, UINT32_MAX)
   , m_clock_frequency(50e6)
-  , m_trigger_interval_ticks(0)
-  , m_event_period(1e6)
+  , m_trigger_rate(1) // Hz
+  , m_event_period(1e6) // us
   , m_timestamp_offset(0)
   , m_hsi_device_id(0)
   , m_signal_emulation_mode(0)
@@ -45,9 +45,9 @@ FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
 {
   register_command("conf", &FakeHSIEventGenerator::do_configure);
   register_command("start", &FakeHSIEventGenerator::do_start);
-  register_command("stop", &FakeHSIEventGenerator::do_stop);
+  register_command("stop_trigger_sources", &FakeHSIEventGenerator::do_stop);
   register_command("scrap", &FakeHSIEventGenerator::do_scrap);
-  register_command("resume", &FakeHSIEventGenerator::do_resume);
+  register_command("change_rate", &FakeHSIEventGenerator::do_change_rate);
 }
 
 void
@@ -82,11 +82,15 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
   m_hsievent_send_connection = params.hsievent_connection_name;
 
   m_clock_frequency = params.clock_frequency;
-  m_trigger_interval_ticks.store(params.trigger_interval_ticks);
+  if (params.trigger_rate>0)
+    m_trigger_rate.store(params.trigger_rate);
+  else
+    ers::fatal(InvalidTriggerRateValue(ERS_HERE, params.trigger_rate));
+
 
   // time between HSI events [us]
-  m_event_period.store((static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6);
-  TLOG() << get_name() << " Setting trigger interval ticks, event period [us] to: " << m_trigger_interval_ticks << ", "
+  m_event_period.store(1.e6 / m_trigger_rate.load());
+  TLOG() << get_name() << " Setting trigger rate, event period [us] to: " << m_trigger_rate.load() << ", "
          << m_event_period.load();
 
   // offset in units of clock ticks, positive offset increases timestamp
@@ -115,13 +119,18 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
   m_timesync_receiver->add_callback(std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
 
   auto start_params = obj.get<rcif::cmd::StartParams>();
-  m_trigger_interval_ticks.store(start_params.trigger_interval_ticks);
-  m_run_number.store(start_params.run);
+  if (start_params.trigger_rate>0) {
+    m_trigger_rate.store(start_params.trigger_rate);
 
-  // time between HSI events [us]
-  m_event_period.store((static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6);
-  TLOG() << get_name() << " Updating trigger interval ticks, event period [us] to: " << m_trigger_interval_ticks << ", "
-         << m_event_period.load();
+    // time between HSI events [us]
+    m_event_period.store(1.e6 / m_trigger_rate.load());
+    TLOG() << get_name() << " Setting trigger rate, event period [us] to: " << m_trigger_rate.load() << ", "
+           << m_event_period.load();
+  } else {
+    TLOG() << get_name() << " Using trigger rate, event period [us]: " << m_trigger_rate.load() << ", "
+           << m_event_period.load();
+  }
+  m_run_number.store(start_params.run);
 
   m_thread.start_working_thread("fake-tsd-gen");
   TLOG() << get_name() << " successfully started";
@@ -129,20 +138,21 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
 }
 
 void
-FakeHSIEventGenerator::do_resume(const nlohmann::json& obj)
+FakeHSIEventGenerator::do_change_rate(const nlohmann::json& obj)
 {
-  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_resume() method";
+  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_change_rate() method";
 
-  auto resume_params = obj.get<rcif::cmd::ResumeParams>();
-  m_trigger_interval_ticks.store(resume_params.trigger_interval_ticks);
+  auto change_rate_params = obj.get<rcif::cmd::ChangeRateParams>();
+  TLOG() << get_name() << "trigger_RATE: " << change_rate_params.trigger_rate;
+  m_trigger_rate.store(change_rate_params.trigger_rate);
 
   // time between HSI events [us]
-  m_event_period.store((static_cast<double>(m_trigger_interval_ticks) / m_clock_frequency) * 1e6);
-  TLOG() << get_name() << " Updating trigger interval ticks, event period [us] to: " << m_trigger_interval_ticks << ", "
+  m_event_period.store(1.e6 / m_trigger_rate.load());
+  TLOG() << get_name() << " Updating trigger rate, event period [us] to: " << m_trigger_rate.load() << ", "
          << m_event_period.load();
 
-  TLOG() << get_name() << " successfully resumed";
-  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_resume() method";
+  TLOG() << get_name() << " successfully changed arate";
+  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_change_rate() method";
 }
 
 void
@@ -214,7 +224,7 @@ FakeHSIEventGenerator::do_hsievent_work(std::atomic<bool>& running_flag)
   while (running_flag.load()) {
 
     // sleep for the configured event period, if trigger ticks are not 0, otherwise do not send anything
-    if (m_trigger_interval_ticks.load() > 0) {
+    if (m_trigger_rate.load() > 0) {
       std::this_thread::sleep_for(std::chrono::microseconds(m_event_period.load()));
     } else {
       std::this_thread::sleep_for(std::chrono::microseconds(250000));
