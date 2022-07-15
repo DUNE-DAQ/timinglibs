@@ -40,7 +40,7 @@ HSIController::HSIController(const std::string& name)
   register_command("conf", &HSIController::do_configure);
   register_command("start", &HSIController::do_start);
   register_command("stop_trigger_sources", &HSIController::do_stop);
-  register_command("resume", &HSIController::do_change_rate);
+  register_command("change_rate", &HSIController::do_change_rate);
   register_command("scrap", &HSIController::do_scrap);
   
   // timing endpoint hardware commands
@@ -89,13 +89,15 @@ HSIController::do_start(const nlohmann::json& data)
   TimingController::do_start(data); // set sent cmd counters to 0
 
   auto start_params = data.get<rcif::cmd::StartParams>();
-  m_hsi_configuration.trigger_interval_ticks = start_params.trigger_rate * m_clock_frequency;
-  TLOG() << get_name() << " Starting: trigger_interval_ticks "
-         << m_hsi_configuration.trigger_interval_ticks << ", trigger_rate "
-         << start_params.trigger_rate;
+  if (start_params.trigger_rate > 0)
+  {
+    m_hsi_configuration.trigger_rate = start_params.trigger_rate;
+    TLOG() << get_name() << " Changing rate: trigger_rate "
+           << m_hsi_configuration.trigger_rate;
 
-  do_hsi_reset(data);
-  do_hsi_configure(m_hsi_configuration);
+    do_hsi_reset(data);
+    do_hsi_configure(m_hsi_configuration);
+  }
   do_hsi_start(m_hsi_configuration);
 }
 
@@ -109,10 +111,9 @@ void
 HSIController::do_change_rate(const nlohmann::json& data)
 {
   auto change_rate_params = data.get<rcif::cmd::ChangeRateParams>();
-  m_hsi_configuration.trigger_interval_ticks = change_rate_params.trigger_rate * m_clock_frequency;
-  TLOG() << get_name() << " Changing rate: trigger_interval_ticks "
-         << m_hsi_configuration.trigger_interval_ticks << ", trigger_rate "
-         << change_rate_params.trigger_rate;
+  m_hsi_configuration.trigger_rate = change_rate_params.trigger_rate;
+  TLOG() << get_name() << " Changing rate: trigger_rate "
+         << m_hsi_configuration.trigger_rate;
 
   do_hsi_configure(m_hsi_configuration);
 }
@@ -195,19 +196,17 @@ HSIController::do_hsi_configure(const nlohmann::json& data)
   construct_hsi_hw_cmd("hsi_configure");
   hw_cmd.payload = data;
 
-  m_clock_frequency = data["clock_frequency"];       // NOLINT(build/unsigned)
-  uint64_t trigger_rate = data["trigger_rate"]; // NOLINT(build/unsigned)
-  double emulated_signal_rate = 0;
+  double trigger_rate = data["trigger_rate"];
 
-  if (trigger_rate > 0) {
-    emulated_signal_rate = trigger_rate;
-  } else {
+  if (trigger_rate <= 0) {
     ers::error(InvalidTriggerRateValue(ERS_HERE, trigger_rate));
+    return;
   }
-  hw_cmd.payload["random_rate"] = emulated_signal_rate;
+
+  hw_cmd.payload["random_rate"] = trigger_rate;
 
   TLOG() << get_name() << " Setting emulated event rate [Hz] to: "
-         << emulated_signal_rate;
+         << trigger_rate;
 
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(5).atomic);
