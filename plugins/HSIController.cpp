@@ -200,6 +200,11 @@ HSIController::do_hsi_configure(const nlohmann::json& data)
   construct_hsi_hw_cmd("hsi_configure");
   hw_cmd.payload = data;
 
+  if (!hw_cmd.payload.contains("random_rate"))
+  {
+    hw_cmd.payload["random_rate"] = m_hsi_configuration.trigger_rate;
+  }
+
   if (hw_cmd.payload["random_rate"] <= 0) {
     ers::error(InvalidTriggerRateValue(ERS_HERE, hw_cmd.payload["random_rate"]));
     return;
