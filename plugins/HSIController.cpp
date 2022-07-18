@@ -88,14 +88,19 @@ HSIController::do_start(const nlohmann::json& data)
 {
   TimingController::do_start(data); // set sent cmd counters to 0
 
+  do_hsi_reset(data);
+
   auto start_params = data.get<rcif::cmd::StartParams>();
   if (start_params.trigger_rate > 0)
   {
-    m_hsi_configuration.trigger_rate = start_params.trigger_rate;
     TLOG() << get_name() << " Changing rate: trigger_rate "
-           << m_hsi_configuration.trigger_rate;
-
-    do_hsi_reset(data);
+           << start_params.trigger_rate;  
+    do_hsi_configure_trigger_rate_override(m_hsi_configuration, start_params.trigger_rate);
+  }
+  else
+  {
+    TLOG() << get_name() << " Changing rate: trigger_rate "
+           << m_hsi_configuration.trigger_rate;  
     do_hsi_configure(m_hsi_configuration);
   }
   do_hsi_start(m_hsi_configuration);
@@ -111,11 +116,10 @@ void
 HSIController::do_change_rate(const nlohmann::json& data)
 {
   auto change_rate_params = data.get<rcif::cmd::ChangeRateParams>();
-  m_hsi_configuration.trigger_rate = change_rate_params.trigger_rate;
   TLOG() << get_name() << " Changing rate: trigger_rate "
-         << m_hsi_configuration.trigger_rate;
+         << change_rate_params.trigger_rate;
 
-  do_hsi_configure(m_hsi_configuration);
+  do_hsi_configure_trigger_rate_override(m_hsi_configuration, change_rate_params.trigger_rate);
 }
 
 timingcmd::TimingHwCmd
@@ -196,20 +200,22 @@ HSIController::do_hsi_configure(const nlohmann::json& data)
   construct_hsi_hw_cmd("hsi_configure");
   hw_cmd.payload = data;
 
-  double trigger_rate = data["trigger_rate"];
-
-  if (trigger_rate <= 0) {
-    ers::error(InvalidTriggerRateValue(ERS_HERE, trigger_rate));
+  if (hw_cmd.payload["random_rate"] <= 0) {
+    ers::error(InvalidTriggerRateValue(ERS_HERE, hw_cmd.payload["random_rate"]));
     return;
   }
 
-  hw_cmd.payload["random_rate"] = trigger_rate;
-
   TLOG() << get_name() << " Setting emulated event rate [Hz] to: "
-         << trigger_rate;
+         << hw_cmd.payload["random_rate"];
 
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(5).atomic);
+}
+
+void HSIController::do_hsi_configure_trigger_rate_override(nlohmann::json data, double trigger_rate_override)
+{
+  data["random_rate"] = trigger_rate_override;
+  do_hsi_configure(data);
 }
 
 void

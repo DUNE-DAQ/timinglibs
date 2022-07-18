@@ -85,7 +85,8 @@ private:
   uint32_t generate_signal_map(); // NOLINT(build/unsigned)
 
   uint64_t m_clock_frequency;                     // NOLINT(build/unsigned)
-  std::atomic<float> m_trigger_rate; // NOLINT(build/unsigned)
+  std::atomic<float> m_trigger_rate;
+  std::atomic<float> m_active_trigger_rate;
   std::atomic<uint64_t> m_event_period;           // NOLINT(build/unsigned)
   int64_t m_timestamp_offset;
 
