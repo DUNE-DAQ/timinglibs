@@ -34,6 +34,7 @@ FakeHSIEventGenerator::FakeHSIEventGenerator(const std::string& name)
   , m_uniform_distribution(0, UINT32_MAX)
   , m_clock_frequency(50e6)
   , m_trigger_rate(1) // Hz
+  , m_active_trigger_rate(1) // Hz
   , m_event_period(1e6) // us
   , m_timestamp_offset(0)
   , m_hsi_device_id(0)
@@ -83,14 +84,19 @@ FakeHSIEventGenerator::do_configure(const nlohmann::json& obj)
 
   m_clock_frequency = params.clock_frequency;
   if (params.trigger_rate>0)
+  {
     m_trigger_rate.store(params.trigger_rate);
+    m_active_trigger_rate.store(m_trigger_rate.load());
+  }
   else
+  {
     ers::fatal(InvalidTriggerRateValue(ERS_HERE, params.trigger_rate));
+  }
 
 
   // time between HSI events [us]
-  m_event_period.store(1.e6 / m_trigger_rate.load());
-  TLOG() << get_name() << " Setting trigger rate, event period [us] to: " << m_trigger_rate.load() << ", "
+  m_event_period.store(1.e6 / m_active_trigger_rate.load());
+  TLOG() << get_name() << " Setting trigger rate, event period [us] to: " << m_active_trigger_rate.load() << ", "
          << m_event_period.load();
 
   // offset in units of clock ticks, positive offset increases timestamp
@@ -120,14 +126,14 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
 
   auto start_params = obj.get<rcif::cmd::StartParams>();
   if (start_params.trigger_rate>0) {
-    m_trigger_rate.store(start_params.trigger_rate);
+    m_active_trigger_rate.store(start_params.trigger_rate);
 
     // time between HSI events [us]
-    m_event_period.store(1.e6 / m_trigger_rate.load());
-    TLOG() << get_name() << " Setting trigger rate, event period [us] to: " << m_trigger_rate.load() << ", "
+    m_event_period.store(1.e6 / m_active_trigger_rate.load());
+    TLOG() << get_name() << " Setting trigger rate, event period [us] to: " << m_active_trigger_rate.load() << ", "
            << m_event_period.load();
   } else {
-    TLOG() << get_name() << " Using trigger rate, event period [us]: " << m_trigger_rate.load() << ", "
+    TLOG() << get_name() << " Using trigger rate, event period [us]: " << m_active_trigger_rate.load() << ", "
            << m_event_period.load();
   }
   m_run_number.store(start_params.run);
@@ -144,11 +150,11 @@ FakeHSIEventGenerator::do_change_rate(const nlohmann::json& obj)
 
   auto change_rate_params = obj.get<rcif::cmd::ChangeRateParams>();
   TLOG() << get_name() << "trigger_RATE: " << change_rate_params.trigger_rate;
-  m_trigger_rate.store(change_rate_params.trigger_rate);
+  m_active_trigger_rate.store(change_rate_params.trigger_rate);
 
   // time between HSI events [us]
-  m_event_period.store(1.e6 / m_trigger_rate.load());
-  TLOG() << get_name() << " Updating trigger rate, event period [us] to: " << m_trigger_rate.load() << ", "
+  m_event_period.store(1.e6 / m_active_trigger_rate.load());
+  TLOG() << get_name() << " Updating trigger rate, event period [us] to: " << m_active_trigger_rate.load() << ", "
          << m_event_period.load();
 
   TLOG() << get_name() << " successfully changed arate";
@@ -165,6 +171,12 @@ FakeHSIEventGenerator::do_stop(const nlohmann::json& /*args*/)
   TLOG() << get_name() << ": received " << m_received_timesync_count.load() << " TimeSync messages.";
 
   m_timestamp_estimator.reset(nullptr); // Calls TimestampEstimator dtor
+
+  m_active_trigger_rate.store(m_trigger_rate.load());
+  m_event_period.store(1.e6 / m_active_trigger_rate.load());
+  TLOG() << get_name() << " Updating trigger rate, event period [us] to: " << m_active_trigger_rate.load() << ", "
+         << m_event_period.load();
+  
   TLOG() << get_name() << " successfully stopped";
   TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_stop() method";
 }
@@ -224,7 +236,7 @@ FakeHSIEventGenerator::do_hsievent_work(std::atomic<bool>& running_flag)
   while (running_flag.load()) {
 
     // sleep for the configured event period, if trigger ticks are not 0, otherwise do not send anything
-    if (m_trigger_rate.load() > 0) {
+    if (m_active_trigger_rate.load() > 0) {
       std::this_thread::sleep_for(std::chrono::microseconds(m_event_period.load()));
     } else {
       std::this_thread::sleep_for(std::chrono::microseconds(250000));

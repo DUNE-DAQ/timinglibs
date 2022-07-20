@@ -70,6 +70,7 @@ private:
 
   void do_hsi_reset(const nlohmann::json&);
   void do_hsi_configure(const nlohmann::json& data);
+  void do_hsi_configure_trigger_rate_override(nlohmann::json data, double trigger_rate_override);
   void do_hsi_start(const nlohmann::json&);
   void do_hsi_stop(const nlohmann::json&);
 
