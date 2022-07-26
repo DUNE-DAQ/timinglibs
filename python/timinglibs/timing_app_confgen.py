@@ -323,11 +323,26 @@ def generate(
     }
 
     # Make boot.json config
-    from daqconf.core.conf_utils import make_system_command_datas,generate_boot, write_json_files
+    from daqconf.core.conf_utils import make_system_command_datas,generate_boot_common, write_json_files
     system_command_datas = make_system_command_datas(the_system, verbose=DEBUG)
     # Override the default boot.json with the one from minidaqapp
-    boot = generate_boot(the_system.apps, ers_settings=ers_settings, info_svc_uri=info_svc_uri,
-                              disable_trace=disable_trace, use_kafka=use_kafka)
+    boot = generate_boot_common(
+        ers_settings = ers_settings,
+        info_svc_uri = info_svc_uri,
+        disable_trace = False,
+        use_kafka = use_kafka,
+        external_connections = [],
+        daq_app_exec_name = "daq_application_ssh",
+        verbose = DEBUG,
+    )
+    from daqconf.core.conf_utils import update_with_ssh_boot_data
+    console.log("Generating ssh boot.json")
+    update_with_ssh_boot_data(
+        boot_data = boot,
+        apps = the_system.apps,
+        base_command_port = 3333,
+        verbose = DEBUG,
+    )
 
     system_command_datas['boot'] = boot
 
