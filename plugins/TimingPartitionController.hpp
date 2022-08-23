@@ -12,7 +12,7 @@
 #ifndef TIMINGLIBS_PLUGINS_TIMINGPARTITIONCONTROLLER_HPP_
 #define TIMINGLIBS_PLUGINS_TIMINGPARTITIONCONTROLLER_HPP_
 
-#include "TimingController.hpp"
+#include "timinglibs/TimingController.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"

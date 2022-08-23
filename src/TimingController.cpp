@@ -7,7 +7,7 @@
  * received with this code.
  */
 
-#include "TimingController.hpp"
+#include "timinglibs/TimingController.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingcmd/msgp.hpp"
