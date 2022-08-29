@@ -9,8 +9,8 @@
  * received with this code.
  */
 
-#ifndef TIMINGLIBS_SRC_TIMINGCONTROLLER_HPP_
-#define TIMINGLIBS_SRC_TIMINGCONTROLLER_HPP_
+#ifndef TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGCONTROLLER_HPP_
+#define TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGCONTROLLER_HPP_
 
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/TimingIssues.hpp"
@@ -121,7 +121,7 @@ protected:
 } // namespace timinglibs
 } // namespace dunedaq
 
-#endif // TIMINGLIBS_SRC_TIMINGCONTROLLER_HPP_
+#endif // TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGCONTROLLER_HPP_
 
 // Local Variables:
 // c-basic-offset: 2

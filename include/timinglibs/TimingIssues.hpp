@@ -19,6 +19,7 @@
 
 // NOLINTNEXTLINE(build/define_used)
 #define TLVL_ENTER_EXIT_METHODS 10
+#define TLVL_TIME_SYNCS 17
 
 namespace dunedaq {
 
@@ -121,17 +122,6 @@ ERS_DECLARE_ISSUE(timinglibs,
                   FailedToGetTimestampEstimate,
                   "Failed to get timestamp estimate (was interrupted)",
                   ERS_EMPTY)
-
-ERS_DECLARE_ISSUE(timinglibs, HSIBufferIssue, "HSI buffer in state: " << buffer_state, ((std::string)buffer_state))
-
-ERS_DECLARE_ISSUE(timinglibs, HSIReadoutIssue, "Failed to read HSI events.", ERS_EMPTY)
-
-ERS_DECLARE_ISSUE_BASE(timinglibs,
-                       HSIReadoutNetworkIssue,
-                       timinglibs::HSIReadoutIssue,
-                       "Failed to read HSI events due to network issue.",
-                       ERS_EMPTY,
-                       ERS_EMPTY)
 
 ERS_DECLARE_ISSUE(timinglibs,
                   AttemptedToControlNonExantInfoGatherer,

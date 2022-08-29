@@ -12,7 +12,7 @@
 #ifndef TIMINGLIBS_PLUGINS_TIMINGFANOUTCONTROLLER_HPP_
 #define TIMINGLIBS_PLUGINS_TIMINGFANOUTCONTROLLER_HPP_
 
-#include "TimingController.hpp"
+#include "timinglibs/TimingController.hpp"
 
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
