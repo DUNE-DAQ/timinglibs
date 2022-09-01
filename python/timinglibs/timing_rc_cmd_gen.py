@@ -58,8 +58,8 @@ if __name__ == '__main__':
 
     @click.command(context_settings=CONTEXT_SETTINGS)
 
-    @click.option('--master-controller-app-name', default="")
-    @click.option('--master-controller-mod-name', default="")
+    @click.option('--master-controller-app-name', default="tmc")
+    @click.option('--master-controller-mod-name', default="tmc")
 
     @click.argument('json_dir', type=click.Path(), default="")
     def cli(

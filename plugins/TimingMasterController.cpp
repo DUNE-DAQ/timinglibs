@@ -237,7 +237,7 @@ TimingMasterController::set_endpoint_delay(std::atomic<bool>& running_flag)
 void
 TimingMasterController::process_device_info(nlohmann::json info)
 {
-  timing::timingfirmwareinfo::PDIMasterMonitorData master_info;
+  timing::timingfirmwareinfo::MasterMonitorData master_info;
 
   auto master_data = info[opmonlib::JSONTags::children]["master"][opmonlib::JSONTags::properties][master_info.info_type][opmonlib::JSONTags::data];
 
