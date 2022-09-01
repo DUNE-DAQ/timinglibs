@@ -197,7 +197,7 @@ def cli(base_command_port, clock_speed_hz, disable_trace, host_thi, port_thi, ho
 
     console.log(f"Global aapp config generated in {json_dir}")
 
-    write_metadata_file(json_dir, "daqconf_timing_gen")
+    #write_metadata_file(json_dir, "daqconf_timing_gen")
 
 if __name__ == '__main__':
     try:
