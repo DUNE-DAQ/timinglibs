@@ -145,7 +145,8 @@ TimingHardwareManagerPDI::register_master_hw_commands_for_design()
   register_timing_hw_command("set_timestamp", &TimingHardwareManagerPDI::set_timestamp);
   register_timing_hw_command("set_endpoint_delay", &TimingHardwareManagerPDI::set_endpoint_delay);
   register_timing_hw_command("send_fl_command", &TimingHardwareManagerPDI::send_fl_cmd);
-
+  register_timing_hw_command("master_endpoint_scan", &TimingHardwareManagerPDI::master_endpoint_scan);
+  
   register_timing_hw_command("partition_configure", &TimingHardwareManagerPDI::partition_configure);
   register_timing_hw_command("partition_enable", &TimingHardwareManagerPDI::partition_enable);
   register_timing_hw_command("partition_disable", &TimingHardwareManagerPDI::partition_disable);

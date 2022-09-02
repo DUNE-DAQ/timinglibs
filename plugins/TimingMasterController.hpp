@@ -58,8 +58,8 @@ public:
     delete; ///< TimingMasterController is not move-assignable
   virtual ~TimingMasterController()
   {
-    if (set_endpoint_delay_thread.thread_running())
-      set_endpoint_delay_thread.stop_working_thread();
+    if (endpoint_scan_thread.thread_running())
+      endpoint_scan_thread.stop_working_thread();
   }
 
 private:
@@ -76,14 +76,16 @@ private:
   void do_master_print_status(const nlohmann::json&);
   void do_master_set_endpoint_delay(const nlohmann::json& data);
   void do_master_send_fl_command(const nlohmann::json& data);
+  void do_master_measure_endpoint_rtt(const nlohmann::json& data);
+  void do_master_endpoint_scan(const nlohmann::json& data);
 
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;
   void process_device_info(nlohmann::json info) override;
   
-  uint m_send_endpoint_delays_period; // NOLINT(build/unsigned)
-  dunedaq::utilities::WorkerThread set_endpoint_delay_thread;
-  virtual void set_endpoint_delay(std::atomic<bool>&);
+  uint m_endpoint_scan_period; // NOLINT(build/unsigned)
+  dunedaq::utilities::WorkerThread endpoint_scan_thread;
+  virtual void endpoint_scan(std::atomic<bool>&);
 };
 } // namespace timinglibs
 } // namespace dunedaq

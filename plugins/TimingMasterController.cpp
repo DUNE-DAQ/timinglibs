@@ -30,9 +30,9 @@ namespace dunedaq {
 namespace timinglibs {
 
 TimingMasterController::TimingMasterController(const std::string& name)
-  : dunedaq::timinglibs::TimingController(name, 5) // 2nd arg: how many hw commands can this module send?
-  , m_send_endpoint_delays_period(0)
-  , set_endpoint_delay_thread(std::bind(&TimingMasterController::set_endpoint_delay, this, std::placeholders::_1))
+  : dunedaq::timinglibs::TimingController(name, 7) // 2nd arg: how many hw commands can this module send?
+  , m_endpoint_scan_period(0)
+  , endpoint_scan_thread(std::bind(&TimingMasterController::endpoint_scan, this, std::placeholders::_1))
 {
   register_command("conf", &TimingMasterController::do_configure);
   register_command("start", &TimingMasterController::do_start);
@@ -45,6 +45,8 @@ TimingMasterController::TimingMasterController(const std::string& name)
   register_command("master_print_status", &TimingMasterController::do_master_print_status);
   register_command("master_set_endpoint_delay", &TimingMasterController::do_master_set_endpoint_delay);
   register_command("master_send_fl_command", &TimingMasterController::do_master_send_fl_command);
+  register_command("master_measure_endpoint_rtt", &TimingMasterController::do_master_measure_endpoint_rtt);
+  register_command("master_endpoint_scan", &TimingMasterController::do_master_endpoint_scan);
 }
 
 void
@@ -78,10 +80,10 @@ TimingMasterController::do_configure(const nlohmann::json& data)
 
   TLOG() << get_name() << " conf: master, device: " << m_timing_device;
 
-  m_send_endpoint_delays_period = conf.send_endpoint_delays_period;
-  if (m_send_endpoint_delays_period)
+  m_endpoint_scan_period = conf.endpoint_scan_period;
+  if (m_endpoint_scan_period)
   {
-    TLOG() << get_name() << " conf: master, will send delays with period [ms] " << m_send_endpoint_delays_period;    
+    TLOG() << get_name() << " conf: master, will send delays with period [ms] " << m_endpoint_scan_period;    
   }
   else
   {
@@ -93,19 +95,19 @@ void
 TimingMasterController::do_start(const nlohmann::json& data)
 {
   TimingController::do_start(data); // set sent cmd counters to 0
-  if (m_send_endpoint_delays_period) set_endpoint_delay_thread.start_working_thread();
+  if (m_endpoint_scan_period) endpoint_scan_thread.start_working_thread();
 }
 
 void
 TimingMasterController::do_stop(const nlohmann::json& /*data*/)
 {
-  if (set_endpoint_delay_thread.thread_running()) set_endpoint_delay_thread.stop_working_thread();
+  if (endpoint_scan_thread.thread_running()) endpoint_scan_thread.stop_working_thread();
 }
 
 timingcmd::TimingHwCmd
 TimingMasterController::construct_master_hw_cmd(const std::string& cmd_id)
 {
-    timingcmd::TimingHwCmd hw_cmd;
+  timingcmd::TimingHwCmd hw_cmd;
   hw_cmd.id = cmd_id;
   hw_cmd.device = m_timing_device;
   return hw_cmd;
@@ -167,6 +169,32 @@ TimingMasterController::do_master_send_fl_command(const nlohmann::json& data)
 }
 
 void
+TimingMasterController::do_master_measure_endpoint_rtt(const nlohmann::json& data)
+{
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "master_measure_endpoint_rtt");
+  hw_cmd.payload = data;
+  
+  TLOG_DEBUG(2) << "measure endpoint rtt data: " << data.dump();
+
+  send_hw_cmd(std::move(hw_cmd));
+  ++(m_sent_hw_command_counters.at(5).atomic);
+}
+
+void
+TimingMasterController::do_master_endpoint_scan(const nlohmann::json& data)
+{
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "master_endpoint_scan");
+  hw_cmd.payload = data;
+  
+  TLOG_DEBUG(2) << "endpoint scan data: " << data.dump();
+
+  send_hw_cmd(std::move(hw_cmd));
+  ++(m_sent_hw_command_counters.at(6).atomic);
+}
+
+void
 TimingMasterController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 {
   // send counters internal to the module
@@ -185,23 +213,26 @@ TimingMasterController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 
 // cmd stuff
 void
-TimingMasterController::set_endpoint_delay(std::atomic<bool>& running_flag)
+TimingMasterController::endpoint_scan(std::atomic<bool>& running_flag)
 {
 
   std::ostringstream starting_stream;
-  starting_stream << ": Starting set_endpoint_delay() method.";
+  starting_stream << ": Starting endpoint_scan() method.";
   TLOG_DEBUG(0) << get_name() << starting_stream.str();
 
-  while (running_flag.load() && m_send_endpoint_delays_period) {
+  while (running_flag.load() && m_endpoint_scan_period) {
     timingcmd::TimingHwCmd hw_cmd =
-    construct_master_hw_cmd( "set_endpoint_delay");
+    construct_master_hw_cmd( "master_endpoint_scan");
+    timingcmd::TimingMasterEndpointScanPayload cmd_payload;
+    cmd_payload.endpoints={2,3};
+    hw_cmd.payload = cmd_payload;
     send_hw_cmd(std::move(hw_cmd));
 
     ++(m_sent_hw_command_counters.at(3).atomic);
-    if (m_send_endpoint_delays_period)
+    if (m_endpoint_scan_period)
     {
       auto prev_gather_time = std::chrono::steady_clock::now();
-      auto next_gather_time = prev_gather_time + std::chrono::microseconds(m_send_endpoint_delays_period);
+      auto next_gather_time = prev_gather_time + std::chrono::milliseconds(m_endpoint_scan_period);
 
       // check running_flag periodically
       auto slice_period = std::chrono::microseconds(10000);
@@ -223,13 +254,13 @@ TimingMasterController::set_endpoint_delay(std::atomic<bool>& running_flag)
     }
     else
     {
-      TLOG() << "m_send_endpoint_delays_period is 0 and send delays thread is running! breaking loop!";
+      TLOG() << "m_endpoint_scan_period is 0 and send delays thread is running! breaking loop!";
       break;
     }
   }
 
   std::ostringstream exiting_stream;
-  exiting_stream << ": Exiting set_endpoint_delay() method. Received " <<  m_sent_hw_command_counters.at(3).atomic.load()
+  exiting_stream << ": Exiting endpoint_scan() method. Received " <<  m_sent_hw_command_counters.at(3).atomic.load()
                  << " commands";
   TLOG_DEBUG(0) << get_name() << exiting_stream.str();
 }

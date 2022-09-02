@@ -17,8 +17,8 @@ local cs = {
     conf: s.record("ConfParams", [
         s.field("device", self.str, "",
                 doc="String of managed device name"),
-        s.field("send_endpoint_delays_period", self.uint_data, 0,
-                doc="Period between send delays. 0 for disabled."),
+        s.field("endpoint_scan_period", self.uint_data, 0,
+                doc="Period between endpoint scans. 0 for disabled."),
         s.field("clock_config", self.str, "",
             doc="Path of clock config file"),
         s.field("soft", self.bool_data, false,

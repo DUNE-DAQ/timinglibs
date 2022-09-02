@@ -42,10 +42,11 @@ CLOCK_SPEED_HZ=50000000
 def generate(
         RUN_NUMBER = 333, 
         CONNECTIONS_FILE="${TIMING_SHARE}/config/etc/connections.xml",
+        FIRMWARE_STYLE="pdi",
         GATHER_INTERVAL = 1e6,
         GATHER_INTERVAL_DEBUG = 10e6,
         MASTER_DEVICE_NAME="",
-        MASTER_SEND_DELAYS_PERIOD=0,
+        MASTER_ENDPOINT_SCAN_PERIOD=0,
         MASTER_CLOCK_FILE="",
         MASTER_CLOCK_MODE=-1,
         PARTITION_IDS=[],
@@ -74,9 +75,17 @@ def generate(
     
     # Define modules and queues
     
+    if FIRMWARE_STYLE == "pdi":
+        thi_class="TimingHardwareManagerPDI"
+    elif FIRMWARE_STYLE == "pdii":
+        thi_class="TimingHardwareManagerPDII"
+    else:
+        console.log('!!! ERROR !!! Unknown firmwar style. Exiting...', style="bold red")
+        exit()
+
     thi_modules = [ 
                 DAQModule( name="thi",
-                                plugin="TimingHardwareManagerPDI",
+                                plugin=thi_class,
                                 conf= thi.ConfParams(connections_file=CONNECTIONS_FILE,
                                                        gather_interval=GATHER_INTERVAL,
                                                        gather_interval_debug=GATHER_INTERVAL_DEBUG,
@@ -98,7 +107,7 @@ def generate(
                     plugin = "TimingMasterController",
                     conf = tmc.ConfParams(
                                         device=MASTER_DEVICE_NAME,
-                                        send_endpoint_delays_period=0,
+                                        endpoint_scan_period=MASTER_ENDPOINT_SCAN_PERIOD,
                                         clock_config=MASTER_CLOCK_FILE,
                                         fanout_mode=MASTER_CLOCK_MODE,
                                         ))])
@@ -107,7 +116,7 @@ def generate(
         custom_cmds.extend( [
                                 ("master_configure", acmd([("tmc", tmc.ConfParams(
                                             device=MASTER_DEVICE_NAME,
-                                            send_endpoint_delays_period=MASTER_SEND_DELAYS_PERIOD,
+                                            endpoint_scan_period=MASTER_ENDPOINT_SCAN_PERIOD,
                                             clock_config=MASTER_CLOCK_FILE,
                                             fanout_mode=MASTER_CLOCK_MODE,
                                                                 ))])),
@@ -119,37 +128,45 @@ def generate(
                                 ("master_set_timestamp", acmd([("tmc",None)])),
                                 ("master_print_status",  acmd([("tmc",None)])),
                             ] )
+        if FIRMWARE_STYLE == 'pdii':
+            custom_cmds.extend( [
+                                    ("master_endpoint_scan", acmd([("tmc", tcmd.TimingMasterEndpointScanPayload(
+                                                                    endpoints=[tcmd.TimingEndpointScanInfo(label="1st",address=1),
+                                                                              tcmd.TimingEndpointScanInfo(label="2nd",address=2)],
+                                                            ))])),
+                                ])
 
         ###
-        tpc_mods=[]
-        for partition_id in PARTITION_IDS:
+        if FIRMWARE_STYLE == "pdi":
+            tpc_mods=[]
+            for partition_id in PARTITION_IDS:
 
-            tpc_mods.append( DAQModule(name = f"tpc{partition_id}",
-                         plugin = "TimingPartitionController",
-                         conf = tpc.PartitionConfParams(
-                                             device=MASTER_DEVICE_NAME,
-                                             partition_id=partition_id,
-                                             trigger_mask=PART_TRIGGER_MASK,
-                                             spill_gate_enabled=PART_SPILL_GATE_ENABLED,
-                                             rate_control_enabled=PART_RATE_CONTROL_ENABLED,
-                                             )))
-        custom_cmds.extend( [
-                                ("partition_configure", acmd([("tpc*", tpc.PartitionConfParams(
-                                                                device=MASTER_DEVICE_NAME,
-                                                                partition_id=partition_id,
-                                                                trigger_mask=PART_TRIGGER_MASK,
-                                                                spill_gate_enabled=PART_SPILL_GATE_ENABLED,
-                                                                rate_control_enabled=PART_RATE_CONTROL_ENABLED,
-                                                            ))])),
-                                ("partition_enable", acmd([("tpc.*", None)])),
-                                ("partition_disable", acmd([("tpc.*", None)])),
-                                ("partition_start", acmd([("tpc.*", None)])),
-                                ("partition_stop", acmd([("tpc.*", None)])),
-                                ("partition_enable_triggers", acmd([("tpc.*", None)])),
-                                ("partition_disable_triggers", acmd([("tpc.*", None)])),
-                                ("partition_print_status", acmd([("tpc.*", None)])),
-                            ] )
-        controller_modules.extend( tpc_mods )
+                tpc_mods.append( DAQModule(name = f"tpc{partition_id}",
+                             plugin = "TimingPartitionController",
+                             conf = tpc.PartitionConfParams(
+                                                 device=MASTER_DEVICE_NAME,
+                                                 partition_id=partition_id,
+                                                 trigger_mask=PART_TRIGGER_MASK,
+                                                 spill_gate_enabled=PART_SPILL_GATE_ENABLED,
+                                                 rate_control_enabled=PART_RATE_CONTROL_ENABLED,
+                                                 )))
+            custom_cmds.extend( [
+                                    ("partition_configure", acmd([("tpc*", tpc.PartitionConfParams(
+                                                                    device=MASTER_DEVICE_NAME,
+                                                                    partition_id=partition_id,
+                                                                    trigger_mask=PART_TRIGGER_MASK,
+                                                                    spill_gate_enabled=PART_SPILL_GATE_ENABLED,
+                                                                    rate_control_enabled=PART_RATE_CONTROL_ENABLED,
+                                                                ))])),
+                                    ("partition_enable", acmd([("tpc.*", None)])),
+                                    ("partition_disable", acmd([("tpc.*", None)])),
+                                    ("partition_start", acmd([("tpc.*", None)])),
+                                    ("partition_stop", acmd([("tpc.*", None)])),
+                                    ("partition_enable_triggers", acmd([("tpc.*", None)])),
+                                    ("partition_disable_triggers", acmd([("tpc.*", None)])),
+                                    ("partition_print_status", acmd([("tpc.*", None)])),
+                                ] )
+            controller_modules.extend( tpc_mods )
         
         
     ## fanout controller
@@ -273,8 +290,9 @@ def generate(
     if MASTER_DEVICE_NAME:
         devices.append(MASTER_DEVICE_NAME)
         controllers_graph.add_endpoint("timing_cmds", f"{master_controller_mod_name}.timing_cmds", Direction.OUT)
-        for partition_id in PARTITION_IDS:
-            controllers_graph.add_endpoint("timing_cmds", f"tpc{partition_id}.timing_cmds", Direction.OUT)
+        if FIRMWARE_STYLE == 'pdi':
+            for partition_id in PARTITION_IDS:
+                controllers_graph.add_endpoint("timing_cmds", f"tpc{partition_id}.timing_cmds", Direction.OUT)
 
     for i,fanout_device_name in enumerate(FANOUT_DEVICES_NAMES):
 
@@ -380,13 +398,15 @@ if __name__ == '__main__':
     @click.option('-r', '--run-number', default=333)
     @click.option('-c', '--connections-file', default="${TIMING_SHARE}/config/etc/connections.xml", help='Path to timing hardware connections file')
 
+    @click.option('--firmware-style', default="pdi", help="Are we running with PD-I (CDR) or PD-II (no CDR) style firmware")
+
     @click.option('-g', '--gather-interval', default=1e6)
     @click.option('-d', '--gather-interval-debug', default=10e6)
 
     @click.option('-m', '--master-device-name', default="")
     @click.option('--master-clock-file', default="")
     @click.option('--master-clock-mode', default=-1)
-    @click.option('--master-send-delays-period', default=0, help="Master controller continuously send delays period [ms] (to all endpoints). 0 for disable.")
+    @click.option('--master-endpoint-scan-period', default=0, help="Master controller continuously send delays period [ms] (to all endpoints). 0 for disable.")
     @click.option('-p', '--partition-ids', default="0", callback=split_string)
 
     @click.option('-f', '--fanout-devices-names', callback=split_string)
@@ -415,9 +435,9 @@ if __name__ == '__main__':
     @click.option('-u', '--uhal-log-level', default="notice")
     @click.option('--debug', default=False, is_flag=True, help="Switch to get a lot of printout and dot files")
     @click.argument('json_dir', type=click.Path(), default='timing_app')
-    def cli(run_number, connections_file, gather_interval, gather_interval_debug, 
+    def cli(run_number, connections_file, firmware_style, gather_interval, gather_interval_debug, 
 
-        master_device_name, master_clock_file, master_clock_mode, master_send_delays_period, partition_ids,
+        master_device_name, master_clock_file, master_clock_mode, master_endpoint_scan_period, partition_ids,
         fanout_devices_names, fanout_clock_file,
         endpoint_device_name, endpoint_clock_file, endpoint_address, endpoint_partition,
         hsi_device_name, hsi_clock_file, hsi_endpoint_address, hsi_endpoint_partition, hsi_re_mask, hsi_fe_mask, hsi_inv_mask, hsi_source, hsi_random_rate,
@@ -431,10 +451,11 @@ if __name__ == '__main__':
         generate(
                     RUN_NUMBER = run_number, 
                     CONNECTIONS_FILE=connections_file,
+                    FIRMWARE_STYLE=firmware_style,
                     GATHER_INTERVAL = gather_interval,
                     GATHER_INTERVAL_DEBUG = gather_interval_debug,
                     MASTER_DEVICE_NAME = master_device_name,
-                    MASTER_SEND_DELAYS_PERIOD=master_send_delays_period,
+                    MASTER_ENDPOINT_SCAN_PERIOD=master_endpoint_scan_period,
                     MASTER_CLOCK_FILE = master_clock_file,
                     MASTER_CLOCK_MODE = master_clock_mode,
                     PARTITION_IDS = partition_ids,

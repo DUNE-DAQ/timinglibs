@@ -87,8 +87,6 @@ TimingHardwareManager::get_timing_device_plain(const std::string& device_name)
     throw UHALDeviceNameIssue(ERS_HERE, message.str());
   }
 
-  std::lock_guard<std::mutex> hw_device_map_guard(m_hw_device_map_mutex);
-
   if (auto hw_device_entry = m_hw_device_map.find(device_name); hw_device_entry != m_hw_device_map.end()) {
     return dynamic_cast<const timing::TimingNode*>(&hw_device_entry->second->getNode(""));
   } else {
@@ -96,6 +94,7 @@ TimingHardwareManager::get_timing_device_plain(const std::string& device_name)
                   << " does not exist. I will try to create it.";
 
     try {
+      std::lock_guard<std::mutex> hw_device_map_guard(m_hw_device_map_mutex);
       m_hw_device_map.emplace(device_name,
                               std::make_unique<uhal::HwInterface>(m_connection_manager->getDevice(device_name)));
     } catch (const uhal::exception::ConnectionUIDDoesNotExist& exception) {
@@ -310,6 +309,38 @@ TimingHardwareManager::set_timestamp(const timingcmd::TimingHwCmd& hw_cmd)
 
   auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
   design->sync_timestamp();
+}
+
+void
+TimingHardwareManager::master_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan";
+
+  std::stringstream command_thread_uid;
+  auto t = std::time(nullptr);
+  auto tm = *std::localtime(&t);
+  command_thread_uid << "enpoint_scan_cmd_at_" << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << "_cmd_num_" << m_accepted_hw_commands_counter.load();
+
+  auto thread_key = command_thread_uid.str();
+  command_threads.emplace(thread_key, std::make_unique<dunedaq::utilities::ReusableThread>(m_accepted_hw_commands_counter.load()));
+  command_threads.at(thread_key)->set_work(&TimingHardwareManager::perform_endpoint_scan, this, hw_cmd);
+}
+
+void TimingHardwareManager::perform_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingMasterEndpointScanPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan thread started";
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  try
+  {
+    auto results = design->get_master_node_plain()->scan_endpoints(cmd_payload.endpoints);
+  }
+  catch(...)
+  {
+    TLOG() << "rtt measurment failure";
+  }
 }
 
 // master commands
