@@ -1,7 +1,7 @@
 /**
- * @file TimingHardwareManagerPDI.hpp
+ * @file TimingHardwareManagerPDII.hpp
  *
- * TimingHardwareManagerPDI is a DAQModule implementation that
+ * TimingHardwareManagerPDII is a DAQModule implementation that
  * provides the interface to the timing system hardware.
  *
  * This is part of the DUNE DAQ Software Suite, copyright 2020.
@@ -9,8 +9,8 @@
  * received with this code.
  */
 
-#ifndef TIMINGLIBS_PLUGINS_TIMINGHARDWAREMANAGERPDI_HPP_
-#define TIMINGLIBS_PLUGINS_TIMINGHARDWAREMANAGERPDI_HPP_
+#ifndef TIMINGLIBS_PLUGINS_TIMINGHARDWAREMANAGERPDII_HPP_
+#define TIMINGLIBS_PLUGINS_TIMINGHARDWAREMANAGERPDII_HPP_
 
 #include "InfoGatherer.hpp"
 #include "TimingHardwareManager.hpp"
@@ -50,25 +50,25 @@ namespace dunedaq {
 namespace timinglibs {
 
 /**
- * @brief Hardware manager for PD-I hardware.
+ * @brief Hardware manager for PD-II hardware.
  */
 
-class TimingHardwareManagerPDI : public TimingHardwareManager
+class TimingHardwareManagerPDII : public TimingHardwareManager
 {
 public:
   /**
-   * @brief TimingHardwareManagerPDI Constructor
-   * @param name Instance name for this TimingHardwareManagerPDI instance
+   * @brief TimingHardwareManagerPDII Constructor
+   * @param name Instance name for this TimingHardwareManagerPDII instance
    */
-  explicit TimingHardwareManagerPDI(const std::string& name);
+  explicit TimingHardwareManagerPDII(const std::string& name);
 
-  TimingHardwareManagerPDI(const TimingHardwareManagerPDI&) =
-    delete; ///< TimingHardwareManagerPDI is not copy-constructible
-  TimingHardwareManagerPDI& operator=(const TimingHardwareManagerPDI&) =
-    delete;                                                      ///< TimingHardwareManagerPDI is not copy-assignable
-  TimingHardwareManagerPDI(TimingHardwareManagerPDI&&) = delete; ///< TimingHardwareManagerPDI is not move-constructible
-  TimingHardwareManagerPDI& operator=(TimingHardwareManagerPDI&&) =
-    delete; ///< TimingHardwareManagerPDI is not move-assignable
+  TimingHardwareManagerPDII(const TimingHardwareManagerPDII&) =
+    delete; ///< TimingHardwareManagerPDII is not copy-constructible
+  TimingHardwareManagerPDII& operator=(const TimingHardwareManagerPDII&) =
+    delete;                                                      ///< TimingHardwareManagerPDII is not copy-assignable
+  TimingHardwareManagerPDII(TimingHardwareManagerPDII&&) = delete; ///< TimingHardwareManagerPDII is not move-constructible
+  TimingHardwareManagerPDII& operator=(TimingHardwareManagerPDII&&) =
+    delete; ///< TimingHardwareManagerPDII is not move-assignable
 
   void conf(const nlohmann::json& conf_data) override;
   void start(const nlohmann::json& data);
@@ -77,15 +77,7 @@ public:
 
   void get_info(opmonlib::InfoCollector& ci, int level) override;
 
-  // timing partition commands
-  void partition_configure(const timingcmd::TimingHwCmd& hw_cmd) override;
-  void partition_enable(const timingcmd::TimingHwCmd& hw_cmd);
-  void partition_disable(const timingcmd::TimingHwCmd& hw_cmd);
-  void partition_start(const timingcmd::TimingHwCmd& hw_cmd);
-  void partition_stop(const timingcmd::TimingHwCmd& hw_cmd);
-  void partition_enable_triggers(const timingcmd::TimingHwCmd& hw_cmd);
-  void partition_disable_triggers(const timingcmd::TimingHwCmd& hw_cmd);
-  void partition_print_status(const timingcmd::TimingHwCmd& hw_cmd);
+  void partition_configure(const timingcmd::TimingHwCmd& /*hw_cmd*/) override {}
 
 private:
   std::string m_monitored_device_name_master;
@@ -101,7 +93,7 @@ private:
 } // namespace timinglibs
 } // namespace dunedaq
 
-#endif // TIMINGLIBS_PLUGINS_TIMINGHARDWAREMANAGERPDI_HPP_
+#endif // TIMINGLIBS_PLUGINS_TIMINGHARDWAREMANAGERPDII_HPP_
 
 // Local Variables:
 // c-basic-offset: 2

@@ -139,6 +139,16 @@ ERS_DECLARE_ISSUE_BASE(timinglibs,
                        " Queue " << queue << " is null! ",
                        ((std::string)name),
                        ((std::string)queue))
+
+ERS_DECLARE_ISSUE(timinglibs,
+                  TooManyEndpointScanThreadsQueued,
+                  " Too many endpoint scan threads queued: " << n_threads << " threads! Not queuing endpoint scan!",
+                  ((uint64_t)n_threads)) // NOLINT(build/unsigned)
+
+ERS_DECLARE_ISSUE(timinglibs,
+                  EndpointScanFailure,
+                  " Endpoint scan failed!!",
+                  ERS_EMPTY)
 } // namespace dunedaq
 
 #endif // TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGISSUES_HPP_

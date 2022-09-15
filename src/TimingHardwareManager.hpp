@@ -25,13 +25,13 @@
 #include "ers/Issue.hpp"
 #include "iomanager/Receiver.hpp"
 #include "logging/Logging.hpp"
+
+#include "timing/TimingNode.hpp"
 #include "timing/EndpointDesignInterface.hpp"
-#include "timing/EndpointNode.hpp"
-#include "timing/FanoutDesign.hpp"
 #include "timing/HSIDesignInterface.hpp"
 #include "timing/MasterDesignInterface.hpp"
-#include "timing/TimingNode.hpp"
 #include "timing/TopDesignInterface.hpp"
+
 #include "uhal/ConnectionManager.hpp"
 #include "utilities/WorkerThread.hpp"
 
@@ -126,16 +126,10 @@ protected:
   void set_timestamp(const timingcmd::TimingHwCmd& hw_cmd);
   void set_endpoint_delay(const timingcmd::TimingHwCmd& hw_cmd);
   void send_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd);
+  void master_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd);
 
   // timing partition commands
   virtual void partition_configure(const timingcmd::TimingHwCmd& hw_cmd) = 0;
-  virtual void partition_enable(const timingcmd::TimingHwCmd& hw_cmd) = 0;
-  virtual void partition_disable(const timingcmd::TimingHwCmd& hw_cmd) = 0;
-  virtual void partition_start(const timingcmd::TimingHwCmd& hw_cmd) = 0;
-  virtual void partition_stop(const timingcmd::TimingHwCmd& hw_cmd) = 0;
-  virtual void partition_enable_triggers(const timingcmd::TimingHwCmd& hw_cmd) = 0;
-  virtual void partition_disable_triggers(const timingcmd::TimingHwCmd& hw_cmd) = 0;
-  virtual void partition_print_status(const timingcmd::TimingHwCmd& hw_cmd) = 0;
 
   // timing endpoint commands
   void endpoint_enable(const timingcmd::TimingHwCmd& hw_cmd);
@@ -164,6 +158,14 @@ protected:
   virtual void start_hw_mon_gathering(const std::string& device_name = "");
   virtual void stop_hw_mon_gathering(const std::string& device_name = "");
   virtual std::vector<std::string> check_hw_mon_gatherer_is_running(const std::string& device_name);
+
+  std::mutex m_command_threads_map_mutex;
+  std::map<std::string, std::unique_ptr<dunedaq::utilities::ReusableThread>> m_command_threads;
+  std::mutex master_sfp_mutex;
+  virtual void perform_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd);
+  virtual void clean_endpoint_scan_threads();
+  std::unique_ptr<dunedaq::utilities::ReusableThread> m_endpoint_scan_threads_clean_up_thread;
+  std::atomic<bool> m_run_clean_endpoint_scan_threads;
 };
 
 } // namespace timinglibs

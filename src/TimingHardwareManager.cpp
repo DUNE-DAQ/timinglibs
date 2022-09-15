@@ -40,6 +40,7 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
   , m_accepted_hw_commands_counter{ 0 }
   , m_rejected_hw_commands_counter{ 0 }
   , m_failed_hw_commands_counter{ 0 }
+  , m_endpoint_scan_threads_clean_up_thread(nullptr)
 {
   //  register_command("start", &TimingHardwareManager::do_start);
   //  register_command("stop", &TimingHardwareManager::do_stop);
@@ -53,6 +54,7 @@ TimingHardwareManager::init(const nlohmann::json& init_data)
   auto qi = appfwk::connection_index(init_data, { m_hw_cmd_connection, m_device_info_connection });
   m_hw_command_receiver = get_iom_receiver<timingcmd::TimingHwCmd>(qi[m_hw_cmd_connection]);
   m_device_info_connection_ref = qi[m_device_info_connection];
+  m_endpoint_scan_threads_clean_up_thread = std::make_unique<dunedaq::utilities::ReusableThread>(0);
 }
 
 void
@@ -64,6 +66,9 @@ TimingHardwareManager::conf(const nlohmann::json& /*conf_data*/)
   m_failed_hw_commands_counter = 0;
 
   m_hw_command_receiver->add_callback(std::bind(&TimingHardwareManager::process_hardware_command, this, std::placeholders::_1));
+
+  m_run_clean_endpoint_scan_threads.store(true);
+  m_endpoint_scan_threads_clean_up_thread->set_work(&TimingHardwareManager::clean_endpoint_scan_threads, this);
 }
 
 void
@@ -71,10 +76,13 @@ TimingHardwareManager::scrap(const nlohmann::json& /*data*/)
 {
   m_hw_command_receiver->remove_callback();
 
+  m_run_clean_endpoint_scan_threads.store(false);
+
+  m_command_threads.clear(); 
+  m_info_gatherers.clear();
+  m_timing_hw_cmd_map_.clear();
   m_hw_device_map.clear();
   m_connection_manager.reset();
-  m_timing_hw_cmd_map_.clear();
-  m_info_gatherers.clear();
 }
 
 const timing::TimingNode*
@@ -87,8 +95,6 @@ TimingHardwareManager::get_timing_device_plain(const std::string& device_name)
     throw UHALDeviceNameIssue(ERS_HERE, message.str());
   }
 
-  std::lock_guard<std::mutex> hw_device_map_guard(m_hw_device_map_mutex);
-
   if (auto hw_device_entry = m_hw_device_map.find(device_name); hw_device_entry != m_hw_device_map.end()) {
     return dynamic_cast<const timing::TimingNode*>(&hw_device_entry->second->getNode(""));
   } else {
@@ -96,6 +102,7 @@ TimingHardwareManager::get_timing_device_plain(const std::string& device_name)
                   << " does not exist. I will try to create it.";
 
     try {
+      std::lock_guard<std::mutex> hw_device_map_guard(m_hw_device_map_mutex);
       m_hw_device_map.emplace(device_name,
                               std::make_unique<uhal::HwInterface>(m_connection_manager->getDevice(device_name)));
     } catch (const uhal::exception::ConnectionUIDDoesNotExist& exception) {
@@ -310,6 +317,90 @@ TimingHardwareManager::set_timestamp(const timingcmd::TimingHwCmd& hw_cmd)
 
   auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
   design->sync_timestamp();
+}
+
+void
+TimingHardwareManager::master_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan";
+
+  std::stringstream command_thread_uid;
+  auto t = std::time(nullptr);
+  auto tm = *std::localtime(&t);
+  command_thread_uid << "enpoint_scan_cmd_at_" << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << "_cmd_num_" << m_accepted_hw_commands_counter.load();
+  
+  if (m_command_threads.size() > 5)
+  {
+    ers::warning(TooManyEndpointScanThreadsQueued(ERS_HERE, m_command_threads.size()));
+  }
+  else
+  {
+    TLOG_DEBUG(0) << "Queuing: " << command_thread_uid.str();
+
+    auto thread_key = command_thread_uid.str();
+    std::unique_lock map_lock(m_command_threads_map_mutex);
+    m_command_threads.emplace(thread_key, std::make_unique<dunedaq::utilities::ReusableThread>(m_accepted_hw_commands_counter.load()));
+    m_command_threads.at(thread_key)->set_work(&TimingHardwareManager::perform_endpoint_scan, this, hw_cmd);
+  }
+}
+
+void TimingHardwareManager::perform_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  timingcmd::TimingMasterEndpointScanPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  std::unique_lock master_sfp_lock(master_sfp_mutex);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan starting";
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  try
+  {
+    auto results = design->get_master_node_plain()->scan_endpoints(cmd_payload.endpoints);
+  }
+  catch(std::exception& e)
+  {
+    ers::error(EndpointScanFailure(ERS_HERE,e));
+  }
+}
+
+void TimingHardwareManager::clean_endpoint_scan_threads()
+{
+  TLOG_DEBUG(0) << "Entering clean_endpoint_scan_threads()";
+  bool break_flag = false;
+  while (!break_flag)
+  {
+    for (auto& thread : m_command_threads)
+    {
+      if (thread.second->get_readiness())
+      {
+        std::unique_lock map_lock(m_command_threads_map_mutex);
+        TLOG_DEBUG(0) << thread.first << " thread ready. Cleaning up.";
+        m_command_threads.erase(thread.first);
+      }
+    }
+    
+    auto prev_clean_time = std::chrono::steady_clock::now();
+    auto next_clean_time = prev_clean_time + std::chrono::milliseconds(150);
+
+    // check running_flag periodically
+    auto flag_check_period = std::chrono::milliseconds(1);
+    auto next_flag_check_time = prev_clean_time + flag_check_period;
+
+    while (next_clean_time > next_flag_check_time + flag_check_period) {
+      if (!m_run_clean_endpoint_scan_threads.load()) {
+        TLOG_DEBUG(0) << "while waiting to clean up endpoint scan threads, negative run gatherer flag detected.";
+        break_flag = true;
+        break;
+      }
+      std::this_thread::sleep_until(next_flag_check_time);
+      next_flag_check_time = next_flag_check_time + flag_check_period;
+    }
+    if (break_flag == false) {
+      std::this_thread::sleep_until(next_clean_time);
+    }
+  }
+  TLOG_DEBUG(0) << "Exiting clean_endpoint_scan_threads()";
 }
 
 // master commands
