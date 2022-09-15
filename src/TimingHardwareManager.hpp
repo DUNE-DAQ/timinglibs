@@ -74,10 +74,7 @@ public:
     delete;                                                ///< TimingHardwareManager is not copy-assignable
   TimingHardwareManager(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-constructible
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
-  virtual ~TimingHardwareManager()
-  {
-    m_command_threads.clear();
-  }
+  virtual ~TimingHardwareManager() {}
   
   void init(const nlohmann::json& init_data) override;
   virtual void conf(const nlohmann::json& conf_data);

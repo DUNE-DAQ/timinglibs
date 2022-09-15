@@ -381,7 +381,7 @@ void TimingHardwareManager::clean_endpoint_scan_threads()
     }
     
     auto prev_clean_time = std::chrono::steady_clock::now();
-    auto next_clean_time = prev_clean_time + std::chrono::milliseconds(100);
+    auto next_clean_time = prev_clean_time + std::chrono::milliseconds(150);
 
     // check running_flag periodically
     auto flag_check_period = std::chrono::milliseconds(1);
