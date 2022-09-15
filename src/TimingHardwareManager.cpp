@@ -77,12 +77,12 @@ TimingHardwareManager::scrap(const nlohmann::json& /*data*/)
   m_hw_command_receiver->remove_callback();
 
   m_run_clean_endpoint_scan_threads.store(false);
-  
+
+  m_command_threads.clear(); 
+  m_info_gatherers.clear();
+  m_timing_hw_cmd_map_.clear();
   m_hw_device_map.clear();
   m_connection_manager.reset();
-  m_timing_hw_cmd_map_.clear();
-  m_info_gatherers.clear();
-  m_command_threads.clear();
 }
 
 const timing::TimingNode*
@@ -366,6 +366,7 @@ void TimingHardwareManager::perform_endpoint_scan(const timingcmd::TimingHwCmd& 
 
 void TimingHardwareManager::clean_endpoint_scan_threads()
 {
+  TLOG_DEBUG(0) << "Entering clean_endpoint_scan_threads()";
   bool break_flag = false;
   while (!break_flag)
   {
@@ -399,6 +400,7 @@ void TimingHardwareManager::clean_endpoint_scan_threads()
       std::this_thread::sleep_until(next_clean_time);
     }
   }
+  TLOG_DEBUG(0) << "Exiting clean_endpoint_scan_threads()";
 }
 
 // master commands

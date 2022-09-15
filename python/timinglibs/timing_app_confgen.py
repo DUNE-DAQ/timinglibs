@@ -34,6 +34,8 @@ from daqconf.core.conf_utils import Direction
 from daqconf.core.system import System
 from daqconf.core.metadata import write_metadata_file
 
+from timing.cli import toolbox
+
 import json
 import math
 
@@ -49,6 +51,7 @@ def generate(
         MASTER_ENDPOINT_SCAN_PERIOD=0,
         MASTER_CLOCK_FILE="",
         MASTER_CLOCK_MODE=-1,
+        MONITORED_ENDPOINTS=[],
         PARTITION_IDS=[],
         FANOUT_DEVICES_NAMES=[],
         FANOUT_CLOCK_FILE="",
@@ -110,6 +113,7 @@ def generate(
                                         endpoint_scan_period=MASTER_ENDPOINT_SCAN_PERIOD,
                                         clock_config=MASTER_CLOCK_FILE,
                                         fanout_mode=MASTER_CLOCK_MODE,
+                                        monitored_endpoints=MONITORED_ENDPOINTS,
                                         ))])
 
 
@@ -119,6 +123,7 @@ def generate(
                                             endpoint_scan_period=MASTER_ENDPOINT_SCAN_PERIOD,
                                             clock_config=MASTER_CLOCK_FILE,
                                             fanout_mode=MASTER_CLOCK_MODE,
+                                            monitored_endpoints=MONITORED_ENDPOINTS,
                                                                 ))])),
                                 ("master_io_reset", acmd([("tmc", tcmd.IOResetCmdPayload(
                                                   clock_config=MASTER_CLOCK_FILE,
@@ -406,6 +411,7 @@ if __name__ == '__main__':
     @click.option('--master-clock-file', default="")
     @click.option('--master-clock-mode', default=-1)
     @click.option('--master-endpoint-scan-period', default=0, help="Master controller continuously send delays period [ms] (to all endpoints). 0 for disable.")
+    @click.option('--monitored-endpoints', callback=toolbox.split_ints)
     @click.option('-p', '--partition-ids', default="0", callback=split_string)
 
     @click.option('-f', '--fanout-devices-names', callback=split_string)
@@ -436,7 +442,7 @@ if __name__ == '__main__':
     @click.argument('json_dir', type=click.Path(), default='timing_app')
     def cli(run_number, connections_file, firmware_style, gather_interval, gather_interval_debug, 
 
-        master_device_name, master_clock_file, master_clock_mode, master_endpoint_scan_period, partition_ids,
+        master_device_name, master_clock_file, master_clock_mode, master_endpoint_scan_period, monitored_endpoints, partition_ids,
         fanout_devices_names, fanout_clock_file,
         endpoint_device_name, endpoint_clock_file, endpoint_address, endpoint_partition,
         hsi_device_name, hsi_clock_file, hsi_endpoint_address, hsi_endpoint_partition, hsi_re_mask, hsi_fe_mask, hsi_inv_mask, hsi_source, hsi_random_rate,
@@ -457,6 +463,7 @@ if __name__ == '__main__':
                     MASTER_ENDPOINT_SCAN_PERIOD=master_endpoint_scan_period,
                     MASTER_CLOCK_FILE = master_clock_file,
                     MASTER_CLOCK_MODE = master_clock_mode,
+                    MONITORED_ENDPOINTS=monitored_endpoints,
                     PARTITION_IDS = partition_ids,
                     FANOUT_DEVICES_NAMES = fanout_devices_names,
                     FANOUT_CLOCK_FILE = fanout_clock_file,
