@@ -329,7 +329,7 @@ TimingHardwareManager::master_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd
   auto tm = *std::localtime(&t);
   command_thread_uid << "enpoint_scan_cmd_at_" << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << "_cmd_num_" << m_accepted_hw_commands_counter.load();
   
-  if (m_command_threads.size() > 100)
+  if (m_command_threads.size() > 5)
   {
     ers::warning(TooManyEndpointScanThreadsQueued(ERS_HERE, m_command_threads.size()));
   }
@@ -358,9 +358,9 @@ void TimingHardwareManager::perform_endpoint_scan(const timingcmd::TimingHwCmd& 
   {
     auto results = design->get_master_node_plain()->scan_endpoints(cmd_payload.endpoints);
   }
-  catch(...)
+  catch(std::exception& e)
   {
-    TLOG() << "rtt measurment failure";
+    ers::error(EndpointScanFailure(ERS_HERE,e));
   }
 }
 
@@ -381,7 +381,7 @@ void TimingHardwareManager::clean_endpoint_scan_threads()
     }
     
     auto prev_clean_time = std::chrono::steady_clock::now();
-    auto next_clean_time = prev_clean_time + std::chrono::milliseconds(500);
+    auto next_clean_time = prev_clean_time + std::chrono::milliseconds(100);
 
     // check running_flag periodically
     auto flag_check_period = std::chrono::milliseconds(1);
