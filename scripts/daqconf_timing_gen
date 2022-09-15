@@ -11,6 +11,8 @@ from os.path import exists, join
 from daqconf.core.system import System
 from daqconf.core.metadata import write_metadata_file
 
+from timing.cli import toolbox
+
 # Add -h as default help option
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -25,7 +27,8 @@ import click
 
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.option('--base-command-port', type=int, default=3333, help="Base port of application command endpoints")
-@click.option('--clock-speed-hz', type=int, default=50000000)
+@click.option('--clock-speed-hz', type=int, default=62500000)
+@click.option('--firmware-type', type=click.Choice(['pdi', 'pdii']), default='pdi', help="Timing firmware type, pdi (NRZ) or pdii (no cdr)")
 @click.option('--disable-trace', is_flag=True, help="Do not enable TRACE (default TRACE_FILE is /tmp/trace_buffer_\${HOSTNAME}_\${USER})")
 @click.option('--host-thi', default='localhost', help='Host to run the (global) timing hardware interface app on')
 @click.option('--port-thi', default=12345, help='Port to host running the (global) timing hardware interface app on')
@@ -44,16 +47,17 @@ import click
 @click.option('--master-clock-mode', default=-1, help='Fanout mode for master device.')
 @click.option('--fanout-device-name', default="", help='Device name of timing fanout hw')
 @click.option('--fanout-clock-file', default="", help='Path to custom PLL config file for fanout device')
+@click.option('--monitored-endpoints', callback=toolbox.split_ints)
 @click.option('--use-k8s', is_flag=True, default=False, help="Whether to use k8s")
 @click.option('--image', default="", type=str, help="Which docker image to use")
 @click.option('--debug', default=False, is_flag=True, help="Switch to get a lot of printout and dot files")
 @click.argument('json_dir', type=click.Path())
 
-def cli(base_command_port, clock_speed_hz, disable_trace, host_thi, port_thi, host_tmc, host_tfc,
+def cli(base_command_port, clock_speed_hz, firmware_type, disable_trace, host_thi, port_thi, host_tmc, host_tfc,
         gather_interval, gather_interval_debug, timing_hw_connections_file,
         opmon_impl, ers_impl, pocket_url,
         hsi_device_name, master_device_name, master_send_delays_period, master_clock_file, master_clock_mode,
-        fanout_device_name, fanout_clock_file, use_k8s, image, debug, json_dir):
+        fanout_device_name, fanout_clock_file, monitored_endpoints, use_k8s, image, debug, json_dir):
 
     if exists(json_dir):
         raise RuntimeError(f"Directory {json_dir} already exists")
@@ -104,6 +108,7 @@ def cli(base_command_port, clock_speed_hz, disable_trace, host_thi, port_thi, ho
 
     # the timing hardware interface application
     the_system.apps["thi"] = get_thi_app(
+        FIRMWARE_TYPE=firmware_type,
         GATHER_INTERVAL=gather_interval,
         GATHER_INTERVAL_DEBUG=gather_interval_debug,
         CONNECTIONS_FILE=timing_hw_connections_file,
@@ -121,6 +126,7 @@ def cli(base_command_port, clock_speed_hz, disable_trace, host_thi, port_thi, ho
             MASTER_SEND_DELAYS_PERIOD=master_send_delays_period,
             MASTER_CLOCK_FILE=master_clock_file,
             MASTER_CLOCK_MODE=master_clock_mode,
+            MONITORED_ENDPOINTS=monitored_endpoints,
             TIMING_HOST=host_thi,
             TIMING_PORT=port_thi,
             HOST=host_tmc,

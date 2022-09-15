@@ -26,7 +26,8 @@ from daqconf.core.daqmodule import DAQModule
 from daqconf.core.conf_utils import Direction
 
 #===============================================================================
-def get_thi_app(GATHER_INTERVAL=5e5,
+def get_thi_app(FIRMWARE_TYPE='pdi',
+                GATHER_INTERVAL=5e5,
                 GATHER_INTERVAL_DEBUG=10e7,
                 MASTER_DEVICE_NAME="",
                 FANOUT_DEVICE_NAME="",
@@ -43,9 +44,16 @@ def get_thi_app(GATHER_INTERVAL=5e5,
     if FANOUT_DEVICE_NAME:
         fanout_devices.append(FANOUT_DEVICE_NAME)
     
+    if FIRMWARE_TYPE == 'pdi':
+        thi_class='TimingHardwareManagerPDI'
+    elif FIRMWARE_TYPE == 'pdii':
+        thi_class='TimingHardwareManagerPDII'
+    else:
+        raise Exception(f"'Unexpected firmware type: {FIRMWARE_TYPE}")
+
     modules = [ 
                 DAQModule( name="thi",
-                                plugin="TimingHardwareManagerPDI",
+                                plugin=thi_class,
                                 conf= thi.ConfParams(connections_file=CONNECTIONS_FILE,
                                                        gather_interval=GATHER_INTERVAL,
                                                        gather_interval_debug=GATHER_INTERVAL_DEBUG,

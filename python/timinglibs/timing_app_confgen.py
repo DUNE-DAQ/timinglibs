@@ -15,7 +15,7 @@ moo.otypes.load_types('timinglibs/timingmastercontroller.jsonnet')
 moo.otypes.load_types('timinglibs/timingfanoutcontroller.jsonnet')
 moo.otypes.load_types('timinglibs/timingpartitioncontroller.jsonnet')
 moo.otypes.load_types('timinglibs/timingendpointcontroller.jsonnet')
-moo.otypes.load_types('timinglibs/hsicontroller.jsonnet')
+moo.otypes.load_types('hsilibs/hsicontroller.jsonnet')
 
 # Import new types
 import dunedaq.rcif.cmd as rccmd # AddressedCmd, 
@@ -24,7 +24,7 @@ import dunedaq.timinglibs.timinghardwaremanagerpdi as thi
 import dunedaq.timinglibs.timingmastercontroller as tmc
 import dunedaq.timinglibs.timingpartitioncontroller as tpc
 import dunedaq.timinglibs.timingendpointcontroller as tec
-import dunedaq.timinglibs.hsicontroller as hsi
+import dunedaq.hsilibs.hsicontroller as hsi
 import dunedaq.timinglibs.timingfanoutcontroller as tfc
 
 from appfwk.utils import acmd
@@ -131,9 +131,8 @@ def generate(
         if FIRMWARE_STYLE == 'pdii':
             custom_cmds.extend( [
                                     ("master_endpoint_scan", acmd([("tmc", tcmd.TimingMasterEndpointScanPayload(
-                                                                    endpoints=[tcmd.TimingEndpointScanInfo(label="1st",address=1),
-                                                                              tcmd.TimingEndpointScanInfo(label="2nd",address=2)],
-                                                            ))])),
+                                                                    endpoints=tcmd.TimingEndpointScanAddresses([1,2]),
+                                                                        ))])),
                                 ])
 
         ###
@@ -368,7 +367,7 @@ def generate(
 
     console.log(f"timing app config generated in {OUTPUT_PATH}")
     
-    write_metadata_file(OUTPUT_PATH, "timing_app_confgen")
+    #write_metadata_file(OUTPUT_PATH, "timing_app_confgen")
 
     data_dir = f"{OUTPUT_PATH}/data"
 

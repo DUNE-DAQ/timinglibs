@@ -58,7 +58,8 @@ TimingMasterController::do_configure(const nlohmann::json& data)
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
   m_timing_device = conf.device;
-  
+  m_monitored_endpoint_addresses = conf.monitored_endpoints;
+
   TimingController::do_configure(data); // configure hw command connection
 
   do_master_io_reset(data);
@@ -221,10 +222,13 @@ TimingMasterController::endpoint_scan(std::atomic<bool>& running_flag)
   TLOG_DEBUG(0) << get_name() << starting_stream.str();
 
   while (running_flag.load() && m_endpoint_scan_period) {
+
     timingcmd::TimingHwCmd hw_cmd =
     construct_master_hw_cmd( "master_endpoint_scan");
+
     timingcmd::TimingMasterEndpointScanPayload cmd_payload;
-    cmd_payload.endpoints={2,3};
+    cmd_payload.endpoints = m_monitored_endpoint_addresses;
+    
     hw_cmd.payload = cmd_payload;
     send_hw_cmd(std::move(hw_cmd));
 

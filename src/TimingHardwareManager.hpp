@@ -74,7 +74,10 @@ public:
     delete;                                                ///< TimingHardwareManager is not copy-assignable
   TimingHardwareManager(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-constructible
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
-  virtual ~TimingHardwareManager() {}
+  virtual ~TimingHardwareManager()
+  {
+    m_command_threads.clear();
+  }
   
   void init(const nlohmann::json& init_data) override;
   virtual void conf(const nlohmann::json& conf_data);
@@ -159,9 +162,13 @@ protected:
   virtual void stop_hw_mon_gathering(const std::string& device_name = "");
   virtual std::vector<std::string> check_hw_mon_gatherer_is_running(const std::string& device_name);
 
-  std::map<std::string, std::unique_ptr<dunedaq::utilities::ReusableThread>> command_threads;
+  std::mutex m_command_threads_map_mutex;
+  std::map<std::string, std::unique_ptr<dunedaq::utilities::ReusableThread>> m_command_threads;
   std::mutex master_sfp_mutex;
-  void perform_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd);
+  virtual void perform_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd);
+  virtual void clean_endpoint_scan_threads();
+  std::unique_ptr<dunedaq::utilities::ReusableThread> m_endpoint_scan_threads_clean_up_thread;
+  std::atomic<bool> m_run_clean_endpoint_scan_threads;
 };
 
 } // namespace timinglibs

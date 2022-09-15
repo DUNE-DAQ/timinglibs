@@ -13,6 +13,9 @@ local cs = {
     
     fanout_mode: s.number("FanoutMode", "i4", 
         doc="Fanout mode"),
+    
+    timing_endpoints_addresses: s.sequence("TimingEndpointScanAddresses", self.uint_data,
+            doc="A vector of endpoint addresses"),
 
     conf: s.record("ConfParams", [
         s.field("device", self.str, "",
@@ -25,6 +28,8 @@ local cs = {
             doc="Soft reset"),
         s.field("fanout_mode", self.fanout_mode, -1, 
             doc="Fanout mode. -1: none, 0: fanout, 1: standalone"),
+        s.field("monitored_endpoints", self.timing_endpoints_addresses,
+                doc="List of monitored endpoint addresses"),
     ], doc="TimingMasterController configuration"),
 
 };

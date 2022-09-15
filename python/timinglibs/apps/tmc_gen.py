@@ -33,6 +33,7 @@ def get_tmc_app(MASTER_DEVICE_NAME="",
                 MASTER_SEND_DELAYS_PERIOD=0,
                 MASTER_CLOCK_FILE="",
                 MASTER_CLOCK_MODE=-1,
+                MONITORED_ENDPOINTS=[],
                 HOST="localhost",
                 TIMING_HOST="np04-srv-012.cern.ch",
                 TIMING_PORT=12345,
@@ -45,9 +46,10 @@ def get_tmc_app(MASTER_DEVICE_NAME="",
                         plugin = "TimingMasterController",
                         conf = tmc.ConfParams(
                                             device=MASTER_DEVICE_NAME,
-                                            send_endpoint_delays_period=MASTER_SEND_DELAYS_PERIOD,
+                                            endpoint_scan_period=MASTER_SEND_DELAYS_PERIOD,
                                             clock_config=MASTER_CLOCK_FILE,
                                             fanout_mode=MASTER_CLOCK_MODE,
+                                            monitored_endpoints=MONITORED_ENDPOINTS,
                                             ))]
 
     mgraph = ModuleGraph(modules)

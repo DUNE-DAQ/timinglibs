@@ -122,7 +122,7 @@ local timingcmd = {
             doc="Mux to endpoint (or not)"),
     ], doc="Structure for payload of timing master set endpoint delay command"),
 
-    timing_endpoints_addresses: s.sequence("TimingEndpointScanInfoMap", self.uint_data,
+    timing_endpoints_addresses: s.sequence("TimingEndpointScanAddresses", self.uint_data,
             doc="A vector of endpoint addresses"),
 
     timing_master_endpoint_scan_payload: s.record("TimingMasterEndpointScanPayload",[

@@ -77,7 +77,7 @@ public:
 
   void get_info(opmonlib::InfoCollector& ci, int level) override;
 
-  void partition_configure(const timingcmd::TimingHwCmd& hw_cmd) override {}
+  void partition_configure(const timingcmd::TimingHwCmd& /*hw_cmd*/) override {}
 
 private:
   std::string m_monitored_device_name_master;
