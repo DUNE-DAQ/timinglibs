@@ -10,6 +10,7 @@ from rich.console import Console
 from os.path import exists, join
 from daqconf.core.system import System
 from daqconf.core.metadata import write_metadata_file
+from daqconf.core.config_file import generate_cli_from_schema
 
 from timing.cli import toolbox
 
@@ -26,43 +27,39 @@ moo.io.default_load_path = get_moo_model_path()
 import click
 
 @click.command(context_settings=CONTEXT_SETTINGS)
-@click.option('--base-command-port', type=int, default=3333, help="Base port of application command endpoints")
-@click.option('--clock-speed-hz', type=int, default=62500000)
-@click.option('--firmware-type', type=click.Choice(['pdi', 'pdii']), default='pdi', help="Timing firmware type, pdi (NRZ) or pdii (no cdr)")
-@click.option('--disable-trace', is_flag=True, help="Do not enable TRACE (default TRACE_FILE is /tmp/trace_buffer_\${HOSTNAME}_\${USER})")
-@click.option('--host-thi', default='localhost', help='Host to run the (global) timing hardware interface app on')
-@click.option('--port-thi', default=12345, help='Port to host running the (global) timing hardware interface app on')
-@click.option('--host-tmc', default='localhost', help='Host to run the (global) timing master controller app on')
-@click.option('--host-tfc', default='localhost', help='Host to run the (global) timing master controller app on')
-@click.option('--gather-interval', default=5e5, help='Gather interval for hardware polling [us]')
-@click.option('--gather-interval-debug', default=10e7, help='Gather interval for hardware polling debug/i2c [us]')
-@click.option('--timing-hw-connections-file', default="${TIMING_SHARE}/config/etc/connections.xml", help='Path to timing hardware connections file')
-@click.option('--opmon-impl', type=click.Choice(['json','cern','pocket'], case_sensitive=False),default='json', help="Info collector service implementation to use")
-@click.option('--ers-impl', type=click.Choice(['local','cern','pocket'], case_sensitive=False), default='local', help="ERS destination (Kafka used for cern and pocket)")
-@click.option('--pocket-url', default='127.0.0.1', help="URL for connecting to Pocket services")
-@click.option('--hsi-device-name', default="", help='Real HSI hardware only: device name of HSI hw')
-@click.option('--master-device-name', default="", help='Device name of timing master hw')
-@click.option('--master-send-delays-period', default=0, help="Master controller continuously send delays period [ms] (to all endpoints). 0 for disable.")
-@click.option('--master-clock-file', default="", help='Path to custom PLL config file for master device')
-@click.option('--master-clock-mode', default=-1, help='Fanout mode for master device.')
-@click.option('--fanout-device-name', default="", help='Device name of timing fanout hw')
-@click.option('--fanout-clock-file', default="", help='Path to custom PLL config file for fanout device')
-@click.option('--monitored-endpoints', callback=toolbox.split_ints)
-@click.option('--use-k8s', is_flag=True, default=False, help="Whether to use k8s")
-@click.option('--image', default="", type=str, help="Which docker image to use")
+@generate_cli_from_schema('timinglibs/confgen.jsonnet', 'timing_gen')
 @click.option('--debug', default=False, is_flag=True, help="Switch to get a lot of printout and dot files")
 @click.argument('json_dir', type=click.Path())
-
-def cli(base_command_port, clock_speed_hz, firmware_type, disable_trace, host_thi, port_thi, host_tmc, host_tfc,
-        gather_interval, gather_interval_debug, timing_hw_connections_file,
-        opmon_impl, ers_impl, pocket_url,
-        hsi_device_name, master_device_name, master_send_delays_period, master_clock_file, master_clock_mode,
-        fanout_device_name, fanout_clock_file, monitored_endpoints, use_k8s, image, debug, json_dir):
+def cli(config, debug, json_dir):
 
     if exists(json_dir):
         raise RuntimeError(f"Directory {json_dir} already exists")
 
-    if use_k8s and not image:
+    config_data = config[0]
+    config_file = config[1]
+
+    # Get our config objects
+    # Loading this one another time... (first time in config_file.generate_cli_from_schema)
+    moo.otypes.load_types('timinglibs/confgen.jsonnet')
+    import dunedaq.timinglibs.confgen as confgen
+    moo.otypes.load_types('daqconf/confgen.jsonnet')
+    import dunedaq.daqconf.confgen as daqconf
+
+    ## Hack, we shouldn't need to do that, in the future it should be, boot = config_data.boot
+    boot = daqconf.boot(**config_data.boot)
+    if debug: console.log(f"boot configuration object: {boot.pod()}")
+
+    ## etc...
+    thi = confgen.timing_hardware_interface(**config_data.timing_hardware_interface)
+    if debug: console.log(f"timing_hardware_interface configuration object: {thi.pod()}")
+
+    tmc = confgen.timing_master_controller(**config_data.timing_master_controller)
+    if debug: console.log(f"tmc configuration object: {tmc.pod()}")
+
+    tfc = confgen.timing_fanout_controller(**config_data.timing_fanout_controller)
+    if debug: console.log(f"timing_fanout_controller configuration object: {readout.pod()}")
+
+    if boot.use_k8s and not boot.image:
         raise Exception("You need to provide an --image if running with k8s")
 
     console.log("Loading timing hardware config generator")
@@ -74,73 +71,46 @@ def cli(base_command_port, clock_speed_hz, firmware_type, disable_trace, host_th
     console.log("Loading timing fanout controller generator")
     from timinglibs.apps.tfc_gen import get_tfc_app
 
-    console.log(f"Generating configs for global thi host {host_thi}")
+    console.log(f"Generating configs for global thi host {thi.host_thi}")
 
-    the_system = System(first_port=port_thi)
-
-    if opmon_impl == 'cern':
-        info_svc_uri = "influx://opmondb.cern.ch:31002/write?db=influxdb"
-    elif opmon_impl == 'pocket':
-        info_svc_uri = "influx://" + pocket_url + ":31002/write?db=influxdb"
-    else:
-        info_svc_uri = "file://info_${APP_NAME}_${APP_PORT}.json"
-
-    ers_settings=dict()
-
-    if ers_impl == 'cern':
-        use_kafka = True
-        ers_settings["INFO"] =    "erstrace,throttle,lstdout,erskafka(monkafka.cern.ch:30092)"
-        ers_settings["WARNING"] = "erstrace,throttle,lstdout,erskafka(monkafka.cern.ch:30092)"
-        ers_settings["ERROR"] =   "erstrace,throttle,lstdout,erskafka(monkafka.cern.ch:30092)"
-        ers_settings["FATAL"] =   "erstrace,lstdout,erskafka(monkafka.cern.ch:30092)"
-    elif ers_impl == 'pocket':
-        use_kafka = True
-        ers_settings["INFO"] =    "erstrace,throttle,lstdout,erskafka(" + pocket_url + ":30092)"
-        ers_settings["WARNING"] = "erstrace,throttle,lstdout,erskafka(" + pocket_url + ":30092)"
-        ers_settings["ERROR"] =   "erstrace,throttle,lstdout,erskafka(" + pocket_url + ":30092)"
-        ers_settings["FATAL"] =   "erstrace,lstdout,erskafka(" + pocket_url + ":30092)"
-    else:
-        use_kafka = False
-        ers_settings["INFO"] =    "erstrace,throttle,lstdout"
-        ers_settings["WARNING"] = "erstrace,throttle,lstdout"
-        ers_settings["ERROR"] =   "erstrace,throttle,lstdout"
-        ers_settings["FATAL"] =   "erstrace,lstdout"
-
+    the_system = System(first_port=thi.port_thi)
     # the timing hardware interface application
-    the_system.apps["thi"] = get_thi_app(
-        FIRMWARE_TYPE=firmware_type,
-        GATHER_INTERVAL=gather_interval,
-        GATHER_INTERVAL_DEBUG=gather_interval_debug,
-        CONNECTIONS_FILE=timing_hw_connections_file,
-        MASTER_DEVICE_NAME=master_device_name,
-        FANOUT_DEVICE_NAME=fanout_device_name,
-        HSI_DEVICE_NAME=hsi_device_name,
-        TIMING_PORT=port_thi,
-        HOST=host_thi,
-        DEBUG=debug)
+    the_system.apps["thi"] = get_thi_app( # TODO pass directly thi, tmc and tfc
+        FIRMWARE_TYPE         = thi.firmware_type,
+        GATHER_INTERVAL       = thi.gather_interval,
+        GATHER_INTERVAL_DEBUG = thi.gather_interval_debug,
+        CONNECTIONS_FILE      = thi.timing_hw_connections_file,
+        MASTER_DEVICE_NAME    = tmc.master_device_name,
+        FANOUT_DEVICE_NAME    = tfc.fanout_device_name,
+        HSI_DEVICE_NAME       = thi.hsi_device_name,
+        TIMING_PORT           = thi.port_thi,
+        HOST                  = thi.host_thi,
+        DEBUG                 = debug
+    )
     conf_order=['thi']
 
-    if master_device_name:
-        the_system.apps["tmc"] = get_tmc_app(
-            MASTER_DEVICE_NAME=master_device_name,
-            MASTER_SEND_DELAYS_PERIOD=master_send_delays_period,
-            MASTER_CLOCK_FILE=master_clock_file,
-            MASTER_CLOCK_MODE=master_clock_mode,
-            MONITORED_ENDPOINTS=monitored_endpoints,
-            TIMING_HOST=host_thi,
-            TIMING_PORT=port_thi,
-            HOST=host_tmc,
-            DEBUG=debug)
+    if tmc.master_device_name:
+        the_system.apps["tmc"] = get_tmc_app( ## TODO
+            MASTER_DEVICE_NAME        = tmc.master_device_name,
+            MASTER_SEND_DELAYS_PERIOD = tmc.master_send_delays_period,
+            MASTER_CLOCK_FILE         = tmc.master_clock_file,
+            MASTER_CLOCK_MODE         = tmc.master_clock_mode,
+            MONITORED_ENDPOINTS       = tmc.monitored_endpoints,
+            TIMING_HOST               = thi.host_thi,
+            TIMING_PORT               = thi.port_thi,
+            HOST                      = tmc.host_tmc,
+            DEBUG                     = debug
+        )
         conf_order.append('tmc')
 
-    if fanout_device_name:
-        the_system.apps["tfc"] = get_tfc_app(
-            FANOUT_DEVICE_NAME=fanout_device_name,
-            FANOUT_CLOCK_FILE=fanout_clock_file,
-            TIMING_HOST=host_thi,
-            TIMING_PORT=port_thi,
-            HOST=host_tfc,
-            DEBUG=debug)
+    if tfc.fanout_device_name:
+        the_system.apps["tfc"] = get_tfc_app( ## TODO
+            FANOUT_DEVICE_NAME = tfc.fanout_device_name,
+            FANOUT_CLOCK_FILE  = tfc.fanout_clock_file,
+            TIMING_HOST        = thi.host_thi,
+            TIMING_PORT        = thi.port_thi,
+            HOST               = tfc.host_tfc,
+            DEBUG              = debug)
         conf_order.append('tfc')
 
     if debug:
@@ -157,53 +127,18 @@ def cli(base_command_port, clock_speed_hz, firmware_type, disable_trace, host_th
     }
 
     # Make boot.json config
-    from daqconf.core.conf_utils import make_system_command_datas,generate_boot_common, write_json_files
-    system_command_datas = make_system_command_datas(the_system, verbose=debug)
-
-    external_connections = []
-    for app in the_system.apps:
-        external_connections += [ext.external_name for ext in the_system.apps[app].modulegraph.external_connections]
-
-
-    # Override the default boot.json with the one from minidaqapp
-    boot = generate_boot_common(
-        ers_settings = ers_settings,
-        info_svc_uri = info_svc_uri,
-        disable_trace = disable_trace,
-        use_kafka = use_kafka,
-        external_connections = external_connections,
-        daq_app_exec_name = "daq_application_ssh" if not use_k8s else "daq_application_k8s",
-        verbose = debug,
+    from daqconf.core.conf_utils import make_system_command_datas, write_json_files
+    system_command_datas = make_system_command_datas(
+        boot,
+        the_system,
+        verbose=debug
     )
-
-    if use_k8s:
-        from daqconf.core.conf_utils import update_with_k8s_boot_data
-        console.log("Generating k8s boot.json")
-        update_with_k8s_boot_data(
-            boot_data = boot,
-            apps = the_system.apps,
-            base_command_port = base_command_port,
-            boot_order = boot_order,
-            image = image,
-            verbose = debug,
-        )
-    else:
-        from daqconf.core.conf_utils import update_with_ssh_boot_data
-        console.log("Generating ssh boot.json")
-        update_with_ssh_boot_data(
-            boot_data = boot,
-            apps = the_system.apps,
-            base_command_port = base_command_port,
-            verbose = debug,
-        )
-
-    system_command_datas['boot'] = boot
 
     write_json_files(app_command_datas, system_command_datas, json_dir, verbose=debug)
 
     console.log(f"Global aapp config generated in {json_dir}")
 
-    #write_metadata_file(json_dir, "daqconf_timing_gen")
+    write_metadata_file(json_dir, "daqconf_timing_gen", config_file)
 
 if __name__ == '__main__':
     try:
