@@ -91,15 +91,15 @@ def cli(config, debug, json_dir):
 
     if tmc.master_device_name:
         the_system.apps["tmc"] = get_tmc_app( ## TODO
-            MASTER_DEVICE_NAME        = tmc.master_device_name,
-            MASTER_SEND_DELAYS_PERIOD = tmc.master_send_delays_period,
-            MASTER_CLOCK_FILE         = tmc.master_clock_file,
-            MASTER_CLOCK_MODE         = tmc.master_clock_mode,
-            MONITORED_ENDPOINTS       = tmc.monitored_endpoints,
-            TIMING_HOST               = thi.host_thi,
-            TIMING_PORT               = thi.port_thi,
-            HOST                      = tmc.host_tmc,
-            DEBUG                     = debug
+            MASTER_DEVICE_NAME          = tmc.master_device_name,
+            MASTER_ENDPOINT_SCAN_PERIOD = tmc.master_endpoint_scan_period,
+            MASTER_CLOCK_FILE           = tmc.master_clock_file,
+            MASTER_CLOCK_MODE           = tmc.master_clock_mode,
+            MONITORED_ENDPOINTS         = tmc.monitored_endpoints,
+            TIMING_HOST                 = thi.host_thi,
+            TIMING_PORT                 = thi.port_thi,
+            HOST                        = tmc.host_tmc,
+            DEBUG                       = debug
         )
         conf_order.append('tmc')
 

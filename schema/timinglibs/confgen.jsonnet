@@ -25,12 +25,12 @@ local cs = {
   ]),
 
   timing_master_controller: s.record("timing_master_controller", [
-    s.field('host_tmc',                  daqconf.Host, default='localhost', doc='Host to run the (global) timing master controller app on'),
-    s.field('master_device_name',        daqconf.Str,  default="",          doc='Device name of timing master hw'),
-    s.field('master_send_delays_period', self.number,  default=0,           doc="Master controller continuously send delays period [ms] (to all endpoints). 0 for disable."),
-    s.field('master_clock_file',         daqconf.Path, default="",          doc='Path to custom PLL config file for master device'),
-    s.field('master_clock_mode',         self.number,  default=-1,          doc='Fanout mode for master device.'),
-    s.field('monitored_endpoints',       timingcmd.TimingEndpointScanAddresses, default=[]),
+    s.field('host_tmc',                    daqconf.Host, default='localhost', doc='Host to run the (global) timing master controller app on'),
+    s.field('master_device_name',          daqconf.Str,  default="",          doc='Device name of timing master hw'),
+    s.field('master_endpoint_scan_period', self.number,  default=0,           doc="Master controller continuously scans the endpoint addresses provided. This controls period of scan [ms]. 0 for disable."),
+    s.field('master_clock_file',           daqconf.Path, default="",          doc='Path to custom PLL config file for master device'),
+    s.field('master_clock_mode',           self.number,  default=-1,          doc='Fanout mode for master device.'),
+    s.field('monitored_endpoints',         timingcmd.TimingEndpointScanAddresses, default=[], doc='List of endpoint addresses to be monitored.'),
   ]),
 
   timing_fanout_controller: s.record("timing_fanout_controller", [
