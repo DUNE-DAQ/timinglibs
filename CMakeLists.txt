@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(timinglibs VERSION 2.0.2)
+project(timinglibs VERSION 2.1.0)
 
 find_package(daq-cmake REQUIRED)
 
@@ -17,6 +17,7 @@ find_package(opmonlib REQUIRED)
 find_package(uhal REQUIRED)
 find_package(pugixml REQUIRED)
 find_package(iomanager REQUIRED)
+find_package(daqconf REQUIRED)
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
 daq_codegen( 
@@ -29,6 +30,7 @@ daq_codegen(
 			 DEP_PKGS appfwk rcif cmdlib iomanager TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
 
 daq_codegen( timingcmd.jsonnet TEMPLATES msgp.hpp.j2 )
+daq_codegen( confgen.jsonnet DEP_PKGS daqconf TEMPLATES Structs.hpp.j2)
 
 daq_codegen(
 			 timingendpointcontrollerinfo.jsonnet 
