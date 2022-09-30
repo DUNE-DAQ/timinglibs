@@ -66,11 +66,18 @@ TimingMasterController::do_configure(const nlohmann::json& data)
   do_master_set_timestamp(data);
   
   auto time_of_conf = std::chrono::high_resolution_clock::now();
-  while (!m_device_ready)
+  while (true)
   {
     auto now = std::chrono::high_resolution_clock::now();
     auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
     
+    TLOG_DEBUG(3) << "Master (" << m_timing_device << ") ready: " << m_device_ready << ", infos received: " << m_device_infos_received_count;
+
+    if (m_device_ready.load() && m_device_infos_received_count.load())
+    {
+      break;
+    }
+
     if (ms_since_conf > m_device_ready_timeout)
     {
       throw TimingMasterNotReady(ERS_HERE,m_timing_device);
@@ -272,6 +279,8 @@ TimingMasterController::endpoint_scan(std::atomic<bool>& running_flag)
 void
 TimingMasterController::process_device_info(nlohmann::json info)
 {
+  ++m_device_infos_received_count;
+
   timing::timingfirmwareinfo::MasterMonitorData master_info;
 
   auto master_data = info[opmonlib::JSONTags::children]["master"][opmonlib::JSONTags::properties][master_info.info_type][opmonlib::JSONTags::data];
@@ -280,7 +289,7 @@ TimingMasterController::process_device_info(nlohmann::json info)
 
   uint64_t master_timestamp = master_info.timestamp;
   
-  TLOG_DEBUG(3) << "Master timestamp: 0x" << std::hex << master_timestamp;
+  TLOG_DEBUG(3) << "Master timestamp: 0x" << std::hex << master_timestamp << std::dec << ", infos received: " << m_device_infos_received_count;
 
   if (master_timestamp)
   {
@@ -298,7 +307,6 @@ TimingMasterController::process_device_info(nlohmann::json info)
       TLOG_DEBUG(2) << "Timing master no longer ready";
     }
   }
-  ++m_device_infos_received_count;
 }
 } // namespace timinglibs
 } // namespace dunedaq
