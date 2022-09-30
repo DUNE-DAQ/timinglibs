@@ -66,20 +66,16 @@ TimingController::do_configure(const nlohmann::json&)
 }
 
 void
-TimingController::do_start(const nlohmann::json&)
-{
-  // Timing commands are processed even before a start command. Counters may therefore lose counts after a start.
-  // reset counters
-  for (auto it = m_sent_hw_command_counters.begin(); it != m_sent_hw_command_counters.end(); ++it) {
-    it->atomic.store(0);
-  }
-  m_device_infos_received_count=0;
-}
-
-void
 TimingController::do_scrap(const nlohmann::json&)
 {
   m_device_info_receiver->remove_callback();
+  m_device_infos_received_count=0;
+  m_device_ready = false;
+  
+  for (auto it = m_sent_hw_command_counters.begin(); it != m_sent_hw_command_counters.end(); ++it)
+  {
+    it->atomic.store(0);
+  }
 }
 
 void

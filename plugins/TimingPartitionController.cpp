@@ -77,10 +77,17 @@ TimingPartitionController::do_configure(const nlohmann::json& data)
   do_partition_enable(data);
 
   auto time_of_conf = std::chrono::high_resolution_clock::now();
-  while (!m_device_ready)
+  while (true)
   {
     auto now = std::chrono::high_resolution_clock::now();
     auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
+    
+    TLOG_DEBUG(3) << "Master (" << m_timing_device << ") partition " << m_managed_partition_id << " ready: " << m_device_ready << ", infos received: " << m_device_infos_received_count;
+
+    if (m_device_ready.load() && m_device_infos_received_count.load())
+    {
+      break;
+    }
     
     if (ms_since_conf > m_device_ready_timeout)
     {
@@ -108,8 +115,8 @@ TimingPartitionController::do_stop(const nlohmann::json& data)
 void
 TimingPartitionController::do_scrap(const nlohmann::json& data)
 {
-  TimingController::do_scrap(data); // configure hw command connection
   do_partition_disable(data);
+  TimingController::do_scrap(data); // configure hw command connection
 }
 
 void
@@ -215,6 +222,8 @@ TimingPartitionController::do_partition_print_status(const nlohmann::json&)
 void
 TimingPartitionController::process_device_info(nlohmann::json info)
 {
+  ++m_device_infos_received_count;
+  
   timing::timingfirmwareinfo::TimingPartitionMonitorData partition_info;
 
   std::string partition_label = "partition"+std::to_string(m_managed_partition_id);
@@ -229,9 +238,7 @@ TimingPartitionController::process_device_info(nlohmann::json info)
   bool partition_rate_control_enabled = partition_info.rate_ctrl_enabled;
   uint16_t partition_trigger_mask = partition_info.trig_mask;
 
-  TLOG_DEBUG(3) << "Partition enabled: " << partition_enabled;
-  TLOG_DEBUG(3) << "Partition rate control enabled: " << partition_enabled;
-  TLOG_DEBUG(3) << "Partition trigger mask: 0x" << std::hex << partition_trigger_mask;
+  TLOG_DEBUG(3) << "Partition enabled: " << partition_enabled << ", rate control enabled: " << partition_enabled << ", trigger mask: 0x" << std::hex << partition_trigger_mask << std::dec << ", received infos: " << m_device_infos_received_count;
 
   if (partition_enabled && partition_rate_control_enabled == m_partition_control_rate_enabled && partition_trigger_mask == m_partition_trigger_mask)
   {
@@ -249,7 +256,6 @@ TimingPartitionController::process_device_info(nlohmann::json info)
       TLOG_DEBUG(2) << "Timing partition no longer ready";
     }
   }
-  ++m_device_infos_received_count;
 }
 
 void

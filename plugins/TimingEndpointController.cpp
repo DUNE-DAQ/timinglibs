@@ -65,11 +65,18 @@ TimingEndpointController::do_configure(const nlohmann::json& data)
   do_endpoint_enable(data);
   
   auto time_of_conf = std::chrono::high_resolution_clock::now();
-  while (!m_device_ready)
+  while (true)
   {
     auto now = std::chrono::high_resolution_clock::now();
     auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
     
+    TLOG_DEBUG(3) << "Endpoint (" << m_timing_device << ") state: " << m_endpoint_state << ", infos received: " << m_device_infos_received_count;
+
+    if (m_device_ready.load() && m_device_infos_received_count.load())
+    {
+      break;
+    }
+
     if (ms_since_conf > m_device_ready_timeout)
     {
       throw TimingEndpointNotReady(ERS_HERE,m_timing_device,m_endpoint_state);
@@ -185,6 +192,8 @@ TimingEndpointController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 void
 TimingEndpointController::process_device_info(nlohmann::json info)
 {
+  ++m_device_infos_received_count;
+  
   timing::timingendpointinfo::TimingEndpointInfo ept_info;
 
   auto ept_data = info[opmonlib::JSONTags::children]["endpoint"][opmonlib::JSONTags::properties][ept_info.info_type][opmonlib::JSONTags::data];
@@ -194,7 +203,7 @@ TimingEndpointController::process_device_info(nlohmann::json info)
   m_endpoint_state = ept_info.state;
   bool ready = ept_info.ready;
 
-  TLOG_DEBUG(3) << "state: 0x" << std::hex << m_endpoint_state << ", ready: " << ready;
+  TLOG_DEBUG(3) << "state: 0x" << std::hex << m_endpoint_state << ", ready: " << ready << std::dec << ", infos received: " << m_device_infos_received_count;
 
   if (m_endpoint_state == 0x8 && ready)
   {
@@ -212,7 +221,6 @@ TimingEndpointController::process_device_info(nlohmann::json info)
       TLOG_DEBUG(2) << "Timing endpoint no longer ready";
     }
   }
-  ++m_device_infos_received_count;
 }
 } // namespace timinglibs
 } // namespace dunedaq

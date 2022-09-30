@@ -66,8 +66,12 @@ TimingFanoutController::do_configure(const nlohmann::json& data)
     do_fanout_endpoint_reset(data);
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-    if (m_device_ready.load())
+    TLOG_DEBUG(3) << "fanout (" << m_timing_device << ") ready: " << m_device_ready << ", infos received: " << m_device_infos_received_count;
+
+    if (m_device_ready.load() && m_device_infos_received_count.load())
+    {
       break;
+    }
 
     auto now = std::chrono::high_resolution_clock::now();
     auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
@@ -167,6 +171,8 @@ TimingFanoutController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 void
 TimingFanoutController::process_device_info(nlohmann::json info)
 {
+  ++m_device_infos_received_count;
+
   timing::timingendpointinfo::TimingEndpointInfo ept_info;
 
   auto ept_data = info[opmonlib::JSONTags::children]["endpoint"][opmonlib::JSONTags::properties][ept_info.info_type][opmonlib::JSONTags::data];
@@ -176,7 +182,7 @@ TimingFanoutController::process_device_info(nlohmann::json info)
   uint32_t endpoint_state = ept_info.state;
   bool ready = ept_info.ready;
 
-  TLOG_DEBUG(3) << "state: 0x" << std::hex << endpoint_state << ", ready: " << ready;
+  TLOG_DEBUG(3) << "state: 0x" << std::hex << endpoint_state << ", ready: " << ready << std::dec << ", infos received: " << m_device_infos_received_count;;
 
   if (endpoint_state > 0x5 && endpoint_state < 0x9)
   {
@@ -194,7 +200,6 @@ TimingFanoutController::process_device_info(nlohmann::json info)
       TLOG_DEBUG(2) << "Timing fanout no longer ready";
     }
   }
-  ++m_device_infos_received_count;
 }
 } // namespace timinglibs
 } // namespace dunedaq
