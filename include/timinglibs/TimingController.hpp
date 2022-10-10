@@ -93,7 +93,7 @@ public:
 protected:
   // DAQModule commands
   virtual void do_configure(const nlohmann::json&);
-  virtual void do_start(const nlohmann::json&);
+  virtual void do_start(const nlohmann::json&) {}
   virtual void do_stop(const nlohmann::json&) {}
   virtual void do_scrap(const nlohmann::json&);
 
