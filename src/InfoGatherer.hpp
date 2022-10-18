@@ -59,7 +59,7 @@ public:
                         uint gather_interval,
                         const std::string& device_name,
                         int op_mon_level,
-                        iomanager::connection::ConnectionRef device_info_connection_ref)
+                        std::string device_info_connection_id)
     : m_run_gathering(false)
     , m_gathering_thread(nullptr)
     , m_gather_interval(gather_interval)
@@ -67,14 +67,14 @@ public:
     , m_last_gathered_time(0)
     , m_op_mon_level(op_mon_level)
     , m_gather_data(gather_data)
-    , m_device_info_connection_ref(device_info_connection_ref)
+    , m_device_info_connection_id(device_info_connection_id)
     , m_hw_info_sender(nullptr)
     , m_sent_counter(0)
     , m_failed_to_send_counter(0)
     , m_queue_timeout(1)
   {
     m_info_collector = std::make_unique<opmonlib::InfoCollector>();
-    m_hw_info_sender = get_iom_sender<nlohmann::json>(m_device_info_connection_ref);
+    m_hw_info_sender = get_iom_sender<nlohmann::json>(device_info_connection_id);
   }
 
   explicit InfoGatherer(std::function<void(InfoGatherer&)> gather_data,
@@ -214,14 +214,14 @@ private:
     {
       try
       {
-        m_hw_info_sender->send(std::move(info), m_queue_timeout, get_device_name());
+        m_hw_info_sender->send(std::move(info), m_queue_timeout);
         TLOG_DEBUG(4) << "sent " << get_device_name() <<  " info";
         ++m_sent_counter;
         was_successfully_sent = true;
       }
       catch (const dunedaq::iomanager::TimeoutExpired& excpt)
       {
-        ers::error(DeviceInfoSendFailed(ERS_HERE, m_device_name, m_device_info_connection_ref.uid));
+        ers::error(DeviceInfoSendFailed(ERS_HERE, m_device_name, m_device_info_connection_id));
         ++m_failed_to_send_counter;
       }
     }
@@ -238,7 +238,7 @@ protected:
   std::unique_ptr<opmonlib::InfoCollector> m_info_collector;
   mutable std::mutex m_info_collector_mutex;
   std::function<void(InfoGatherer&)> m_gather_data;
-  iomanager::connection::ConnectionRef m_device_info_connection_ref;
+  std::string m_device_info_connection_id;
   using sink_t = dunedaq::iomanager::SenderConcept<nlohmann::json>;
   std::shared_ptr<sink_t> m_hw_info_sender;
   std::atomic<uint> m_sent_counter;
