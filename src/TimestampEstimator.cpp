@@ -53,9 +53,11 @@ TimestampEstimator::add_timestamp_datapoint(const dfmessages::TimeSync& ts)
   // First, update the latest timestamp
   dfmessages::timestamp_t estimate = m_current_timestamp_estimate.load();
   dfmessages::timestamp_diff_t diff = estimate - ts.daq_time;
-  TLOG_DEBUG(TLVL_TIME_SYNC_PROPERTIES) << "Got a TimeSync timestamp = " << ts.daq_time << ", system time = " << ts.system_time
-                 << " when current timestamp estimate was " << estimate << ". diff=" << diff << " run=" << ts.run_number
-                 << " seqno=" << ts.sequence_number << " source_pid=" << ts.source_pid;
+  TLOG_DEBUG(TLVL_TIME_SYNC_PROPERTIES) << "Got a TimeSync timestamp = " << ts.daq_time
+                                        << ", system time = " << ts.system_time
+                                        << " when current timestamp estimate was " << estimate << ". diff=" << diff
+                                        << " run=" << ts.run_number << " seqno=" << ts.sequence_number
+                                        << " source_pid=" << ts.source_pid;
   if (m_most_recent_timesync.daq_time == dfmessages::TypeDefaults::s_invalid_timestamp ||
       ts.daq_time > m_most_recent_timesync.daq_time) {
     m_most_recent_timesync = ts;
@@ -83,7 +85,8 @@ TimestampEstimator::add_timestamp_datapoint(const dfmessages::TimeSync& ts)
     if (time_now > m_most_recent_timesync.system_time) {
 
       auto delta_time = time_now - m_most_recent_timesync.system_time;
-      TLOG_DEBUG(TLVL_TIME_SYNC_PROPERTIES) << "Time diff between current system and latest TimeSync system time [us]: " << delta_time;
+      TLOG_DEBUG(TLVL_TIME_SYNC_PROPERTIES)
+        << "Time diff between current system and latest TimeSync system time [us]: " << delta_time;
 
       // Warn user if current system time is more than 1s ahead of latest TimeSync system time. This could be a sign of
       // an issue, e.g. machine times out of sync
@@ -96,13 +99,19 @@ TimestampEstimator::add_timestamp_datapoint(const dfmessages::TimeSync& ts)
       // time passes that we want to increase it
       if (m_current_timestamp_estimate.load() == dfmessages::TypeDefaults::s_invalid_timestamp ||
           new_timestamp >= m_current_timestamp_estimate.load()) {
-        double val1 = static_cast<double>(new_timestamp % (m_clock_frequency_hz*1000)) / static_cast<double>(m_clock_frequency_hz);
-        double val2 = static_cast<double>(m_most_recent_timesync.daq_time % (m_clock_frequency_hz*1000)) / static_cast<double>(m_clock_frequency_hz);
-        TLOG_DEBUG(TLVL_TIME_SYNC_NEW_ESTIMATE) << "Storing new timestamp estimate of " << new_timestamp << " ticks (..." << std::fixed << std::setprecision(8) << val1 << " sec), mrt.daq_time is " << m_most_recent_timesync.daq_time << " ticks (..." << val2 << " sec), delta_time is " << delta_time << " usec, clock_freq is " << m_clock_frequency_hz << " Hz";
+        double val1 = static_cast<double>(new_timestamp % (m_clock_frequency_hz * 1000)) /
+                      static_cast<double>(m_clock_frequency_hz);
+        double val2 = static_cast<double>(m_most_recent_timesync.daq_time % (m_clock_frequency_hz * 1000)) /
+                      static_cast<double>(m_clock_frequency_hz);
+        TLOG_DEBUG(TLVL_TIME_SYNC_NEW_ESTIMATE)
+          << "Storing new timestamp estimate of " << new_timestamp << " ticks (..." << std::fixed
+          << std::setprecision(8) << val1 << " sec), mrt.daq_time is " << m_most_recent_timesync.daq_time
+          << " ticks (..." << val2 << " sec), delta_time is " << delta_time << " usec, clock_freq is "
+          << m_clock_frequency_hz << " Hz";
         m_current_timestamp_estimate.store(new_timestamp);
       } else {
-        TLOG_DEBUG(TLVL_TIME_SYNC_NOTES) << "Not updating timestamp estimate backwards from " << m_current_timestamp_estimate.load()
-                                         << " to " << new_timestamp;
+        TLOG_DEBUG(TLVL_TIME_SYNC_NOTES) << "Not updating timestamp estimate backwards from "
+                                         << m_current_timestamp_estimate.load() << " to " << new_timestamp;
       }
     }
   }
