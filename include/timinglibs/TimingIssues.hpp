@@ -19,7 +19,9 @@
 
 // NOLINTNEXTLINE(build/define_used)
 #define TLVL_ENTER_EXIT_METHODS 10
-#define TLVL_TIME_SYNCS 17
+#define TLVL_TIME_SYNC_PROPERTIES 17
+#define TLVL_TIME_SYNC_NOTES 18
+#define TLVL_TIME_SYNC_NEW_ESTIMATE 19
 
 namespace dunedaq {
 
