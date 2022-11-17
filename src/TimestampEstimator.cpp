@@ -99,15 +99,15 @@ TimestampEstimator::add_timestamp_datapoint(const dfmessages::TimeSync& ts)
       // time passes that we want to increase it
       if (m_current_timestamp_estimate.load() == dfmessages::TypeDefaults::s_invalid_timestamp ||
           new_timestamp >= m_current_timestamp_estimate.load()) {
-        double val1 = static_cast<double>(new_timestamp % (m_clock_frequency_hz * 1000)) /
-                      static_cast<double>(m_clock_frequency_hz);
-        double val2 = static_cast<double>(m_most_recent_timesync.daq_time % (m_clock_frequency_hz * 1000)) /
-                      static_cast<double>(m_clock_frequency_hz);
         TLOG_DEBUG(TLVL_TIME_SYNC_NEW_ESTIMATE)
           << "Storing new timestamp estimate of " << new_timestamp << " ticks (..." << std::fixed
-          << std::setprecision(8) << val1 << " sec), mrt.daq_time is " << m_most_recent_timesync.daq_time
-          << " ticks (..." << val2 << " sec), delta_time is " << delta_time << " usec, clock_freq is "
-          << m_clock_frequency_hz << " Hz";
+          << std::setprecision(8)
+          << (static_cast<double>(new_timestamp % (m_clock_frequency_hz * 1000)) /
+              static_cast<double>(m_clock_frequency_hz))
+          << " sec), mrt.daq_time is " << m_most_recent_timesync.daq_time << " ticks (..."
+          << (static_cast<double>(m_most_recent_timesync.daq_time % (m_clock_frequency_hz * 1000)) /
+              static_cast<double>(m_clock_frequency_hz))
+          << " sec), delta_time is " << delta_time << " usec, clock_freq is " << m_clock_frequency_hz << " Hz";
         m_current_timestamp_estimate.store(new_timestamp);
       } else {
         TLOG_DEBUG(TLVL_TIME_SYNC_NOTES) << "Not updating timestamp estimate backwards from "
