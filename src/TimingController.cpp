@@ -27,8 +27,8 @@
 
 namespace dunedaq {
 
-DUNE_DAQ_SERIALIZABLE(timinglibs::timingcmd::TimingHwCmd);
-DUNE_DAQ_SERIALIZABLE(nlohmann::json);
+DUNE_DAQ_SERIALIZABLE(timinglibs::timingcmd::TimingHwCmd, "TimingHwCmd");
+DUNE_DAQ_SERIALIZABLE(nlohmann::json, "JSON");
 
 namespace timinglibs {
 
