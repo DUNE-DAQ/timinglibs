@@ -8,13 +8,13 @@
  */
 
 #include "timinglibs/TimingController.hpp"
+#include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingcmd/msgp.hpp"
-#include "timinglibs/TimingIssues.hpp"
 
-#include "appfwk/cmd/Nljs.hpp"
 #include "appfwk/DAQModuleHelper.hpp"
+#include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
@@ -69,11 +69,10 @@ void
 TimingController::do_scrap(const nlohmann::json&)
 {
   m_device_info_receiver->remove_callback();
-  m_device_infos_received_count=0;
+  m_device_infos_received_count = 0;
   m_device_ready = false;
-  
-  for (auto it = m_sent_hw_command_counters.begin(); it != m_sent_hw_command_counters.end(); ++it)
-  {
+
+  for (auto it = m_sent_hw_command_counters.begin(); it != m_sent_hw_command_counters.end(); ++it) {
     it->atomic.store(0);
   }
 }
@@ -81,8 +80,7 @@ TimingController::do_scrap(const nlohmann::json&)
 void
 TimingController::send_hw_cmd(timingcmd::TimingHwCmd&& hw_cmd)
 {
-  if (!m_hw_command_sender)
-  {
+  if (!m_hw_command_sender) {
     throw QueueIsNullFatalError(ERS_HERE, get_name(), m_hw_command_out_connection);
   }
   try {

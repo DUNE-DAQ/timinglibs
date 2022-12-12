@@ -31,10 +31,10 @@
 #include <vector>
 
 namespace dunedaq {
-ERS_DECLARE_ISSUE(timinglibs,                                                                             ///< Namespace
-                TimingFanoutNotReady,                                                                   ///< Issue class name
-                fanout << " timing fanout did not become ready in time.", ///< Message
-                ((std::string)fanout) )                                                                   ///< Message parameters
+ERS_DECLARE_ISSUE(timinglibs,                                               ///< Namespace
+                  TimingFanoutNotReady,                                     ///< Issue class name
+                  fanout << " timing fanout did not become ready in time.", ///< Message
+                  ((std::string)fanout))                                    ///< Message parameters
 namespace timinglibs {
 
 /**

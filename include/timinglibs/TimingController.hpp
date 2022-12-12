@@ -12,16 +12,16 @@
 #ifndef TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGCONTROLLER_HPP_
 #define TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGCONTROLLER_HPP_
 
-#include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/TimingIssues.hpp"
+#include "timinglibs/timingcmd/Structs.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/app/Nljs.hpp"
 #include "appfwk/app/Structs.hpp"
 #include "ers/Issue.hpp"
-#include "logging/Logging.hpp"
-#include "iomanager/Sender.hpp"
 #include "iomanager/Receiver.hpp"
+#include "iomanager/Sender.hpp"
+#include "logging/Logging.hpp"
 #include "utilities/WorkerThread.hpp"
 
 #include <memory>
@@ -29,10 +29,11 @@
 #include <vector>
 
 namespace dunedaq {
-ERS_DECLARE_ISSUE(timinglibs,                                                                                         ///< Namespace
-                  TimingEndpointNotReady,                                                                             ///< Issue class name
-                  endpoint << " timing endpoint did not become ready in time. State 0x" << std::hex << state, ///< Message
-                  ((std::string)endpoint)((uint)state)                                                                ///< Message parameters
+ERS_DECLARE_ISSUE(timinglibs,             ///< Namespace
+                  TimingEndpointNotReady, ///< Issue class name
+                  endpoint << " timing endpoint did not become ready in time. State 0x" << std::hex
+                           << state,                   ///< Message
+                  ((std::string)endpoint)((uint)state) ///< Message parameters
 )
 namespace timinglibs {
 
@@ -43,20 +44,24 @@ struct MobileAtomic
 
   MobileAtomic()
     : atomic(T())
-  {}
+  {
+  }
 
   explicit MobileAtomic(T const& v)
     : atomic(v)
-  {}
+  {
+  }
   explicit MobileAtomic(std::atomic<T> const& a)
     : atomic(a.load())
-  {}
+  {
+  }
 
   virtual ~MobileAtomic() = default;
 
   MobileAtomic(MobileAtomic const& other)
     : atomic(other.atomic.load())
-  {}
+  {
+  }
 
   MobileAtomic& operator=(MobileAtomic const& other)
   {

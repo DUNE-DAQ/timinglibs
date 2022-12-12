@@ -8,10 +8,10 @@
  */
 
 #include "TimingFanoutController.hpp"
-#include "timinglibs/timingfanoutcontroller/Nljs.hpp"
-#include "timinglibs/timingfanoutcontroller/Structs.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
+#include "timinglibs/timingfanoutcontroller/Nljs.hpp"
+#include "timinglibs/timingfanoutcontroller/Structs.hpp"
 
 #include "timing/timingendpointinfo/InfoNljs.hpp"
 #include "timing/timingendpointinfo/InfoStructs.hpp"
@@ -36,7 +36,7 @@ TimingFanoutController::TimingFanoutController(const std::string& name)
   register_command("start", &TimingFanoutController::do_start);
   register_command("stop", &TimingFanoutController::do_stop);
   register_command("scrap", &TimingFanoutController::do_scrap);
-  
+
   // timing fanout hardware commands
   register_command("fanout_io_reset", &TimingFanoutController::do_fanout_io_reset);
   register_command("fanout_print_status", &TimingFanoutController::do_fanout_print_status);
@@ -48,8 +48,7 @@ void
 TimingFanoutController::do_configure(const nlohmann::json& data)
 {
   auto conf = data.get<timingfanoutcontroller::ConfParams>();
-  if (conf.device.empty())
-  {
+  if (conf.device.empty()) {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
   m_timing_device = conf.device;
@@ -61,25 +60,24 @@ TimingFanoutController::do_configure(const nlohmann::json& data)
   std::this_thread::sleep_for(std::chrono::milliseconds(15000));
 
   auto time_of_conf = std::chrono::high_resolution_clock::now();
-  while (true)
-  {
+  while (true) {
     do_fanout_endpoint_reset(data);
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-    TLOG_DEBUG(3) << "fanout (" << m_timing_device << ") ready: " << m_device_ready << ", infos received: " << m_device_infos_received_count;
+    TLOG_DEBUG(3) << "fanout (" << m_timing_device << ") ready: " << m_device_ready
+                  << ", infos received: " << m_device_infos_received_count;
 
-    if (m_device_ready.load() && m_device_infos_received_count.load())
-    {
+    if (m_device_ready.load() && m_device_infos_received_count.load()) {
       break;
     }
 
     auto now = std::chrono::high_resolution_clock::now();
     auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
-    TLOG_DEBUG(3) << "Waiting for timing fanout " << m_timing_device << " to become ready for (ms) " << ms_since_conf.count();
+    TLOG_DEBUG(3) << "Waiting for timing fanout " << m_timing_device << " to become ready for (ms) "
+                  << ms_since_conf.count();
 
-    if (ms_since_conf > m_device_ready_timeout)
-    {
-      throw TimingFanoutNotReady(ERS_HERE,m_timing_device);
+    if (ms_since_conf > m_device_ready_timeout) {
+      throw TimingFanoutNotReady(ERS_HERE, m_timing_device);
     }
   }
 
@@ -87,7 +85,7 @@ TimingFanoutController::do_configure(const nlohmann::json& data)
 }
 
 timingcmd::TimingHwCmd
-TimingFanoutController::construct_fanout_hw_cmd( const std::string& cmd_id)
+TimingFanoutController::construct_fanout_hw_cmd(const std::string& cmd_id)
 {
   timingcmd::TimingHwCmd hw_cmd;
   hw_cmd.id = cmd_id;
@@ -98,8 +96,7 @@ TimingFanoutController::construct_fanout_hw_cmd( const std::string& cmd_id)
 void
 TimingFanoutController::do_fanout_io_reset(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd = 
-  construct_fanout_hw_cmd( "io_reset");
+  timingcmd::TimingHwCmd hw_cmd = construct_fanout_hw_cmd("io_reset");
   hw_cmd.payload = data;
   hw_cmd.payload["fanout_mode"] = 0; // fanout mode for fanout design
 
@@ -110,8 +107,7 @@ TimingFanoutController::do_fanout_io_reset(const nlohmann::json& data)
 void
 TimingFanoutController::do_fanout_print_status(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_fanout_hw_cmd( "print_status");
+  timingcmd::TimingHwCmd hw_cmd = construct_fanout_hw_cmd("print_status");
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(1).atomic);
 }
@@ -127,7 +123,7 @@ TimingFanoutController::do_fanout_endpoint_enable(const nlohmann::json&)
   timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
   cmd_payload.endpoint_id = 0;
   cmd_payload.address = 0;
-  cmd_payload.partition = 0; 
+  cmd_payload.partition = 0;
 
   timingcmd::to_json(hw_cmd.payload, cmd_payload);
 
@@ -175,27 +171,25 @@ TimingFanoutController::process_device_info(nlohmann::json info)
 
   timing::timingendpointinfo::TimingEndpointInfo ept_info;
 
-  auto ept_data = info[opmonlib::JSONTags::children]["endpoint"][opmonlib::JSONTags::properties][ept_info.info_type][opmonlib::JSONTags::data];
+  auto ept_data = info[opmonlib::JSONTags::children]["endpoint"][opmonlib::JSONTags::properties][ept_info.info_type]
+                      [opmonlib::JSONTags::data];
 
   from_json(ept_data, ept_info);
 
   uint32_t endpoint_state = ept_info.state;
   bool ready = ept_info.ready;
 
-  TLOG_DEBUG(3) << "state: 0x" << std::hex << endpoint_state << ", ready: " << ready << std::dec << ", infos received: " << m_device_infos_received_count;;
+  TLOG_DEBUG(3) << "state: 0x" << std::hex << endpoint_state << ", ready: " << ready << std::dec
+                << ", infos received: " << m_device_infos_received_count;
+  ;
 
-  if (endpoint_state > 0x5 && endpoint_state < 0x9)
-  {
-    if (!m_device_ready)
-    {
+  if (endpoint_state > 0x5 && endpoint_state < 0x9) {
+    if (!m_device_ready) {
       m_device_ready = true;
       TLOG_DEBUG(2) << "Timing fanout became ready";
     }
-  }
-  else
-  {
-    if (m_device_ready)
-    {
+  } else {
+    if (m_device_ready) {
       m_device_ready = false;
       TLOG_DEBUG(2) << "Timing fanout no longer ready";
     }

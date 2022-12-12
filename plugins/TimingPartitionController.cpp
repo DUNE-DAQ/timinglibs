@@ -8,11 +8,11 @@
  */
 
 #include "TimingPartitionController.hpp"
-#include "timinglibs/timingpartitioncontroller/Nljs.hpp"
-#include "timinglibs/timingpartitioncontroller/Structs.hpp"
+#include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
-#include "timinglibs/TimingIssues.hpp"
+#include "timinglibs/timingpartitioncontroller/Nljs.hpp"
+#include "timinglibs/timingpartitioncontroller/Structs.hpp"
 
 #include "timing/timingfirmwareinfo/InfoNljs.hpp"
 #include "timing/timingfirmwareinfo/InfoStructs.hpp"
@@ -30,11 +30,11 @@ namespace dunedaq {
 namespace timinglibs {
 
 TimingPartitionController::TimingPartitionController(const std::string& name)
-  : dunedaq::timinglibs::TimingController(name, 8)// 2nd arg: how many hw commands can this module send?
+  : dunedaq::timinglibs::TimingController(name, 8) // 2nd arg: how many hw commands can this module send?
   , m_partition_trigger_mask(0x0)
   , m_partition_control_rate_enabled(false)
   , m_partition_spill_gate_enabled(false)
- 
+
 {
   register_command("conf", &TimingPartitionController::do_configure);
   register_command("start", &TimingPartitionController::do_start);
@@ -58,14 +58,13 @@ void
 TimingPartitionController::do_configure(const nlohmann::json& data)
 {
   auto conf = data.get<timingpartitioncontroller::PartitionConfParams>();
-  if (conf.device.empty())
-  {
+  if (conf.device.empty()) {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
 
   m_timing_device = conf.device;
   m_managed_partition_id = conf.partition_id;
-  
+
   // parameters against which to compare partition state
   m_partition_trigger_mask = conf.trigger_mask;
   m_partition_control_rate_enabled = conf.rate_control_enabled;
@@ -77,23 +76,22 @@ TimingPartitionController::do_configure(const nlohmann::json& data)
   do_partition_enable(data);
 
   auto time_of_conf = std::chrono::high_resolution_clock::now();
-  while (true)
-  {
+  while (true) {
     auto now = std::chrono::high_resolution_clock::now();
     auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
-    
-    TLOG_DEBUG(3) << "Master (" << m_timing_device << ") partition " << m_managed_partition_id << " ready: " << m_device_ready << ", infos received: " << m_device_infos_received_count;
 
-    if (m_device_ready.load() && m_device_infos_received_count.load())
-    {
+    TLOG_DEBUG(3) << "Master (" << m_timing_device << ") partition " << m_managed_partition_id
+                  << " ready: " << m_device_ready << ", infos received: " << m_device_infos_received_count;
+
+    if (m_device_ready.load() && m_device_infos_received_count.load()) {
       break;
     }
-    
-    if (ms_since_conf > m_device_ready_timeout)
-    {
+
+    if (ms_since_conf > m_device_ready_timeout) {
       throw TimingPartitionNotReady(ERS_HERE, m_timing_device, m_managed_partition_id);
     }
-    TLOG_DEBUG(3) << "Waiting for timing partition " << m_managed_partition_id << " to become ready for (ms) " << ms_since_conf.count();
+    TLOG_DEBUG(3) << "Waiting for timing partition " << m_managed_partition_id << " to become ready for (ms) "
+                  << ms_since_conf.count();
     std::this_thread::sleep_for(std::chrono::microseconds(250000));
   }
   TLOG() << get_name() << " conf; device: " << m_timing_device << ", managed part id: " << m_managed_partition_id;
@@ -134,7 +132,7 @@ TimingPartitionController::do_pause(const nlohmann::json& data)
 timingcmd::TimingHwCmd
 TimingPartitionController::construct_partition_hw_cmd(const std::string& cmd_id)
 {
-    timingcmd::TimingHwCmd hw_cmd;
+  timingcmd::TimingHwCmd hw_cmd;
   timingcmd::TimingPartitionCmdPayload cmd_payload;
   cmd_payload.partition_id = m_managed_partition_id;
   timingcmd::to_json(hw_cmd.payload, cmd_payload);
@@ -159,8 +157,7 @@ TimingPartitionController::do_partition_configure(const nlohmann::json& data)
 void
 TimingPartitionController::do_partition_enable(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_partition_hw_cmd( "partition_enable");
+  timingcmd::TimingHwCmd hw_cmd = construct_partition_hw_cmd("partition_enable");
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(1).atomic);
 }
@@ -168,8 +165,7 @@ TimingPartitionController::do_partition_enable(const nlohmann::json&)
 void
 TimingPartitionController::do_partition_disable(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_partition_hw_cmd( "partition_disable");
+  timingcmd::TimingHwCmd hw_cmd = construct_partition_hw_cmd("partition_disable");
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(2).atomic);
 }
@@ -177,8 +173,7 @@ TimingPartitionController::do_partition_disable(const nlohmann::json&)
 void
 TimingPartitionController::do_partition_start(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_partition_hw_cmd( "partition_start");
+  timingcmd::TimingHwCmd hw_cmd = construct_partition_hw_cmd("partition_start");
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(3).atomic);
 }
@@ -186,8 +181,7 @@ TimingPartitionController::do_partition_start(const nlohmann::json&)
 void
 TimingPartitionController::do_partition_stop(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_partition_hw_cmd( "partition_stop");
+  timingcmd::TimingHwCmd hw_cmd = construct_partition_hw_cmd("partition_stop");
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(4).atomic);
 }
@@ -195,8 +189,7 @@ TimingPartitionController::do_partition_stop(const nlohmann::json&)
 void
 TimingPartitionController::do_partition_enable_triggers(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_partition_hw_cmd( "partition_enable_triggers");
+  timingcmd::TimingHwCmd hw_cmd = construct_partition_hw_cmd("partition_enable_triggers");
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(5).atomic);
 }
@@ -204,8 +197,7 @@ TimingPartitionController::do_partition_enable_triggers(const nlohmann::json&)
 void
 TimingPartitionController::do_partition_disable_triggers(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_partition_hw_cmd( "partition_disable_triggers");
+  timingcmd::TimingHwCmd hw_cmd = construct_partition_hw_cmd("partition_disable_triggers");
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(6).atomic);
 }
@@ -213,8 +205,7 @@ TimingPartitionController::do_partition_disable_triggers(const nlohmann::json&)
 void
 TimingPartitionController::do_partition_print_status(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd = 
-  construct_partition_hw_cmd( "partition_print_status");
+  timingcmd::TimingHwCmd hw_cmd = construct_partition_hw_cmd("partition_print_status");
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(7).atomic);
 }
@@ -223,13 +214,12 @@ void
 TimingPartitionController::process_device_info(nlohmann::json info)
 {
   ++m_device_infos_received_count;
-  
+
   timing::timingfirmwareinfo::TimingPartitionMonitorData partition_info;
 
-  std::string partition_label = "partition"+std::to_string(m_managed_partition_id);
-  
-  auto partition_data = info[opmonlib::JSONTags::children]["master"]
-                            [opmonlib::JSONTags::children][partition_label]
+  std::string partition_label = "partition" + std::to_string(m_managed_partition_id);
+
+  auto partition_data = info[opmonlib::JSONTags::children]["master"][opmonlib::JSONTags::children][partition_label]
                             [opmonlib::JSONTags::properties][partition_info.info_type][opmonlib::JSONTags::data];
 
   from_json(partition_data, partition_info);
@@ -238,20 +228,18 @@ TimingPartitionController::process_device_info(nlohmann::json info)
   bool partition_rate_control_enabled = partition_info.rate_ctrl_enabled;
   uint16_t partition_trigger_mask = partition_info.trig_mask;
 
-  TLOG_DEBUG(3) << "Partition enabled: " << partition_enabled << ", rate control enabled: " << partition_enabled << ", trigger mask: 0x" << std::hex << partition_trigger_mask << std::dec << ", received infos: " << m_device_infos_received_count;
+  TLOG_DEBUG(3) << "Partition enabled: " << partition_enabled << ", rate control enabled: " << partition_enabled
+                << ", trigger mask: 0x" << std::hex << partition_trigger_mask << std::dec
+                << ", received infos: " << m_device_infos_received_count;
 
-  if (partition_enabled && partition_rate_control_enabled == m_partition_control_rate_enabled && partition_trigger_mask == m_partition_trigger_mask)
-  {
-    if (!m_device_ready)
-    {
+  if (partition_enabled && partition_rate_control_enabled == m_partition_control_rate_enabled &&
+      partition_trigger_mask == m_partition_trigger_mask) {
+    if (!m_device_ready) {
       m_device_ready = true;
       TLOG_DEBUG(2) << "Timing partition became ready";
     }
-  }
-  else
-  {
-    if (m_device_ready)
-    {
+  } else {
+    if (m_device_ready) {
       m_device_ready = false;
       TLOG_DEBUG(2) << "Timing partition no longer ready";
     }

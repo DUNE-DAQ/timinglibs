@@ -57,31 +57,30 @@ TimingEndpointController::do_configure(const nlohmann::json& data)
   }
   m_timing_device = conf.device;
   m_managed_endpoint_id = conf.endpoint_id;
-  
+
   TimingController::do_configure(data); // configure hw command connection
 
   do_endpoint_io_reset(data);
   std::this_thread::sleep_for(std::chrono::microseconds(7000000));
   do_endpoint_enable(data);
-  
+
   auto time_of_conf = std::chrono::high_resolution_clock::now();
-  while (true)
-  {
+  while (true) {
     auto now = std::chrono::high_resolution_clock::now();
     auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
-    
-    TLOG_DEBUG(3) << "Endpoint (" << m_timing_device << ") state: " << m_endpoint_state << ", infos received: " << m_device_infos_received_count;
 
-    if (m_device_ready.load() && m_device_infos_received_count.load())
-    {
+    TLOG_DEBUG(3) << "Endpoint (" << m_timing_device << ") state: " << m_endpoint_state
+                  << ", infos received: " << m_device_infos_received_count;
+
+    if (m_device_ready.load() && m_device_infos_received_count.load()) {
       break;
     }
 
-    if (ms_since_conf > m_device_ready_timeout)
-    {
-      throw TimingEndpointNotReady(ERS_HERE,m_timing_device,m_endpoint_state);
+    if (ms_since_conf > m_device_ready_timeout) {
+      throw TimingEndpointNotReady(ERS_HERE, m_timing_device, m_endpoint_state);
     }
-    TLOG_DEBUG(3) << "Waiting for timing endpoint " << m_timing_device << " to become ready for (ms) " << ms_since_conf.count();
+    TLOG_DEBUG(3) << "Waiting for timing endpoint " << m_timing_device << " to become ready for (ms) "
+                  << ms_since_conf.count();
     std::this_thread::sleep_for(std::chrono::microseconds(250000));
   }
 
@@ -89,9 +88,9 @@ TimingEndpointController::do_configure(const nlohmann::json& data)
 }
 
 timingcmd::TimingHwCmd
-TimingEndpointController::construct_endpoint_hw_cmd( const std::string& cmd_id)
+TimingEndpointController::construct_endpoint_hw_cmd(const std::string& cmd_id)
 {
-    timingcmd::TimingHwCmd hw_cmd;
+  timingcmd::TimingHwCmd hw_cmd;
   timingcmd::TimingEndpointCmdPayload cmd_payload;
   cmd_payload.endpoint_id = m_managed_endpoint_id;
   timingcmd::to_json(hw_cmd.payload, cmd_payload);
@@ -104,8 +103,7 @@ TimingEndpointController::construct_endpoint_hw_cmd( const std::string& cmd_id)
 void
 TimingEndpointController::do_endpoint_io_reset(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_endpoint_hw_cmd( "io_reset");
+  timingcmd::TimingHwCmd hw_cmd = construct_endpoint_hw_cmd("io_reset");
   hw_cmd.payload = data;
 
   send_hw_cmd(std::move(hw_cmd));
@@ -134,8 +132,7 @@ TimingEndpointController::do_endpoint_enable(const nlohmann::json& data)
 void
 TimingEndpointController::do_endpoint_disable(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_endpoint_hw_cmd( "endpoint_disable");
+  timingcmd::TimingHwCmd hw_cmd = construct_endpoint_hw_cmd("endpoint_disable");
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(2).atomic);
 }
@@ -143,7 +140,7 @@ TimingEndpointController::do_endpoint_disable(const nlohmann::json&)
 void
 TimingEndpointController::do_endpoint_reset(const nlohmann::json& data)
 {
-    timingcmd::TimingHwCmd hw_cmd;
+  timingcmd::TimingHwCmd hw_cmd;
   hw_cmd.id = "endpoint_reset";
   hw_cmd.device = m_timing_device;
 
@@ -159,8 +156,7 @@ TimingEndpointController::do_endpoint_reset(const nlohmann::json& data)
 void
 TimingEndpointController::do_endpoint_print_timestamp(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_endpoint_hw_cmd( "endpoint_print_timestamp");
+  timingcmd::TimingHwCmd hw_cmd = construct_endpoint_hw_cmd("endpoint_print_timestamp");
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(4).atomic);
 }
@@ -168,8 +164,7 @@ TimingEndpointController::do_endpoint_print_timestamp(const nlohmann::json&)
 void
 TimingEndpointController::do_endpoint_print_status(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_endpoint_hw_cmd( "print_status");
+  timingcmd::TimingHwCmd hw_cmd = construct_endpoint_hw_cmd("print_status");
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(5).atomic);
 }
@@ -193,30 +188,27 @@ void
 TimingEndpointController::process_device_info(nlohmann::json info)
 {
   ++m_device_infos_received_count;
-  
+
   timing::timingendpointinfo::TimingEndpointInfo ept_info;
 
-  auto ept_data = info[opmonlib::JSONTags::children]["endpoint"][opmonlib::JSONTags::properties][ept_info.info_type][opmonlib::JSONTags::data];
+  auto ept_data = info[opmonlib::JSONTags::children]["endpoint"][opmonlib::JSONTags::properties][ept_info.info_type]
+                      [opmonlib::JSONTags::data];
 
   from_json(ept_data, ept_info);
 
   m_endpoint_state = ept_info.state;
   bool ready = ept_info.ready;
 
-  TLOG_DEBUG(3) << "state: 0x" << std::hex << m_endpoint_state << ", ready: " << ready << std::dec << ", infos received: " << m_device_infos_received_count;
+  TLOG_DEBUG(3) << "state: 0x" << std::hex << m_endpoint_state << ", ready: " << ready << std::dec
+                << ", infos received: " << m_device_infos_received_count;
 
-  if (m_endpoint_state == 0x8 && ready)
-  {
-    if (!m_device_ready)
-    {
+  if (m_endpoint_state == 0x8 && ready) {
+    if (!m_device_ready) {
       m_device_ready = true;
       TLOG_DEBUG(2) << "Timing endpoint became ready";
     }
-  }
-  else
-  {
-    if (m_device_ready)
-    {
+  } else {
+    if (m_device_ready) {
       m_device_ready = false;
       TLOG_DEBUG(2) << "Timing endpoint no longer ready";
     }
