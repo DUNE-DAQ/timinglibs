@@ -21,8 +21,8 @@
 
 namespace dunedaq {
 
-DUNE_DAQ_SERIALIZABLE(timinglibs::timingcmd::TimingHwCmd);
-DUNE_DAQ_SERIALIZABLE(nlohmann::json);
+DUNE_DAQ_SERIALIZABLE(timinglibs::timingcmd::TimingHwCmd, "TimingHwCmd");
+DUNE_DAQ_SERIALIZABLE(nlohmann::json, "JSON");
 
 namespace timinglibs {
 
@@ -53,7 +53,7 @@ TimingHardwareManager::init(const nlohmann::json& init_data)
   // set up queues
   auto qi = appfwk::connection_index(init_data, { m_hw_cmd_connection, m_device_info_connection });
   m_hw_command_receiver = get_iom_receiver<timingcmd::TimingHwCmd>(qi[m_hw_cmd_connection]);
-  m_device_info_connection_ref = qi[m_device_info_connection];
+  m_device_info_connection_id = qi[m_device_info_connection];
   m_endpoint_scan_threads_clean_up_thread = std::make_unique<dunedaq::utilities::ReusableThread>(0);
 }
 
@@ -156,7 +156,7 @@ TimingHardwareManager::gather_monitor_data(InfoGatherer& gatherer)
 }
 
 void
-TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level, iomanager::connection::ConnectionRef info_connection)
+TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level, std::string info_connection)
 {
   std::string gatherer_name = device_name + "_level_" + std::to_string(op_mon_level);
   if (m_info_gatherers.find(gatherer_name) == m_info_gatherers.end()) {
