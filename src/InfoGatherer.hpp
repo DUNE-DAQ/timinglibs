@@ -13,10 +13,10 @@
 #define TIMINGLIBS_SRC_INFOGATHERER_HPP_
 
 #include "ers/Issue.hpp"
-#include "iomanager/IOManager.hpp"
-#include "iomanager/Sender.hpp"
 #include "logging/Logging.hpp"
 #include "opmonlib/InfoCollector.hpp"
+#include "iomanager/Sender.hpp"
+#include "iomanager/IOManager.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -98,8 +98,7 @@ public:
 
   virtual ~InfoGatherer()
   {
-    if (run_gathering())
-      stop_gathering_thread();
+    if (run_gathering()) stop_gathering_thread();
   }
 
   InfoGatherer(const InfoGatherer&) = delete;            ///< InfoGatherer is not copy-constructible
@@ -115,8 +114,8 @@ public:
   {
     if (run_gathering()) {
       ers::warning(GatherThreadingIssue(ERS_HERE,
-                                        "Attempted to start gathering thread "
-                                        "when it is already supposed to be running!"));
+                                 "Attempted to start gathering thread "
+                                 "when it is already supposed to be running!"));
       return;
     }
     m_run_gathering = true;
@@ -140,8 +139,8 @@ public:
   {
     if (!run_gathering()) {
       ers::warning(GatherThreadingIssue(ERS_HERE,
-                                        "Attempted to stop gathering thread "
-                                        "when it is not supposed to be running!"));
+                                 "Attempted to stop gathering thread "
+                                 "when it is not supposed to be running!"));
       return;
     }
     m_run_gathering = false;
@@ -186,7 +185,7 @@ public:
     std::unique_lock info_collector_lock(m_info_collector_mutex);
     if (m_info_collector->is_empty()) {
       TLOG_DEBUG(3) << "skipping add info for gatherer: " << get_device_name()
-                    << " with gathered time: " << get_last_gathered_time() << " and level " << get_op_mon_level();
+             << " with gathered time: " << get_last_gathered_time() << " and level " << get_op_mon_level();
     } else {
       ic.add(label, *m_info_collector);
     }
@@ -197,25 +196,31 @@ public:
 private:
   void send_device_info()
   {
-    if (m_info_collector->is_empty()) {
+    if (m_info_collector->is_empty())
+    {
       TLOG_DEBUG(3) << "skipping sending info for gatherer: " << get_device_name() << ", collector empty.";
       return;
     }
 
-    if (!m_hw_info_sender) {
+    if (!m_hw_info_sender)
+    {
       TLOG_DEBUG(3) << "skipping sending info for gatherer: " << get_device_name();
       return;
     }
-
+    
     nlohmann::json info = m_info_collector->get_collected_infos();
     bool was_successfully_sent = false;
-    while (!was_successfully_sent) {
-      try {
+    while (!was_successfully_sent)
+    {
+      try
+      {
         m_hw_info_sender->send(std::move(info), m_queue_timeout);
-        TLOG_DEBUG(4) << "sent " << get_device_name() << " info";
+        TLOG_DEBUG(4) << "sent " << get_device_name() <<  " info";
         ++m_sent_counter;
         was_successfully_sent = true;
-      } catch (const dunedaq::iomanager::TimeoutExpired& excpt) {
+      }
+      catch (const dunedaq::iomanager::TimeoutExpired& excpt)
+      {
         ers::error(DeviceInfoSendFailed(ERS_HERE, m_device_name, m_device_info_connection_id));
         ++m_failed_to_send_counter;
       }

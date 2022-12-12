@@ -74,8 +74,7 @@ ERS_DECLARE_ISSUE_BASE(timinglibs,
 ERS_DECLARE_ISSUE_BASE(timinglibs,
                        UHALDeviceClassIssue,
                        timinglibs::UHALDeviceNodeIssue,
-                       " Failed to cast device " << device << " to type " << type << " where actual_type type is "
-                                                 << actual_type,
+                       " Failed to cast device " << device << " to type " << type << " where actual_type type is " << actual_type,
                        ((std::string)message),
                        ((std::string)device)((std::string)type)((std::string)actual_type))
 
@@ -146,7 +145,10 @@ ERS_DECLARE_ISSUE(timinglibs,
                   " Too many endpoint scan threads queued: " << n_threads << " threads! Not queuing endpoint scan!",
                   ((uint64_t)n_threads)) // NOLINT(build/unsigned)
 
-ERS_DECLARE_ISSUE(timinglibs, EndpointScanFailure, " Endpoint scan failed!!", ERS_EMPTY)
+ERS_DECLARE_ISSUE(timinglibs,
+                  EndpointScanFailure,
+                  " Endpoint scan failed!!",
+                  ERS_EMPTY)
 } // namespace dunedaq
 
 #endif // TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGISSUES_HPP_

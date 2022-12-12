@@ -7,8 +7,8 @@
  */
 
 #include "iomanager/IOManager.hpp"
-#include "iomanager/Receiver.hpp"
 #include "iomanager/Sender.hpp"
+#include "iomanager/Receiver.hpp"
 #include "timinglibs/TimestampEstimator.hpp"
 
 /**
@@ -39,11 +39,13 @@ struct DAQSinkDAQSourceTestFixture
     iomanager::ConnectionIds_t connections;
     connections.emplace_back(
       iomanager::ConnectionId{ "dummy", iomanager::ServiceType::kQueue, "TimeSync", "queue://kFollyMPMCQueue:100" });
-
+    
     get_iomanager()->configure(connections);
   }
 
-  void teardown() { get_iomanager()->reset(); }
+  void teardown() {
+      get_iomanager()->reset();
+  }
 };
 
 BOOST_TEST_GLOBAL_FIXTURE(DAQSinkDAQSourceTestFixture);
@@ -52,7 +54,7 @@ BOOST_AUTO_TEST_CASE(Basics)
 {
   using namespace std::chrono_literals;
   auto queue_ref = iomanager::ConnectionRef{ "queue", "dummy" };
-  auto sink = get_iom_sender<dfmessages::TimeSync>(queue_ref);
+  auto sink =  get_iom_sender<dfmessages::TimeSync>(queue_ref);
   auto source = get_iom_receiver<dfmessages::TimeSync>(queue_ref);
 
   const uint64_t clock_frequency_hz = 62'500'000; // NOLINT(build/unsigned)

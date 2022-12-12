@@ -31,10 +31,10 @@
 #include <vector>
 
 namespace dunedaq {
-ERS_DECLARE_ISSUE(timinglibs,                                               ///< Namespace
-                  TimingMasterNotReady,                                     ///< Issue class name
+ERS_DECLARE_ISSUE(timinglibs,                                                                             ///< Namespace
+                  TimingMasterNotReady,                                                                   ///< Issue class name
                   master << " timing master did not become ready in time.", ///< Message
-                  ((std::string)master))                                    ///< Message parameters
+                  ((std::string)master) )                                                                   ///< Message parameters
 namespace timinglibs {
 
 /**
@@ -68,7 +68,7 @@ private:
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
 
-  timingcmd::TimingHwCmd construct_master_hw_cmd(const std::string& cmd_id);
+  timingcmd::TimingHwCmd construct_master_hw_cmd( const std::string& cmd_id);
 
   // timing master commands
   void do_master_io_reset(const nlohmann::json& data);
@@ -82,7 +82,7 @@ private:
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;
   void process_device_info(nlohmann::json info) override;
-
+  
   std::vector<uint32_t> m_monitored_endpoint_addresses;
   uint m_endpoint_scan_period; // NOLINT(build/unsigned)
   dunedaq::utilities::WorkerThread endpoint_scan_thread;

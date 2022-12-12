@@ -8,10 +8,10 @@
  */
 
 #include "TimingMasterController.hpp"
-#include "timinglibs/timingcmd/Nljs.hpp"
-#include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingmastercontroller/Nljs.hpp"
 #include "timinglibs/timingmastercontroller/Structs.hpp"
+#include "timinglibs/timingcmd/Nljs.hpp"
+#include "timinglibs/timingcmd/Structs.hpp"
 
 #include "timing/timingfirmwareinfo/InfoNljs.hpp"
 #include "timing/timingfirmwareinfo/InfoStructs.hpp"
@@ -53,7 +53,8 @@ void
 TimingMasterController::do_configure(const nlohmann::json& data)
 {
   auto conf = data.get<timingmastercontroller::ConfParams>();
-  if (conf.device.empty()) {
+  if (conf.device.empty())
+  {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
   m_timing_device = conf.device;
@@ -63,33 +64,37 @@ TimingMasterController::do_configure(const nlohmann::json& data)
 
   do_master_io_reset(data);
   do_master_set_timestamp(data);
-
+  
   auto time_of_conf = std::chrono::high_resolution_clock::now();
-  while (true) {
+  while (true)
+  {
     auto now = std::chrono::high_resolution_clock::now();
     auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
+    
+    TLOG_DEBUG(3) << "Master (" << m_timing_device << ") ready: " << m_device_ready << ", infos received: " << m_device_infos_received_count;
 
-    TLOG_DEBUG(3) << "Master (" << m_timing_device << ") ready: " << m_device_ready
-                  << ", infos received: " << m_device_infos_received_count;
-
-    if (m_device_ready.load() && m_device_infos_received_count.load()) {
+    if (m_device_ready.load() && m_device_infos_received_count.load())
+    {
       break;
     }
 
-    if (ms_since_conf > m_device_ready_timeout) {
-      throw TimingMasterNotReady(ERS_HERE, m_timing_device);
+    if (ms_since_conf > m_device_ready_timeout)
+    {
+      throw TimingMasterNotReady(ERS_HERE,m_timing_device);
     }
-    TLOG_DEBUG(3) << "Waiting for timing master " << m_timing_device << " to become ready for (ms) "
-                  << ms_since_conf.count();
+    TLOG_DEBUG(3) << "Waiting for timing master " << m_timing_device << " to become ready for (ms) " << ms_since_conf.count();
     std::this_thread::sleep_for(std::chrono::microseconds(250000));
   }
 
   TLOG() << get_name() << " conf: master, device: " << m_timing_device;
 
   m_endpoint_scan_period = conf.endpoint_scan_period;
-  if (m_endpoint_scan_period) {
-    TLOG() << get_name() << " conf: master, will send delays with period [ms] " << m_endpoint_scan_period;
-  } else {
+  if (m_endpoint_scan_period)
+  {
+    TLOG() << get_name() << " conf: master, will send delays with period [ms] " << m_endpoint_scan_period;    
+  }
+  else
+  {
     TLOG() << get_name() << " conf: master, will not send delays";
   }
 }
@@ -98,15 +103,13 @@ void
 TimingMasterController::do_start(const nlohmann::json& data)
 {
   TimingController::do_start(data); // set sent cmd counters to 0
-  if (m_endpoint_scan_period)
-    endpoint_scan_thread.start_working_thread();
+  if (m_endpoint_scan_period) endpoint_scan_thread.start_working_thread();
 }
 
 void
 TimingMasterController::do_stop(const nlohmann::json& /*data*/)
 {
-  if (endpoint_scan_thread.thread_running())
-    endpoint_scan_thread.stop_working_thread();
+  if (endpoint_scan_thread.thread_running()) endpoint_scan_thread.stop_working_thread();
 }
 
 timingcmd::TimingHwCmd
@@ -121,7 +124,8 @@ TimingMasterController::construct_master_hw_cmd(const std::string& cmd_id)
 void
 TimingMasterController::do_master_io_reset(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd = construct_master_hw_cmd("io_reset");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "io_reset");
   hw_cmd.payload = data;
 
   send_hw_cmd(std::move(hw_cmd));
@@ -131,7 +135,8 @@ TimingMasterController::do_master_io_reset(const nlohmann::json& data)
 void
 TimingMasterController::do_master_set_timestamp(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd = construct_master_hw_cmd("set_timestamp");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "set_timestamp");
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(1).atomic);
 }
@@ -139,7 +144,8 @@ TimingMasterController::do_master_set_timestamp(const nlohmann::json&)
 void
 TimingMasterController::do_master_print_status(const nlohmann::json&)
 {
-  timingcmd::TimingHwCmd hw_cmd = construct_master_hw_cmd("print_status");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "print_status");
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(2).atomic);
 }
@@ -147,11 +153,12 @@ TimingMasterController::do_master_print_status(const nlohmann::json&)
 void
 TimingMasterController::do_master_set_endpoint_delay(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd = construct_master_hw_cmd("set_endpoint_delay");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "set_endpoint_delay");
   hw_cmd.payload = data;
-
+  
   TLOG_DEBUG(2) << "set ept delay data: " << data.dump();
-
+  
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(3).atomic);
 }
@@ -159,9 +166,10 @@ TimingMasterController::do_master_set_endpoint_delay(const nlohmann::json& data)
 void
 TimingMasterController::do_master_send_fl_command(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd = construct_master_hw_cmd("send_fl_command");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "send_fl_command");
   hw_cmd.payload = data;
-
+  
   TLOG_DEBUG(2) << "send fl cmd data: " << data.dump();
 
   send_hw_cmd(std::move(hw_cmd));
@@ -171,9 +179,10 @@ TimingMasterController::do_master_send_fl_command(const nlohmann::json& data)
 void
 TimingMasterController::do_master_measure_endpoint_rtt(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd = construct_master_hw_cmd("master_measure_endpoint_rtt");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "master_measure_endpoint_rtt");
   hw_cmd.payload = data;
-
+  
   TLOG_DEBUG(2) << "measure endpoint rtt data: " << data.dump();
 
   send_hw_cmd(std::move(hw_cmd));
@@ -183,9 +192,10 @@ TimingMasterController::do_master_measure_endpoint_rtt(const nlohmann::json& dat
 void
 TimingMasterController::do_master_endpoint_scan(const nlohmann::json& data)
 {
-  timingcmd::TimingHwCmd hw_cmd = construct_master_hw_cmd("master_endpoint_scan");
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "master_endpoint_scan");
   hw_cmd.payload = data;
-
+  
   TLOG_DEBUG(2) << "endpoint scan data: " << data.dump();
 
   send_hw_cmd(std::move(hw_cmd));
@@ -220,16 +230,18 @@ TimingMasterController::endpoint_scan(std::atomic<bool>& running_flag)
 
   while (running_flag.load() && m_endpoint_scan_period) {
 
-    timingcmd::TimingHwCmd hw_cmd = construct_master_hw_cmd("master_endpoint_scan");
+    timingcmd::TimingHwCmd hw_cmd =
+    construct_master_hw_cmd( "master_endpoint_scan");
 
     timingcmd::TimingMasterEndpointScanPayload cmd_payload;
     cmd_payload.endpoints = m_monitored_endpoint_addresses;
-
+    
     hw_cmd.payload = cmd_payload;
     send_hw_cmd(std::move(hw_cmd));
 
     ++(m_sent_hw_command_counters.at(3).atomic);
-    if (m_endpoint_scan_period) {
+    if (m_endpoint_scan_period)
+    {
       auto prev_gather_time = std::chrono::steady_clock::now();
       auto next_gather_time = prev_gather_time + std::chrono::milliseconds(m_endpoint_scan_period);
 
@@ -250,14 +262,16 @@ TimingMasterController::endpoint_scan(std::atomic<bool>& running_flag)
       if (break_flag == false) {
         std::this_thread::sleep_until(next_gather_time);
       }
-    } else {
+    }
+    else
+    {
       TLOG() << "m_endpoint_scan_period is 0 and send delays thread is running! breaking loop!";
       break;
     }
   }
 
   std::ostringstream exiting_stream;
-  exiting_stream << ": Exiting endpoint_scan() method. Received " << m_sent_hw_command_counters.at(3).atomic.load()
+  exiting_stream << ": Exiting endpoint_scan() method. Received " <<  m_sent_hw_command_counters.at(3).atomic.load()
                  << " commands";
   TLOG_DEBUG(0) << get_name() << exiting_stream.str();
 }
@@ -269,23 +283,26 @@ TimingMasterController::process_device_info(nlohmann::json info)
 
   timing::timingfirmwareinfo::MasterMonitorData master_info;
 
-  auto master_data = info[opmonlib::JSONTags::children]["master"][opmonlib::JSONTags::properties][master_info.info_type]
-                         [opmonlib::JSONTags::data];
+  auto master_data = info[opmonlib::JSONTags::children]["master"][opmonlib::JSONTags::properties][master_info.info_type][opmonlib::JSONTags::data];
 
   from_json(master_data, master_info);
 
   uint64_t master_timestamp = master_info.timestamp;
+  
+  TLOG_DEBUG(3) << "Master timestamp: 0x" << std::hex << master_timestamp << std::dec << ", infos received: " << m_device_infos_received_count;
 
-  TLOG_DEBUG(3) << "Master timestamp: 0x" << std::hex << master_timestamp << std::dec
-                << ", infos received: " << m_device_infos_received_count;
-
-  if (master_timestamp) {
-    if (!m_device_ready) {
+  if (master_timestamp)
+  {
+    if (!m_device_ready)
+    {
       m_device_ready = true;
       TLOG_DEBUG(2) << "Timing master became ready";
     }
-  } else {
-    if (m_device_ready) {
+  }
+  else
+  {
+    if (m_device_ready)
+    {
       m_device_ready = false;
       TLOG_DEBUG(2) << "Timing master no longer ready";
     }

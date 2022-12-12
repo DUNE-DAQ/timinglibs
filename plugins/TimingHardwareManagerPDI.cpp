@@ -8,11 +8,11 @@
  */
 
 #include "TimingHardwareManagerPDI.hpp"
-#include "timinglibs/TimingIssues.hpp"
-#include "timinglibs/timingcmd/Nljs.hpp"
-#include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timinghardwaremanagerpdi/Nljs.hpp"
 #include "timinglibs/timinghardwaremanagerpdi/Structs.hpp"
+#include "timinglibs/timingcmd/Nljs.hpp"
+#include "timinglibs/timingcmd/Structs.hpp"
+#include "timinglibs/TimingIssues.hpp"
 
 #include "timing/PDIMasterNode.hpp"
 
@@ -37,6 +37,7 @@ TimingHardwareManagerPDI::TimingHardwareManagerPDI(const std::string& name)
   register_command("start", &TimingHardwareManagerPDI::start);
   register_command("stop", &TimingHardwareManagerPDI::stop);
   register_command("scrap", &TimingHardwareManagerPDI::scrap);
+
 }
 
 void
@@ -91,24 +92,24 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
   // only register monitor threads if we have been given the name of the device to monitor
   if (m_monitored_device_name_master.compare("")) {
     register_info_gatherer(m_gather_interval, m_monitored_device_name_master, 1, m_device_info_connection_id);
-    // register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_master, 2);
+    //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_master, 2);
   }
 
   for (auto it = m_monitored_device_names_fanout.begin(); it != m_monitored_device_names_fanout.end(); ++it) {
     if (it->compare("")) {
       register_info_gatherer(m_gather_interval, *it, 1, m_device_info_connection_id);
-      // register_info_gatherer(m_gather_interval_debug, *it, 2);
+      //register_info_gatherer(m_gather_interval_debug, *it, 2);
     }
   }
 
   if (m_monitored_device_name_endpoint.compare("")) {
     register_info_gatherer(m_gather_interval, m_monitored_device_name_endpoint, 1, m_device_info_connection_id);
-    // register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_endpoint, 2);
+    //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_endpoint, 2);
   }
 
   if (m_monitored_device_name_hsi.compare("")) {
     register_info_gatherer(m_gather_interval, m_monitored_device_name_hsi, 1, m_device_info_connection_id);
-    // register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_hsi, 2);
+    //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_hsi, 2);
   }
 
   start_hw_mon_gathering();
@@ -145,7 +146,7 @@ TimingHardwareManagerPDI::register_master_hw_commands_for_design()
   register_timing_hw_command("set_endpoint_delay", &TimingHardwareManagerPDI::set_endpoint_delay);
   register_timing_hw_command("send_fl_command", &TimingHardwareManagerPDI::send_fl_cmd);
   register_timing_hw_command("master_endpoint_scan", &TimingHardwareManagerPDI::master_endpoint_scan);
-
+  
   register_timing_hw_command("partition_configure", &TimingHardwareManagerPDI::partition_configure);
   register_timing_hw_command("partition_enable", &TimingHardwareManagerPDI::partition_enable);
   register_timing_hw_command("partition_disable", &TimingHardwareManagerPDI::partition_disable);
