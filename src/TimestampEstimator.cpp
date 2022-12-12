@@ -54,8 +54,9 @@ TimestampEstimator::add_timestamp_datapoint(const dfmessages::TimeSync& ts)
   dfmessages::timestamp_t estimate = m_current_timestamp_estimate.load();
   dfmessages::timestamp_diff_t diff = estimate - ts.daq_time;
   TLOG_DEBUG(TLVL_TIME_SYNCS) << "Got a TimeSync timestamp = " << ts.daq_time << ", system time = " << ts.system_time
-                 << " when current timestamp estimate was " << estimate << ". diff=" << diff << " run=" << ts.run_number
-                 << " seqno=" << ts.sequence_number << " source_pid=" << ts.source_pid;
+                              << " when current timestamp estimate was " << estimate << ". diff=" << diff
+                              << " run=" << ts.run_number << " seqno=" << ts.sequence_number
+                              << " source_pid=" << ts.source_pid;
   if (m_most_recent_timesync.daq_time == dfmessages::TypeDefaults::s_invalid_timestamp ||
       ts.daq_time > m_most_recent_timesync.daq_time) {
     m_most_recent_timesync = ts;
@@ -83,7 +84,8 @@ TimestampEstimator::add_timestamp_datapoint(const dfmessages::TimeSync& ts)
     if (time_now > m_most_recent_timesync.system_time) {
 
       auto delta_time = time_now - m_most_recent_timesync.system_time;
-      TLOG_DEBUG(TLVL_TIME_SYNCS) << "Time diff between current system and latest TimeSync system time [us]: " << delta_time;
+      TLOG_DEBUG(TLVL_TIME_SYNCS) << "Time diff between current system and latest TimeSync system time [us]: "
+                                  << delta_time;
 
       // Warn user if current system time is more than 1s ahead of latest TimeSync system time. This could be a sign of
       // an issue, e.g. machine times out of sync
@@ -98,8 +100,8 @@ TimestampEstimator::add_timestamp_datapoint(const dfmessages::TimeSync& ts)
           new_timestamp >= m_current_timestamp_estimate.load()) {
         m_current_timestamp_estimate.store(new_timestamp);
       } else {
-        TLOG_DEBUG(TLVL_TIME_SYNCS) << "Not updating timestamp estimate backwards from " << m_current_timestamp_estimate.load()
-                      << " to " << new_timestamp;
+        TLOG_DEBUG(TLVL_TIME_SYNCS) << "Not updating timestamp estimate backwards from "
+                                    << m_current_timestamp_estimate.load() << " to " << new_timestamp;
       }
     }
   }

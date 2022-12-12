@@ -26,10 +26,10 @@
 #include "iomanager/Receiver.hpp"
 #include "logging/Logging.hpp"
 
-#include "timing/TimingNode.hpp"
 #include "timing/EndpointDesignInterface.hpp"
 #include "timing/HSIDesignInterface.hpp"
 #include "timing/MasterDesignInterface.hpp"
+#include "timing/TimingNode.hpp"
 #include "timing/TopDesignInterface.hpp"
 
 #include "uhal/ConnectionManager.hpp"
@@ -75,7 +75,7 @@ public:
   TimingHardwareManager(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-constructible
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
   virtual ~TimingHardwareManager() {}
-  
+
   void init(const nlohmann::json& init_data) override;
   virtual void conf(const nlohmann::json& conf_data);
   virtual void scrap(const nlohmann::json& data);
@@ -152,7 +152,10 @@ protected:
   // monitoring
   std::map<std::string, std::unique_ptr<InfoGatherer>> m_info_gatherers;
 
-  void register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level, std::string info_connection);
+  void register_info_gatherer(uint gather_interval,
+                              const std::string& device_name,
+                              int op_mon_level,
+                              std::string info_connection);
   void gather_monitor_data(InfoGatherer& gatherer);
 
   virtual void start_hw_mon_gathering(const std::string& device_name = "");

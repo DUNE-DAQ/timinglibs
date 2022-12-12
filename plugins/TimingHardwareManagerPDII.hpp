@@ -65,8 +65,9 @@ public:
   TimingHardwareManagerPDII(const TimingHardwareManagerPDII&) =
     delete; ///< TimingHardwareManagerPDII is not copy-constructible
   TimingHardwareManagerPDII& operator=(const TimingHardwareManagerPDII&) =
-    delete;                                                      ///< TimingHardwareManagerPDII is not copy-assignable
-  TimingHardwareManagerPDII(TimingHardwareManagerPDII&&) = delete; ///< TimingHardwareManagerPDII is not move-constructible
+    delete; ///< TimingHardwareManagerPDII is not copy-assignable
+  TimingHardwareManagerPDII(TimingHardwareManagerPDII&&) =
+    delete; ///< TimingHardwareManagerPDII is not move-constructible
   TimingHardwareManagerPDII& operator=(TimingHardwareManagerPDII&&) =
     delete; ///< TimingHardwareManagerPDII is not move-assignable
 
