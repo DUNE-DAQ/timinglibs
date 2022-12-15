@@ -93,8 +93,8 @@ TimestampEstimator::add_timestamp_datapoint(const dfmessages::TimeSync& ts)
       if (delta_time > 1e6)
         ers::warning(LateTimeSync(ERS_HERE, delta_time));
 
-      const dfmessages::timestamp_t new_timestamp =  m_most_recent_timesync.daq_time;
-      TLOG() << "Skipped the addition of the delta_time to the most recent DAQ timestamp";
+      const dfmessages::timestamp_t new_timestamp =
+        m_most_recent_timesync.daq_time + delta_time * m_clock_frequency_hz / 1000000;
 
       // Don't ever decrease the timestamp; just wait until enough
       // time passes that we want to increase it
