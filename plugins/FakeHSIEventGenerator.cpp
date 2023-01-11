@@ -112,7 +112,8 @@ FakeHSIEventGenerator::do_start(const nlohmann::json& obj)
   m_received_timesync_count.store(0);
 
   m_timesync_receiver = get_iom_receiver<dfmessages::TimeSync>(m_timesync_topic);
-  m_timesync_receiver->add_callback(std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
+  //m_timesync_receiver->add_callback(std::bind(&FakeHSIEventGenerator::dispatch_timesync, this, std::placeholders::_1));
+  m_timesync_receiver->add_callback(std::bind(&FakeHSIEventGenerator::convert_timesync_to_hsi_event, this, std::placeholders::_1));
 
   auto start_params = obj.get<rcif::cmd::StartParams>();
   m_trigger_interval_ticks.store(start_params.trigger_interval_ticks);
@@ -258,6 +259,33 @@ FakeHSIEventGenerator::dispatch_timesync(dfmessages::TimeSync& timesyncmsg)
   if (m_timestamp_estimator.get() != nullptr) {
     if (timesyncmsg.run_number == m_run_number) {
       m_timestamp_estimator->add_timestamp_datapoint(timesyncmsg);
+    } else {
+      TLOG_DEBUG(0) << "Discarded TimeSync message from run " << timesyncmsg.run_number << " during run "
+                    << m_run_number;
+    }
+  }
+}
+
+void
+FakeHSIEventGenerator::convert_timesync_to_hsi_event(dfmessages::TimeSync& timesyncmsg)
+{
+  ++m_received_timesync_count;
+  TLOG_DEBUG(13) << "Received TimeSync message with DAQ time= " << timesyncmsg.daq_time << " (..." << std::fixed
+                 << std::setprecision(8)
+                 << (static_cast<double>(timesyncmsg.daq_time % (m_clock_frequency * 1000)) /
+                     static_cast<double>(m_clock_frequency))
+                 << " sec), run=" << timesyncmsg.run_number << " (local runno is " << m_run_number << ")";
+  if (timesyncmsg.run_number == m_run_number) {
+    uint32_t signal_map = generate_signal_map(); // NOLINT(build/unsigned)
+    uint32_t trigger_map = signal_map & m_enabled_signals; // NOLINT(build/unsigned)
+  
+    TLOG_DEBUG(3) << "masked gen. map:" << std::bitset<32>(trigger_map);
+  
+    // if at least one active signal, send a HSIEvent
+    if (trigger_map) {
+      dfmessages::HSIEvent event = dfmessages::HSIEvent(m_hsi_device_id, trigger_map, timesyncmsg.daq_time,
+                                                        m_generated_counter++);
+      send_hsi_event(event);
     } else {
       TLOG_DEBUG(0) << "Discarded TimeSync message from run " << timesyncmsg.run_number << " during run "
                     << m_run_number;

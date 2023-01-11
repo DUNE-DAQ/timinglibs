@@ -63,6 +63,7 @@ private:
   void do_resume(const nlohmann::json& obj);
 
   void dispatch_timesync(dfmessages::TimeSync& message);
+  void convert_timesync_to_hsi_event(dfmessages::TimeSync& message);
 
   std::shared_ptr<iomanager::ReceiverConcept<dfmessages::TimeSync>> m_timesync_receiver;
 
