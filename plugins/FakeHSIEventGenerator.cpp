@@ -202,7 +202,7 @@ FakeHSIEventGenerator::do_hsievent_work(std::atomic<bool>& running_flag)
   // TODO put in tome sort of timeout? Stoyan Trilov stoyan.trilov@cern.ch
   if (m_timestamp_estimator.get() != nullptr &&
       m_timestamp_estimator->wait_for_valid_timestamp(running_flag) == TimestampEstimatorBase::kInterrupted) {
-    ers::error(FailedToGetTimestampEstimate(ERS_HERE));
+    //ers::error(FailedToGetTimestampEstimate(ERS_HERE));
     return;
   }
 
