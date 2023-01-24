@@ -61,7 +61,8 @@ TimingController::init(const nlohmann::json& init_data)
 void
 TimingController::do_configure(const nlohmann::json&)
 {
-  m_device_info_receiver = get_iom_receiver<nlohmann::json>(m_timing_device);
+  m_device_info_receiver = get_iom_receiver<nlohmann::json>("timing_device_info");
+  m_device_info_receiver->subscribe(m_timing_device);
   m_device_info_receiver->add_callback(std::bind(&TimingController::process_device_info, this, std::placeholders::_1));
 }
 
@@ -69,6 +70,7 @@ void
 TimingController::do_scrap(const nlohmann::json&)
 {
   m_device_info_receiver->remove_callback();
+  m_device_info_receiver->unsubscribe(m_timing_device);
   m_device_infos_received_count=0;
   m_device_ready = false;
   
