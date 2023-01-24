@@ -89,6 +89,7 @@ def cli(config, debug, json_dir):
 
     if tmc.master_device_name:
         the_system.apps["tmc"] = get_tmc_app( ## TODO
+            FIRMWARE_TYPE               = thi.firmware_type,
             MASTER_DEVICE_NAME          = tmc.master_device_name,
             MASTER_ENDPOINT_SCAN_PERIOD = tmc.master_endpoint_scan_period,
             MASTER_CLOCK_FILE           = tmc.master_clock_file,

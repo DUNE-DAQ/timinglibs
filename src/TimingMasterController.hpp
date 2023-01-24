@@ -62,7 +62,7 @@ public:
       endpoint_scan_thread.stop_working_thread();
   }
 
-private:
+protected:
   // Commands
   void do_configure(const nlohmann::json& data) override;
   void do_start(const nlohmann::json& data) override;
