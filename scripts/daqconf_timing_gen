@@ -89,6 +89,7 @@ def cli(config, debug, json_dir):
 
     if tmc.master_device_name:
         the_system.apps["tmc"] = get_tmc_app( ## TODO
+            FIRMWARE_TYPE               = thi.firmware_type,
             MASTER_DEVICE_NAME          = tmc.master_device_name,
             MASTER_ENDPOINT_SCAN_PERIOD = tmc.master_endpoint_scan_period,
             MASTER_CLOCK_FILE           = tmc.master_clock_file,
@@ -137,6 +138,10 @@ def cli(config, debug, json_dir):
     console.log(f"Global aapp config generated in {json_dir}")
 
     write_metadata_file(json_dir, "daqconf_timing_gen", config_file)
+
+    console.log("Generating custom timing RC commands")
+    from timinglibs.timing_rc_cmd_gen import generate_timing_rc_cmds
+    generate_timing_rc_cmds("tmc", "tmc", json_dir)
 
 if __name__ == '__main__':
     try:
