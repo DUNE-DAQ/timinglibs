@@ -139,6 +139,10 @@ def cli(config, debug, json_dir):
 
     write_metadata_file(json_dir, "daqconf_timing_gen", config_file)
 
+    console.log("Generating custom timing RC commands")
+    from timinglibs.timing_rc_cmd_gen import generate_timing_rc_cmds
+    generate_timing_rc_cmds("tmc", "tmc", json_dir)
+
 if __name__ == '__main__':
     try:
         cli(show_default=True, standalone_mode=True)
