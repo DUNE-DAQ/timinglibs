@@ -29,10 +29,6 @@
 namespace dunedaq {
 namespace timinglibs {
 
-TimingMasterControllerPDI::TimingMasterControllerPDI(const std::string& name)
-  : dunedaq::timinglibs::TimingMasterController(name)
-{}
-
 void
 TimingMasterControllerPDI::process_device_info(nlohmann::json info)
 {

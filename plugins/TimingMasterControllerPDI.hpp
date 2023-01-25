@@ -44,7 +44,8 @@ public:
    * @brief TimingMasterControllerPDI Constructor
    * @param name Instance name for this TimingMasterControllerPDI instance
    */
-  explicit TimingMasterControllerPDI(const std::string& name);
+  explicit TimingMasterControllerPDI(const std::string& name)
+    : dunedaq::timinglibs::TimingMasterController(name) {}
 
   TimingMasterControllerPDI(const TimingMasterControllerPDI&) = delete; ///< TimingMasterControllerPDI is not copy-constructible
   TimingMasterControllerPDI& operator=(const TimingMasterControllerPDI&) =

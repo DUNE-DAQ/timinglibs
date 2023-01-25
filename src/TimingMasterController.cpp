@@ -276,42 +276,8 @@ TimingMasterController::endpoint_scan(std::atomic<bool>& running_flag)
   TLOG_DEBUG(0) << get_name() << exiting_stream.str();
 }
 
-void
-TimingMasterController::process_device_info(nlohmann::json info)
-{
-  ++m_device_infos_received_count;
-
-  timing::timingfirmwareinfo::MasterMonitorData master_info;
-
-  auto master_data = info[opmonlib::JSONTags::children]["master"][opmonlib::JSONTags::properties][master_info.info_type][opmonlib::JSONTags::data];
-
-  from_json(master_data, master_info);
-
-  uint64_t master_timestamp = master_info.timestamp;
-  
-  TLOG_DEBUG(3) << "Master timestamp: 0x" << std::hex << master_timestamp << std::dec << ", infos received: " << m_device_infos_received_count;
-
-  if (master_timestamp)
-  {
-    if (!m_device_ready)
-    {
-      m_device_ready = true;
-      TLOG_DEBUG(2) << "Timing master became ready";
-    }
-  }
-  else
-  {
-    if (m_device_ready)
-    {
-      m_device_ready = false;
-      TLOG_DEBUG(2) << "Timing master no longer ready";
-    }
-  }
-}
 } // namespace timinglibs
 } // namespace dunedaq
-
-DEFINE_DUNE_DAQ_MODULE(dunedaq::timinglibs::TimingMasterController)
 
 // Local Variables:
 // c-basic-offset: 2
