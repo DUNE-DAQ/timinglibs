@@ -29,7 +29,8 @@ from daqconf.core.daqmodule import DAQModule
 from daqconf.core.conf_utils import Direction
 
 #===============================================================================
-def get_tmc_app(MASTER_DEVICE_NAME="",
+def get_tmc_app(FIRMWARE_TYPE='pdi',
+                MASTER_DEVICE_NAME="",
                 MASTER_ENDPOINT_SCAN_PERIOD=0,
                 MASTER_CLOCK_FILE="",
                 MASTER_CLOCK_MODE=-1,
@@ -41,9 +42,16 @@ def get_tmc_app(MASTER_DEVICE_NAME="",
     
     modules = {}
 
+    if FIRMWARE_TYPE == 'pdi':
+        tmc_class='TimingMasterControllerPDI'
+    elif FIRMWARE_TYPE == 'pdii':
+        tmc_class='TimingMasterControllerPDII'
+    else:
+        raise Exception(f"'Unexpected firmware type: {FIRMWARE_TYPE}")
+
     ## TODO all the connections...
     modules = [DAQModule(name = "tmc",
-                        plugin = "TimingMasterController",
+                        plugin = tmc_class,
                         conf = tmc.ConfParams(
                                             device=MASTER_DEVICE_NAME,
                                             endpoint_scan_period=MASTER_ENDPOINT_SCAN_PERIOD,
@@ -53,8 +61,8 @@ def get_tmc_app(MASTER_DEVICE_NAME="",
                                             ))]
 
     mgraph = ModuleGraph(modules)
-    mgraph.add_external_connection("timing_cmds", "tmc.timing_cmds", Direction.OUT, TIMING_HOST, TIMING_PORT)
-    mgraph.add_external_connection("timing_device_info", None, Direction.IN, TIMING_HOST, TIMING_PORT+1, [MASTER_DEVICE_NAME])
+    mgraph.add_external_connection("timing_cmds", "tmc.timing_cmds", "TimingHwCmd", Direction.OUT, TIMING_HOST, TIMING_PORT)
+    mgraph.add_external_connection("timing_device_info", None, "JSON", Direction.IN, TIMING_HOST, TIMING_PORT+1, [MASTER_DEVICE_NAME])
     
     tmc_app = App(modulegraph=mgraph, host=HOST, name="TMCApp")
     

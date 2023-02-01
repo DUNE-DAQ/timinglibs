@@ -214,7 +214,7 @@ private:
     {
       try
       {
-        m_hw_info_sender->send(std::move(info), m_queue_timeout);
+        m_hw_info_sender->send_with_topic(std::move(info), m_queue_timeout, get_device_name());
         TLOG_DEBUG(4) << "sent " << get_device_name() <<  " info";
         ++m_sent_counter;
         was_successfully_sent = true;

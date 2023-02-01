@@ -95,6 +95,7 @@ TimestampEstimator::add_timestamp_datapoint(const dfmessages::TimeSync& ts)
 
       const dfmessages::timestamp_t new_timestamp =
         m_most_recent_timesync.daq_time + delta_time * m_clock_frequency_hz / 1000000;
+
       // Don't ever decrease the timestamp; just wait until enough
       // time passes that we want to increase it
       if (m_current_timestamp_estimate.load() == dfmessages::TypeDefaults::s_invalid_timestamp ||
