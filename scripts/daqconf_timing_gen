@@ -71,7 +71,7 @@ def cli(config, debug, json_dir):
 
     console.log(f"Generating configs for global thi host {thi.host_thi}")
 
-    the_system = System(first_port=thi.port_thi)
+    the_system = System()
     # the timing hardware interface application
     the_system.apps["thi"] = get_thi_app( # TODO pass directly thi, tmc and tfc
         FIRMWARE_TYPE         = thi.firmware_type,
@@ -81,7 +81,6 @@ def cli(config, debug, json_dir):
         MASTER_DEVICE_NAME    = tmc.master_device_name,
         FANOUT_DEVICE_NAME    = tfc.fanout_device_name,
         HSI_DEVICE_NAME       = thi.hsi_device_name,
-        TIMING_PORT           = thi.port_thi,
         HOST                  = thi.host_thi,
         DEBUG                 = debug
     )
@@ -95,8 +94,6 @@ def cli(config, debug, json_dir):
             MASTER_CLOCK_FILE           = tmc.master_clock_file,
             MASTER_CLOCK_MODE           = tmc.master_clock_mode,
             MONITORED_ENDPOINTS         = tmc.monitored_endpoints,
-            TIMING_HOST                 = thi.host_thi,
-            TIMING_PORT                 = thi.port_thi,
             HOST                        = tmc.host_tmc,
             DEBUG                       = debug
         )
@@ -106,8 +103,6 @@ def cli(config, debug, json_dir):
         the_system.apps["tfc"] = get_tfc_app( ## TODO
             FANOUT_DEVICE_NAME = tfc.fanout_device_name,
             FANOUT_CLOCK_FILE  = tfc.fanout_clock_file,
-            TIMING_HOST        = thi.host_thi,
-            TIMING_PORT        = thi.port_thi,
             HOST               = tfc.host_tfc,
             DEBUG              = debug)
         conf_order.append('tfc')
@@ -121,7 +116,7 @@ def cli(config, debug, json_dir):
     from daqconf.core.conf_utils import make_app_command_data
     # Arrange per-app command data into the format used by util.write_json_files()
     app_command_datas = {
-        name : make_app_command_data(the_system, app, name, verbose=debug, use_k8s=boot.use_k8s, use_connectivity_service=boot.use_connectivity_service)
+        name : make_app_command_data(the_system, app, name, verbose=debug, use_k8s=boot.use_k8s, use_connectivity_service=True)
         for name,app in the_system.apps.items()
     }
 

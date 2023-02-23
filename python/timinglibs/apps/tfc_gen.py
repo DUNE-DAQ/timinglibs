@@ -48,8 +48,8 @@ def get_tfc_app(FANOUT_DEVICE_NAME="",
 
     mgraph = ModuleGraph(modules)
     
-    mgraph.add_external_connection("timing_cmds", "tfc.timing_cmds", Direction.OUT, TIMING_HOST, TIMING_PORT)
-    mgraph.add_external_connection("timing_device_info", None, Direction.IN, TIMING_HOST, TIMING_PORT+1, [FANOUT_DEVICE_NAME])
+    mgraph.add_endpoint("timing_cmds", "tfc.timing_cmds", Direction.OUT)
+    mgraph.add_endpoint(FANOUT_DEVICE_NAME+"_info", "tfc."+FANOUT_DEVICE_NAME+"_info", "JSON", Direction.IN, is_pubsub=True)
     
     tfc_app = App(modulegraph=mgraph, host=HOST, name="TFCApp")
     

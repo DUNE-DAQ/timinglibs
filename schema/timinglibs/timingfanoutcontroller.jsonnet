@@ -15,6 +15,8 @@ local cs = {
     init: s.record("ConfParams", [
         s.field("device", self.str, "",
                 doc="String of managed device name"),
+        s.field("timing_session_name", self.str, "",
+                doc="Name of managed device timing session"),
         s.field("clock_config", self.str, "",
             doc="Path of clock config file"),
     ], doc="TimingFanoutController configuration"),

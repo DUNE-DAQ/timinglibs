@@ -58,28 +58,6 @@ public:
   explicit InfoGatherer(std::function<void(InfoGatherer&)> gather_data,
                         uint gather_interval,
                         const std::string& device_name,
-                        int op_mon_level,
-                        std::string device_info_connection_id)
-    : m_run_gathering(false)
-    , m_gathering_thread(nullptr)
-    , m_gather_interval(gather_interval)
-    , m_device_name(device_name)
-    , m_last_gathered_time(0)
-    , m_op_mon_level(op_mon_level)
-    , m_gather_data(gather_data)
-    , m_device_info_connection_id(device_info_connection_id)
-    , m_hw_info_sender(nullptr)
-    , m_sent_counter(0)
-    , m_failed_to_send_counter(0)
-    , m_queue_timeout(1)
-  {
-    m_info_collector = std::make_unique<opmonlib::InfoCollector>();
-    m_hw_info_sender = get_iom_sender<nlohmann::json>(device_info_connection_id);
-  }
-
-  explicit InfoGatherer(std::function<void(InfoGatherer&)> gather_data,
-                        uint gather_interval,
-                        const std::string& device_name,
                         int op_mon_level)
     : m_run_gathering(false)
     , m_gathering_thread(nullptr)
@@ -88,12 +66,14 @@ public:
     , m_last_gathered_time(0)
     , m_op_mon_level(op_mon_level)
     , m_gather_data(gather_data)
+    , m_device_info_connection_id(device_name+"_info")
     , m_hw_info_sender(nullptr)
     , m_sent_counter(0)
     , m_failed_to_send_counter(0)
     , m_queue_timeout(1)
   {
     m_info_collector = std::make_unique<opmonlib::InfoCollector>();
+    m_hw_info_sender = iomanager::IOManager::get()->get_sender<nlohmann::json>(m_device_info_connection_id);
   }
 
   virtual ~InfoGatherer()
@@ -214,7 +194,7 @@ private:
     {
       try
       {
-        m_hw_info_sender->send_with_topic(std::move(info), m_queue_timeout, get_device_name());
+        m_hw_info_sender->send(std::move(info), m_queue_timeout);
         TLOG_DEBUG(4) << "sent " << get_device_name() <<  " info";
         ++m_sent_counter;
         was_successfully_sent = true;

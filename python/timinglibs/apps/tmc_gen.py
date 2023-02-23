@@ -61,8 +61,8 @@ def get_tmc_app(FIRMWARE_TYPE='pdi',
                                             ))]
 
     mgraph = ModuleGraph(modules)
-    mgraph.add_external_connection("timing_cmds", "tmc.timing_cmds", "TimingHwCmd", Direction.OUT, TIMING_HOST, TIMING_PORT)
-    mgraph.add_external_connection("timing_device_info", None, "JSON", Direction.IN, TIMING_HOST, TIMING_PORT+1, [MASTER_DEVICE_NAME])
+    mgraph.add_endpoint("timing_cmds", "tmc.timing_cmds", "TimingHwCmd", Direction.OUT)
+    mgraph.add_endpoint(MASTER_DEVICE_NAME+"_info", "tmc."+MASTER_DEVICE_NAME+"_info", "JSON", Direction.IN, is_pubsub=True)
     
     tmc_app = App(modulegraph=mgraph, host=HOST, name="TMCApp")
     

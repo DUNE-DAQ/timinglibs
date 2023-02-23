@@ -56,6 +56,7 @@ TimingEndpointController::do_configure(const nlohmann::json& data)
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
   m_timing_device = conf.device;
+  m_timing_session_name = conf.timing_session_name;
   m_managed_endpoint_id = conf.endpoint_id;
   
   TimingController::do_configure(data); // configure hw command connection

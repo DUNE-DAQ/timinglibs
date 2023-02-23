@@ -64,6 +64,7 @@ TimingPartitionController::do_configure(const nlohmann::json& data)
   }
 
   m_timing_device = conf.device;
+  m_timing_session_name = conf.timing_session_name;
   m_managed_partition_id = conf.partition_id;
   
   // parameters against which to compare partition state
