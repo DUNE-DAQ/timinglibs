@@ -26,7 +26,7 @@ from daqconf.core.daqmodule import DAQModule
 from daqconf.core.conf_utils import Direction
 
 #===============================================================================
-def get_thi_app(FIRMWARE_TYPE='pdi',
+def get_thi_app(FIRMWARE_TYPE='pdii',
                 GATHER_INTERVAL=5e5,
                 GATHER_INTERVAL_DEBUG=10e7,
                 MASTER_DEVICE_NAME="",
@@ -34,7 +34,6 @@ def get_thi_app(FIRMWARE_TYPE='pdi',
                 HSI_DEVICE_NAME="",
                 CONNECTIONS_FILE="${TIMING_SHARE}/config/etc/connections.xml",
                 UHAL_LOG_LEVEL="notice",
-                TIMING_PORT=12345,
                 HOST="localhost",
                 DEBUG=False):
     

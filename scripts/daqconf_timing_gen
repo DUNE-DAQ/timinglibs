@@ -116,7 +116,7 @@ def cli(config, debug, json_dir):
     from daqconf.core.conf_utils import make_app_command_data
     # Arrange per-app command data into the format used by util.write_json_files()
     app_command_datas = {
-        name : make_app_command_data(the_system, app, name, verbose=debug, use_k8s=boot.use_k8s, use_connectivity_service=True)
+        name : make_app_command_data(the_system, app, name, verbose=debug, use_k8s=boot.use_k8s, use_connectivity_service=boot.use_connectivity_service)
         for name,app in the_system.apps.items()
     }
 
