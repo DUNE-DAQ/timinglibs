@@ -31,9 +31,8 @@ from daqconf.core.conf_utils import Direction
 #===============================================================================
 def get_tfc_app(FANOUT_DEVICE_NAME="",
                 FANOUT_CLOCK_FILE="",
+                TIMING_SESSION="",
                 HOST="localhost",
-                TIMING_HOST="np04-srv-012.cern.ch",
-                TIMING_PORT=12345,
                 DEBUG=False):
     
     modules = {}
@@ -43,13 +42,14 @@ def get_tfc_app(FANOUT_DEVICE_NAME="",
                         plugin = "TimingFanoutController",
                         conf = tfc.ConfParams(
                                             device=FANOUT_DEVICE_NAME,
+                                            timing_session_name=TIMING_SESSION,
                                             clock_config=FANOUT_CLOCK_FILE,
                                             ))]
 
     mgraph = ModuleGraph(modules)
     
-    mgraph.add_external_connection("timing_cmds", "tfc.timing_cmds", Direction.OUT, TIMING_HOST, TIMING_PORT)
-    mgraph.add_external_connection("timing_device_info", None, Direction.IN, TIMING_HOST, TIMING_PORT+1, [FANOUT_DEVICE_NAME])
+    mgraph.add_endpoint("timing_cmds", "tfc.timing_cmds", Direction.OUT)
+    mgraph.add_endpoint(FANOUT_DEVICE_NAME+"_info", "tfc."+FANOUT_DEVICE_NAME+"_info", "JSON", Direction.IN, is_pubsub=True)
     
     tfc_app = App(modulegraph=mgraph, host=HOST, name="TFCApp")
     

@@ -53,6 +53,7 @@ TimingFanoutController::do_configure(const nlohmann::json& data)
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
   m_timing_device = conf.device;
+  m_timing_session_name = conf.timing_session_name;
   m_device_ready_timeout = std::chrono::milliseconds(20000);
 
   TimingController::do_configure(data); // configure hw command connection

@@ -18,6 +18,8 @@ local cs = {
     conf: s.record("ConfParams",[
         s.field("device", self.str, "",
                 doc="String of managed device name"),
+        s.field("timing_session_name", self.str, "",
+                doc="Name of managed device timing session"),
         s.field("endpoint_id", self.uint_data, optional=true,
             doc="ID of managed endpoint"),
         s.field("address", self.uint_data,

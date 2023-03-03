@@ -73,7 +73,6 @@ public:
   void conf(const nlohmann::json& conf_data) override;
   void start(const nlohmann::json& data);
   void stop(const nlohmann::json& data);
-  void scrap(const nlohmann::json& data) override;
 
   void get_info(opmonlib::InfoCollector& ci, int level) override;
 

@@ -103,6 +103,7 @@ protected:
   using sink_t = dunedaq::iomanager::SenderConcept<timingcmd::TimingHwCmd>;
   std::shared_ptr<sink_t> m_hw_command_sender;
   std::string m_timing_device;
+  std::string m_timing_session_name;
   using source_t = dunedaq::iomanager::ReceiverConcept<nlohmann::json>;
   std::shared_ptr<source_t> m_device_info_receiver;
 

@@ -35,9 +35,8 @@ def get_tmc_app(FIRMWARE_TYPE='pdi',
                 MASTER_CLOCK_FILE="",
                 MASTER_CLOCK_MODE=-1,
                 MONITORED_ENDPOINTS=[],
+                TIMING_SESSION="",
                 HOST="localhost",
-                TIMING_HOST="np04-srv-012.cern.ch",
-                TIMING_PORT=12345,
                 DEBUG=False):
     
     modules = {}
@@ -54,6 +53,7 @@ def get_tmc_app(FIRMWARE_TYPE='pdi',
                         plugin = tmc_class,
                         conf = tmc.ConfParams(
                                             device=MASTER_DEVICE_NAME,
+                                            timing_session_name=TIMING_SESSION,
                                             endpoint_scan_period=MASTER_ENDPOINT_SCAN_PERIOD,
                                             clock_config=MASTER_CLOCK_FILE,
                                             fanout_mode=MASTER_CLOCK_MODE,
@@ -61,8 +61,8 @@ def get_tmc_app(FIRMWARE_TYPE='pdi',
                                             ))]
 
     mgraph = ModuleGraph(modules)
-    mgraph.add_external_connection("timing_cmds", "tmc.timing_cmds", "TimingHwCmd", Direction.OUT, TIMING_HOST, TIMING_PORT)
-    mgraph.add_external_connection("timing_device_info", None, "JSON", Direction.IN, TIMING_HOST, TIMING_PORT+1, [MASTER_DEVICE_NAME])
+    mgraph.add_endpoint("timing_cmds", "tmc.timing_cmds", "TimingHwCmd", Direction.OUT)
+    mgraph.add_endpoint(MASTER_DEVICE_NAME+"_info", "tmc."+MASTER_DEVICE_NAME+"_info", "JSON", Direction.IN, is_pubsub=True)
     
     tmc_app = App(modulegraph=mgraph, host=HOST, name="TMCApp")
     

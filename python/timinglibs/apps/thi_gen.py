@@ -26,7 +26,7 @@ from daqconf.core.daqmodule import DAQModule
 from daqconf.core.conf_utils import Direction
 
 #===============================================================================
-def get_thi_app(FIRMWARE_TYPE='pdi',
+def get_thi_app(FIRMWARE_TYPE='pdii',
                 GATHER_INTERVAL=5e5,
                 GATHER_INTERVAL_DEBUG=10e7,
                 MASTER_DEVICE_NAME="",
@@ -34,7 +34,6 @@ def get_thi_app(FIRMWARE_TYPE='pdi',
                 HSI_DEVICE_NAME="",
                 CONNECTIONS_FILE="${TIMING_SHARE}/config/etc/connections.xml",
                 UHAL_LOG_LEVEL="notice",
-                TIMING_PORT=12345,
                 HOST="localhost",
                 DEBUG=False):
     
@@ -65,8 +64,15 @@ def get_thi_app(FIRMWARE_TYPE='pdi',
                 ]                
         
     mgraph = ModuleGraph(modules)
-    mgraph.add_external_connection("timing_cmds", "thi.timing_cmds", "TimingHwCmd", Direction.IN, HOST, TIMING_PORT)
-    mgraph.add_external_connection("timing_device_info", "thi.timing_device_info", "JSON", Direction.OUT, HOST, TIMING_PORT+1, set([MASTER_DEVICE_NAME,HSI_DEVICE_NAME,FANOUT_DEVICE_NAME]))
+
+    mgraph.add_endpoint("timing_cmds", "thi.timing_cmds", "TimingHwCmd", Direction.IN, check_endpoints=False)
+
+    if MASTER_DEVICE_NAME:
+        mgraph.add_endpoint(MASTER_DEVICE_NAME+"_info", "thi."+MASTER_DEVICE_NAME+"_info", "JSON", Direction.OUT, is_pubsub=True)
+    if HSI_DEVICE_NAME:
+        mgraph.add_endpoint(HSI_DEVICE_NAME+"_info", "thi."+HSI_DEVICE_NAME+"_info", "JSON", Direction.OUT, is_pubsub=True)
+    if FANOUT_DEVICE_NAME:
+        mgraph.add_endpoint(FANOUT_DEVICE_NAME+"_info", "thi."+FANOUT_DEVICE_NAME+"_info", "JSON", Direction.OUT, is_pubsub=True)
 
     thi_app = App(modulegraph=mgraph, host=HOST, name="THIApp")
     

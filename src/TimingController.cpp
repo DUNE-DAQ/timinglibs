@@ -38,6 +38,7 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
   , m_hw_cmd_out_timeout(100)
   , m_hw_command_sender(nullptr)
   , m_timing_device("")
+  , m_timing_session_name("")
   , m_device_info_receiver(nullptr)
   , m_number_hw_commands(number_hw_commands)
   , m_sent_hw_command_counters(m_number_hw_commands)
@@ -53,16 +54,31 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
 void
 TimingController::init(const nlohmann::json& init_data)
 {
-  // set up queues
-  auto qi = appfwk::connection_index(init_data, { m_hw_command_out_connection });
-  m_hw_command_sender = get_iom_sender<timingcmd::TimingHwCmd>(qi[m_hw_command_out_connection]);
 }
 
 void
 TimingController::do_configure(const nlohmann::json&)
 {
-  m_device_info_receiver = get_iom_receiver<nlohmann::json>("timing_device_info");
-  m_device_info_receiver->subscribe(m_timing_device);
+  if (m_timing_session_name.empty())
+  {
+    m_hw_command_sender = iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(m_hw_command_out_connection);
+  }
+  else
+  {
+    m_hw_command_sender = iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(
+      iomanager::connection::ConnectionId{m_hw_command_out_connection, datatype_to_string<timingcmd::TimingHwCmd>(), m_timing_session_name} );
+  }
+
+  if (m_timing_session_name.empty())
+  {
+     m_device_info_receiver = iomanager::IOManager::get()->get_receiver<nlohmann::json>(m_timing_device+"_info");
+  }
+  else
+  {
+    m_device_info_receiver = iomanager::IOManager::get()->get_receiver<nlohmann::json>(
+      iomanager::connection::ConnectionId{m_timing_device+"_info", datatype_to_string<nlohmann::json>(), m_timing_session_name});
+  }
+  
   m_device_info_receiver->add_callback(std::bind(&TimingController::process_device_info, this, std::placeholders::_1));
 }
 
@@ -70,7 +86,6 @@ void
 TimingController::do_scrap(const nlohmann::json&)
 {
   m_device_info_receiver->remove_callback();
-  m_device_info_receiver->unsubscribe(m_timing_device);
   m_device_infos_received_count=0;
   m_device_ready = false;
   

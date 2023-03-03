@@ -17,6 +17,8 @@ local cs = {
     conf: s.record("PartitionConfParams", [
         s.field("device", self.str, "",
                 doc="String of managed device name"),
+        s.field("timing_session_name", self.str, "",
+                doc="Name of managed device timing session"),
         s.field("partition_id", self.uint_data, 0,
                 doc="Part id number"),
         s.field("trigger_mask", self.uint_data,

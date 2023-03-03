@@ -9,6 +9,7 @@
 #include "TimingHardwareManager.hpp"
 
 #include "iomanager/IOManager.hpp"
+#include "iomanager/connection/Structs.hpp"
 #include "logging/Logging.hpp"
 #include "timing/definitions.hpp"
 
@@ -30,7 +31,6 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
   : dunedaq::appfwk::DAQModule(name)
   , m_hw_cmd_connection("timing_cmds")
   , m_hw_command_receiver(nullptr)
-  , m_device_info_connection("timing_device_info")
   , m_gather_interval(1e6)
   , m_gather_interval_debug(10e6)
   , m_connections_file("")
@@ -51,9 +51,7 @@ void
 TimingHardwareManager::init(const nlohmann::json& init_data)
 {
   // set up queues
-  auto qi = appfwk::connection_index(init_data, { m_hw_cmd_connection, m_device_info_connection });
-  m_hw_command_receiver = get_iom_receiver<timingcmd::TimingHwCmd>(qi[m_hw_cmd_connection]);
-  m_device_info_connection_id = qi[m_device_info_connection];
+  m_hw_command_receiver = iomanager::IOManager::get()->get_receiver<timingcmd::TimingHwCmd>(m_hw_cmd_connection);
   m_endpoint_scan_threads_clean_up_thread = std::make_unique<dunedaq::utilities::ReusableThread>(0);
 }
 
@@ -77,7 +75,9 @@ TimingHardwareManager::scrap(const nlohmann::json& /*data*/)
   m_hw_command_receiver->remove_callback();
 
   m_run_clean_endpoint_scan_threads.store(false);
-
+  
+  stop_hw_mon_gathering();
+  
   m_command_threads.clear(); 
   m_info_gatherers.clear();
   m_timing_hw_cmd_map_.clear();
@@ -156,7 +156,7 @@ TimingHardwareManager::gather_monitor_data(InfoGatherer& gatherer)
 }
 
 void
-TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level, std::string info_connection)
+TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level)
 {
   std::string gatherer_name = device_name + "_level_" + std::to_string(op_mon_level);
   if (m_info_gatherers.find(gatherer_name) == m_info_gatherers.end()) {
@@ -164,8 +164,7 @@ TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::s
       std::bind(&TimingHardwareManager::gather_monitor_data, this, std::placeholders::_1),
       gather_interval,
       device_name,
-      op_mon_level,
-      info_connection);
+      op_mon_level);
 
     TLOG_DEBUG(0) << "Registering info gatherer: " << gatherer_name;
     m_info_gatherers.emplace(std::make_pair(gatherer_name, std::move(gatherer)));
