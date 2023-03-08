@@ -67,6 +67,7 @@ protected:
   void do_configure(const nlohmann::json& data) override;
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
+  void send_configure_hardware_commands(const nlohmann::json& data) override;
 
   timingcmd::TimingHwCmd construct_master_hw_cmd( const std::string& cmd_id);
 

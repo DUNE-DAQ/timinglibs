@@ -45,6 +45,7 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
   , m_device_ready_timeout(10000)
   , m_device_ready(false)
   , m_device_infos_received_count(0)
+  , m_hardware_state_recovery_enabled(false)
 {
   for (auto it = m_sent_hw_command_counters.begin(); it != m_sent_hw_command_counters.end(); ++it) {
     it->atomic.store(0);
@@ -52,7 +53,7 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
 }
 
 void
-TimingController::init(const nlohmann::json& init_data)
+TimingController::init(const nlohmann::json& /*init_data*/)
 {
 }
 

@@ -58,36 +58,15 @@ TimingMasterController::do_configure(const nlohmann::json& data)
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
   m_timing_device = conf.device;
+  m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
   m_timing_session_name = conf.timing_session_name;
   m_monitored_endpoint_addresses = conf.monitored_endpoints;
 
   TimingController::do_configure(data); // configure hw command connection
 
-  do_master_io_reset(data);
-  do_master_set_timestamp(data);
-  
-  auto time_of_conf = std::chrono::high_resolution_clock::now();
-  while (true)
-  {
-    auto now = std::chrono::high_resolution_clock::now();
-    auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
-    
-    TLOG_DEBUG(3) << "Master (" << m_timing_device << ") ready: " << m_device_ready << ", infos received: " << m_device_infos_received_count;
+  configure_hardware_or_recover_state<TimingMasterNotReady>(data, "Timing master");
 
-    if (m_device_ready.load() && m_device_infos_received_count.load())
-    {
-      break;
-    }
-
-    if (ms_since_conf > m_device_ready_timeout)
-    {
-      throw TimingMasterNotReady(ERS_HERE,m_timing_device);
-    }
-    TLOG_DEBUG(3) << "Waiting for timing master " << m_timing_device << " to become ready for (ms) " << ms_since_conf.count();
-    std::this_thread::sleep_for(std::chrono::microseconds(250000));
-  }
-
-  TLOG() << get_name() << " conf: master, device: " << m_timing_device;
+  TLOG() << get_name() << " conf done on master, device: " << m_timing_device;
 
   m_endpoint_scan_period = conf.endpoint_scan_period;
   if (m_endpoint_scan_period)
@@ -111,6 +90,13 @@ void
 TimingMasterController::do_stop(const nlohmann::json& /*data*/)
 {
   if (endpoint_scan_thread.thread_running()) endpoint_scan_thread.stop_working_thread();
+}
+
+void
+TimingMasterController::send_configure_hardware_commands(const nlohmann::json& data)
+{
+  do_master_io_reset(data);
+  do_master_set_timestamp(data);
 }
 
 timingcmd::TimingHwCmd

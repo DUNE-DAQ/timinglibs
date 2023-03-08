@@ -71,6 +71,7 @@ private:
   void do_resume(const nlohmann::json& data);
   void do_pause(const nlohmann::json& data);
   void do_scrap(const nlohmann::json& data);
+  void send_configure_hardware_commands(const nlohmann::json& data) override;
 
   uint16_t m_partition_trigger_mask;
   bool m_partition_control_rate_enabled;
