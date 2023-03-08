@@ -97,6 +97,9 @@ protected:
   virtual void do_stop(const nlohmann::json&) {}
   virtual void do_scrap(const nlohmann::json&);
 
+  template<class T, class... Vs>
+  void configure_hardware_or_recover_state(const nlohmann::json& data, std::string timing_entity_description, Vs... args);
+
   // Configuration
   std::string m_hw_command_out_connection;
   std::chrono::milliseconds m_hw_cmd_out_timeout;
@@ -108,6 +111,7 @@ protected:
   std::shared_ptr<source_t> m_device_info_receiver;
 
   virtual void send_hw_cmd(timingcmd::TimingHwCmd&& hw_cmd);
+  virtual void send_configure_hardware_commands(const nlohmann::json& data) = 0;
 
   // opmon
   uint m_number_hw_commands;
@@ -118,9 +122,12 @@ protected:
   std::chrono::milliseconds m_device_ready_timeout;
   std::atomic<bool> m_device_ready;
   std::atomic<uint> m_device_infos_received_count;
+  std::atomic<bool> m_hardware_state_recovery_enabled;
 };
 } // namespace timinglibs
 } // namespace dunedaq
+
+#include "detail/TimingController.hxx"
 
 #endif // TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGCONTROLLER_HPP_
 

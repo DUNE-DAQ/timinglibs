@@ -64,9 +64,10 @@ TimingPartitionController::do_configure(const nlohmann::json& data)
   }
 
   m_timing_device = conf.device;
+  m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
   m_timing_session_name = conf.timing_session_name;
   m_managed_partition_id = conf.partition_id;
-  
+
   // parameters against which to compare partition state
   m_partition_trigger_mask = conf.trigger_mask;
   m_partition_control_rate_enabled = conf.rate_control_enabled;
@@ -74,30 +75,11 @@ TimingPartitionController::do_configure(const nlohmann::json& data)
 
   TimingController::do_configure(data); // configure hw command connection
 
-  do_partition_configure(data);
-  do_partition_enable(data);
+  std::string controlled_description="Timing partition "+std::to_string(m_managed_partition_id) + " of master";
 
-  auto time_of_conf = std::chrono::high_resolution_clock::now();
-  while (true)
-  {
-    auto now = std::chrono::high_resolution_clock::now();
-    auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
-    
-    TLOG_DEBUG(3) << "Master (" << m_timing_device << ") partition " << m_managed_partition_id << " ready: " << m_device_ready << ", infos received: " << m_device_infos_received_count;
+  configure_hardware_or_recover_state<TimingPartitionNotReady>(data, controlled_description, m_managed_partition_id);
 
-    if (m_device_ready.load() && m_device_infos_received_count.load())
-    {
-      break;
-    }
-    
-    if (ms_since_conf > m_device_ready_timeout)
-    {
-      throw TimingPartitionNotReady(ERS_HERE, m_timing_device, m_managed_partition_id);
-    }
-    TLOG_DEBUG(3) << "Waiting for timing partition " << m_managed_partition_id << " to become ready for (ms) " << ms_since_conf.count();
-    std::this_thread::sleep_for(std::chrono::microseconds(250000));
-  }
-  TLOG() << get_name() << " conf; device: " << m_timing_device << ", managed part id: " << m_managed_partition_id;
+  TLOG() << get_name() << " conf done on device: " << m_timing_device << ", managed part id: " << m_managed_partition_id;
 }
 
 void
@@ -130,6 +112,13 @@ void
 TimingPartitionController::do_pause(const nlohmann::json& data)
 {
   do_partition_disable_triggers(data);
+}
+
+void
+TimingPartitionController::send_configure_hardware_commands(const nlohmann::json& data)
+{
+  do_partition_configure(data);
+  do_partition_enable(data);
 }
 
 timingcmd::TimingHwCmd

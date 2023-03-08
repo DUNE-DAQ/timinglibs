@@ -56,37 +56,23 @@ TimingEndpointController::do_configure(const nlohmann::json& data)
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
   m_timing_device = conf.device;
+  m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
   m_timing_session_name = conf.timing_session_name;
   m_managed_endpoint_id = conf.endpoint_id;
-  
+
   TimingController::do_configure(data); // configure hw command connection
 
+  configure_hardware_or_recover_state<TimingEndpointNotReady>(data, "Timing endpoint", m_endpoint_state);
+
+  TLOG() << get_name() << " conf done for endpoint, device: " << m_timing_device;
+}
+
+void
+TimingEndpointController::send_configure_hardware_commands(const nlohmann::json& data)
+{
   do_endpoint_io_reset(data);
   std::this_thread::sleep_for(std::chrono::microseconds(7000000));
   do_endpoint_enable(data);
-  
-  auto time_of_conf = std::chrono::high_resolution_clock::now();
-  while (true)
-  {
-    auto now = std::chrono::high_resolution_clock::now();
-    auto ms_since_conf = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_conf);
-    
-    TLOG_DEBUG(3) << "Endpoint (" << m_timing_device << ") state: " << m_endpoint_state << ", infos received: " << m_device_infos_received_count;
-
-    if (m_device_ready.load() && m_device_infos_received_count.load())
-    {
-      break;
-    }
-
-    if (ms_since_conf > m_device_ready_timeout)
-    {
-      throw TimingEndpointNotReady(ERS_HERE,m_timing_device,m_endpoint_state);
-    }
-    TLOG_DEBUG(3) << "Waiting for timing endpoint " << m_timing_device << " to become ready for (ms) " << ms_since_conf.count();
-    std::this_thread::sleep_for(std::chrono::microseconds(250000));
-  }
-
-  TLOG() << get_name() << " conf: endpoint, device: " << m_timing_device;
 }
 
 timingcmd::TimingHwCmd

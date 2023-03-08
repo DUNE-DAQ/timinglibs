@@ -36,6 +36,7 @@ def get_tmc_app(FIRMWARE_TYPE='pdi',
                 MASTER_CLOCK_MODE=-1,
                 MONITORED_ENDPOINTS=[],
                 TIMING_SESSION="",
+                HARDWARE_STATE_RECOVERY_ENABLED=True,
                 HOST="localhost",
                 DEBUG=False):
     
@@ -53,6 +54,7 @@ def get_tmc_app(FIRMWARE_TYPE='pdi',
                         plugin = tmc_class,
                         conf = tmc.ConfParams(
                                             device=MASTER_DEVICE_NAME,
+                                            hardware_state_recovery_enabled=HARDWARE_STATE_RECOVERY_ENABLED,
                                             timing_session_name=TIMING_SESSION,
                                             endpoint_scan_period=MASTER_ENDPOINT_SCAN_PERIOD,
                                             clock_config=MASTER_CLOCK_FILE,

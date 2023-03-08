@@ -88,23 +88,25 @@ def cli(config, debug, json_dir):
 
     if tmc.master_device_name:
         the_system.apps["tmc"] = get_tmc_app( ## TODO
-            FIRMWARE_TYPE               = thi.firmware_type,
-            MASTER_DEVICE_NAME          = tmc.master_device_name,
-            MASTER_ENDPOINT_SCAN_PERIOD = tmc.master_endpoint_scan_period,
-            MASTER_CLOCK_FILE           = tmc.master_clock_file,
-            MASTER_CLOCK_MODE           = tmc.master_clock_mode,
-            MONITORED_ENDPOINTS         = tmc.monitored_endpoints,
-            HOST                        = tmc.host_tmc,
-            DEBUG                       = debug
+            FIRMWARE_TYPE                   = thi.firmware_type,
+            MASTER_DEVICE_NAME              = tmc.master_device_name,
+            HARDWARE_STATE_RECOVERY_ENABLED = tmc.enable_hardware_state_recovery,
+            MASTER_ENDPOINT_SCAN_PERIOD     = tmc.master_endpoint_scan_period,
+            MASTER_CLOCK_FILE               = tmc.master_clock_file,
+            MASTER_CLOCK_MODE               = tmc.master_clock_mode,
+            MONITORED_ENDPOINTS             = tmc.monitored_endpoints,
+            HOST                            = tmc.host_tmc,
+            DEBUG                           = debug
         )
         conf_order.append('tmc')
 
     if tfc.fanout_device_name:
         the_system.apps["tfc"] = get_tfc_app( ## TODO
-            FANOUT_DEVICE_NAME = tfc.fanout_device_name,
-            FANOUT_CLOCK_FILE  = tfc.fanout_clock_file,
-            HOST               = tfc.host_tfc,
-            DEBUG              = debug)
+            FANOUT_DEVICE_NAME              = tfc.fanout_device_name,
+            HARDWARE_STATE_RECOVERY_ENABLED = tfc.enable_hardware_state_recovery,
+            FANOUT_CLOCK_FILE               = tfc.fanout_clock_file,
+            HOST                            = tfc.host_tfc,
+            DEBUG                           = debug)
         conf_order.append('tfc')
 
     if debug:
