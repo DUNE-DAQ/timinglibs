@@ -8,13 +8,13 @@
  */
 
 #include "timinglibs/TimingController.hpp"
+#include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingcmd/msgp.hpp"
-#include "timinglibs/TimingIssues.hpp"
 
-#include "appfwk/cmd/Nljs.hpp"
 #include "appfwk/DAQModuleHelper.hpp"
+#include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
@@ -60,38 +60,21 @@ TimingController::init(const nlohmann::json& /*init_data*/)
 void
 TimingController::do_configure(const nlohmann::json&)
 {
-  if (m_timing_session_name.empty())
-  {
-    m_hw_command_sender = iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(m_hw_command_out_connection);
-  }
-  else
-  {
-    m_hw_command_sender = iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(
-      iomanager::connection::ConnectionId{m_hw_command_out_connection, datatype_to_string<timingcmd::TimingHwCmd>(), m_timing_session_name} );
-  }
+  m_hw_command_sender =
+    iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(m_hw_command_out_connection, m_timing_session_name);
 
-  if (m_timing_session_name.empty())
-  {
-     m_device_info_receiver = iomanager::IOManager::get()->get_receiver<nlohmann::json>(m_timing_device+"_info");
-  }
-  else
-  {
-    m_device_info_receiver = iomanager::IOManager::get()->get_receiver<nlohmann::json>(
-      iomanager::connection::ConnectionId{m_timing_device+"_info", datatype_to_string<nlohmann::json>(), m_timing_session_name});
-  }
-  
-  m_device_info_receiver->add_callback(std::bind(&TimingController::process_device_info, this, std::placeholders::_1));
+  m_device_info_receiver =
+    iomanager::IOManager::get()->get_receiver<nlohmann::json>(m_timing_device + "_info", m_timing_session_name);
 }
 
 void
 TimingController::do_scrap(const nlohmann::json&)
 {
   m_device_info_receiver->remove_callback();
-  m_device_infos_received_count=0;
+  m_device_infos_received_count = 0;
   m_device_ready = false;
-  
-  for (auto it = m_sent_hw_command_counters.begin(); it != m_sent_hw_command_counters.end(); ++it)
-  {
+
+  for (auto it = m_sent_hw_command_counters.begin(); it != m_sent_hw_command_counters.end(); ++it) {
     it->atomic.store(0);
   }
 }
@@ -99,8 +82,7 @@ TimingController::do_scrap(const nlohmann::json&)
 void
 TimingController::send_hw_cmd(timingcmd::TimingHwCmd&& hw_cmd)
 {
-  if (!m_hw_command_sender)
-  {
+  if (!m_hw_command_sender) {
     throw QueueIsNullFatalError(ERS_HERE, get_name(), m_hw_command_out_connection);
   }
   try {
