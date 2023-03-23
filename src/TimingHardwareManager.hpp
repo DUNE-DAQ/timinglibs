@@ -105,6 +105,17 @@ protected:
   std::map<std::string, std::unique_ptr<uhal::HwInterface>> m_hw_device_map;
   std::mutex m_hw_device_map_mutex;
 
+  // managed timing devices
+  std::string m_monitored_device_name_master;
+  std::vector<std::string> m_monitored_device_names_fanout;
+  std::string m_monitored_device_name_endpoint;
+  std::string m_monitored_device_name_hsi;
+
+  virtual void register_common_hw_commands_for_design() = 0;
+  virtual void register_master_hw_commands_for_design() = 0;
+  virtual void register_endpoint_hw_commands_for_design() = 0;
+  virtual void register_hsi_hw_commands_for_design() = 0;
+
   // retrieve top level/design object for a timing device
   template<class TIMING_DEV>
   TIMING_DEV get_timing_device(const std::string& device_name);
@@ -158,12 +169,12 @@ protected:
   virtual std::vector<std::string> check_hw_mon_gatherer_is_running(const std::string& device_name);
 
   std::mutex m_command_threads_map_mutex;
-  std::map<std::string, std::unique_ptr<dunedaq::utilities::ReusableThread>> m_command_threads;
+  std::map<std::string, std::unique_ptr<std::thread>> m_command_threads;
   std::mutex master_sfp_mutex;
   virtual void perform_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd);
   virtual void clean_endpoint_scan_threads();
   std::unique_ptr<dunedaq::utilities::ReusableThread> m_endpoint_scan_threads_clean_up_thread;
-  std::atomic<bool> m_run_clean_endpoint_scan_threads;
+  std::atomic<bool> m_run_endpoint_scan_cleanup_thread;
 };
 
 } // namespace timinglibs

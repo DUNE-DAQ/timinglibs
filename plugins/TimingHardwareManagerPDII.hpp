@@ -78,16 +78,11 @@ public:
 
   void partition_configure(const timingcmd::TimingHwCmd& /*hw_cmd*/) override {}
 
-private:
-  std::string m_monitored_device_name_master;
-  std::vector<std::string> m_monitored_device_names_fanout;
-  std::string m_monitored_device_name_endpoint;
-  std::string m_monitored_device_name_hsi;
-
-  void register_common_hw_commands_for_design();
-  void register_master_hw_commands_for_design();
-  void register_endpoint_hw_commands_for_design();
-  void register_hsi_hw_commands_for_design();
+protected:
+  void register_common_hw_commands_for_design() override;
+  void register_master_hw_commands_for_design() override;
+  void register_endpoint_hw_commands_for_design() override;
+  void register_hsi_hw_commands_for_design() override;
 };
 } // namespace timinglibs
 } // namespace dunedaq

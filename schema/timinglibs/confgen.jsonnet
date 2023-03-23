@@ -30,7 +30,7 @@ local cs = {
     s.field('master_endpoint_scan_period',    self.number,  default=0,           doc="Master controller continuously scans the endpoint addresses provided. This controls period of scan [ms]. 0 for disable."),
     s.field('master_clock_file',              daqconf.Path, default="",          doc='Path to custom PLL config file for master device'),
     s.field('master_clock_mode',              self.number,  default=-1,          doc='Fanout mode for master device.'),
-    s.field('monitored_endpoints',            timingcmd.TimingEndpointScanAddresses, default=[], doc='List of endpoint addresses to be monitored.'),
+    s.field('monitored_endpoints',            timingcmd.TimingEndpointLocations, default=[], doc='List of endpoints to be monitored.'),
   ]),
 
   timing_fanout_controller: s.record("timing_fanout_controller", [
