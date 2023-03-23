@@ -60,7 +60,7 @@ TimingMasterController::do_configure(const nlohmann::json& data)
   m_timing_device = conf.device;
   m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
   m_timing_session_name = conf.timing_session_name;
-  m_monitored_endpoint_addresses = conf.monitored_endpoints;
+  m_monitored_endpoint_locations = conf.monitored_endpoints;
 
   TimingController::do_configure(data); // configure hw command connection
 
@@ -221,7 +221,7 @@ TimingMasterController::endpoint_scan(std::atomic<bool>& running_flag)
     construct_master_hw_cmd( "master_endpoint_scan");
 
     timingcmd::TimingMasterEndpointScanPayload cmd_payload;
-    cmd_payload.endpoints = m_monitored_endpoint_addresses;
+    cmd_payload.endpoints = m_monitored_endpoint_locations;
     
     hw_cmd.payload = cmd_payload;
     send_hw_cmd(std::move(hw_cmd));

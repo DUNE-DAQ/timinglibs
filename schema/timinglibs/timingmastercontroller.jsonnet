@@ -1,7 +1,10 @@
 local moo = import "moo.jsonnet";
 local ns = "dunedaq.timinglibs.timingmastercontroller";
 local s = moo.oschema.schema(ns);
- 
+
+local stimingcmd = import "timinglibs/timingcmd.jsonnet";
+local timingcmd = moo.oschema.hier(stimingcmd).dunedaq.timinglibs.timingcmd;
+
 local cs = {
 
     str : s.string("Str", doc="A string field"),
@@ -13,9 +16,6 @@ local cs = {
     
     fanout_mode: s.number("FanoutMode", "i4", 
         doc="Fanout mode"),
-    
-    timing_endpoints_addresses: s.sequence("TimingEndpointScanAddresses", self.uint_data,
-            doc="A vector of endpoint addresses"),
 
     conf: s.record("ConfParams", [
         s.field("device", self.str, "",
@@ -32,10 +32,10 @@ local cs = {
             doc="Soft reset"),
         s.field("fanout_mode", self.fanout_mode, -1, 
             doc="Fanout mode. -1: none, 0: fanout, 1: standalone"),
-        s.field("monitored_endpoints", self.timing_endpoints_addresses,
+        s.field("monitored_endpoints", timingcmd.TimingEndpointLocations,
                 doc="List of monitored endpoint addresses"),
     ], doc="TimingMasterController configuration"),
 
 };
 
-moo.oschema.sort_select(cs)
+stimingcmd + moo.oschema.sort_select(cs)

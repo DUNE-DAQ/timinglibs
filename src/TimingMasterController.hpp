@@ -83,7 +83,7 @@ protected:
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;
   
-  std::vector<uint32_t> m_monitored_endpoint_addresses;
+  timingcmd::TimingEndpointLocations m_monitored_endpoint_locations;
   uint m_endpoint_scan_period; // NOLINT(build/unsigned)
   dunedaq::utilities::WorkerThread endpoint_scan_thread;
   virtual void endpoint_scan(std::atomic<bool>&);

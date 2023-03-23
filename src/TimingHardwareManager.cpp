@@ -13,6 +13,10 @@
 #include "logging/Logging.hpp"
 #include "timing/definitions.hpp"
 
+#include "timing/FanoutDesign.hpp"
+#include "timing/timingfirmware/Nljs.hpp"
+#include "timing/timingfirmware/Structs.hpp"
+
 #include <memory>
 #include <string>
 #include <utility>
@@ -36,6 +40,10 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
   , m_connections_file("")
   , m_uhal_log_level("notice")
   , m_connection_manager(nullptr)
+  , m_monitored_device_name_master("")
+  , m_monitored_device_names_fanout({})
+  , m_monitored_device_name_endpoint("")
+  , m_monitored_device_name_hsi("")
   , m_received_hw_commands_counter{ 0 }
   , m_accepted_hw_commands_counter{ 0 }
   , m_rejected_hw_commands_counter{ 0 }
@@ -48,7 +56,7 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
 }
 
 void
-TimingHardwareManager::init(const nlohmann::json& init_data)
+TimingHardwareManager::init(const nlohmann::json& /*init_data*/)
 {
   // set up queues
   m_hw_command_receiver = iomanager::IOManager::get()->get_receiver<timingcmd::TimingHwCmd>(m_hw_cmd_connection);
@@ -65,7 +73,7 @@ TimingHardwareManager::conf(const nlohmann::json& /*conf_data*/)
 
   m_hw_command_receiver->add_callback(std::bind(&TimingHardwareManager::process_hardware_command, this, std::placeholders::_1));
 
-  m_run_clean_endpoint_scan_threads.store(true);
+  m_run_endpoint_scan_cleanup_thread.store(true);
   m_endpoint_scan_threads_clean_up_thread->set_work(&TimingHardwareManager::clean_endpoint_scan_threads, this);
 }
 
@@ -74,7 +82,15 @@ TimingHardwareManager::scrap(const nlohmann::json& /*data*/)
 {
   m_hw_command_receiver->remove_callback();
 
-  m_run_clean_endpoint_scan_threads.store(false);
+  auto time_of_scrap = std::chrono::high_resolution_clock::now();
+  while(m_command_threads.size())
+  {
+    auto now = std::chrono::high_resolution_clock::now();
+    auto ms_since_scrap = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_scrap);
+    TLOG_DEBUG(0) << "Have been waiting for " << ms_since_scrap.count() << " ms for " << m_command_threads.size() << " command threads to finish...";
+    std::this_thread::sleep_for(std::chrono::microseconds(250000));
+  }
+  m_run_endpoint_scan_cleanup_thread.store(false);
   
   stop_hw_mon_gathering();
   
@@ -334,12 +350,12 @@ TimingHardwareManager::master_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd
   }
   else
   {
-    TLOG_DEBUG(0) << "Queuing: " << command_thread_uid.str();
+    TLOG_DEBUG(1) << "Queuing: " << command_thread_uid.str();
 
     auto thread_key = command_thread_uid.str();
     std::unique_lock map_lock(m_command_threads_map_mutex);
-    m_command_threads.emplace(thread_key, std::make_unique<dunedaq::utilities::ReusableThread>(m_accepted_hw_commands_counter.load()));
-    m_command_threads.at(thread_key)->set_work(&TimingHardwareManager::perform_endpoint_scan, this, hw_cmd);
+
+    m_command_threads.emplace(thread_key, std::make_unique<std::thread>(std::bind(&TimingHardwareManager::perform_endpoint_scan, this, hw_cmd)));
   }
 }
 
@@ -348,18 +364,43 @@ void TimingHardwareManager::perform_endpoint_scan(const timingcmd::TimingHwCmd& 
   timingcmd::TimingMasterEndpointScanPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
-  std::unique_lock master_sfp_lock(master_sfp_mutex);
-
-  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan starting";
-
-  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
-  try
+  for (auto& endpoint_location : cmd_payload.endpoints)
   {
-    auto results = design->get_master_node_plain()->scan_endpoints(cmd_payload.endpoints);
-  }
-  catch(std::exception& e)
-  {
-    ers::error(EndpointScanFailure(ERS_HERE,e));
+    auto endpoint_address = endpoint_location.address;
+    auto fanout_slot = endpoint_location.fanout_slot;
+    auto sfp_slot = endpoint_location.sfp_slot;
+
+    std::unique_lock<std::mutex> master_sfp_lock(master_sfp_mutex);
+
+    TLOG_DEBUG(1) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan starting: ept adr: " << endpoint_address << ", ept sfp: " << sfp_slot;
+
+    auto master_design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+
+    try
+    {
+      master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, true);
+
+      if (sfp_slot >= 0)
+      {
+        if (fanout_slot > 0)
+        {
+          // configure fanout receiver
+          get_timing_device<const timing::FanoutDesign*>(m_monitored_device_names_fanout.at(fanout_slot))->switch_downstream_mux_channel(sfp_slot, false);
+        }
+        else
+        {
+          dynamic_cast<const timing::MasterMuxDesign*>(master_design)->switch_downstream_mux_channel(sfp_slot, false);
+        }
+      }
+      // configure any master mux, possibly
+      master_design->get_master_node_plain()->scan_endpoint(endpoint_address, false);
+      master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, false);
+    }
+    catch(std::exception& e)
+    {
+      ers::error(EndpointScanFailure(ERS_HERE,e));
+      master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, false);
+    }
   }
 }
 
@@ -371,24 +412,25 @@ void TimingHardwareManager::clean_endpoint_scan_threads()
   {
     for (auto& thread : m_command_threads)
     {
-      if (thread.second->get_readiness())
+      if (thread.second->joinable())
       {
         std::unique_lock map_lock(m_command_threads_map_mutex);
-        TLOG_DEBUG(0) << thread.first << " thread ready. Cleaning up.";
+        TLOG_DEBUG(2) << thread.first << " thread ready. Cleaning up.";
+        thread.second->join();
         m_command_threads.erase(thread.first);
       }
     }
     
     auto prev_clean_time = std::chrono::steady_clock::now();
-    auto next_clean_time = prev_clean_time + std::chrono::milliseconds(150);
+    auto next_clean_time = prev_clean_time + std::chrono::milliseconds(30);
 
     // check running_flag periodically
     auto flag_check_period = std::chrono::milliseconds(1);
     auto next_flag_check_time = prev_clean_time + flag_check_period;
 
     while (next_clean_time > next_flag_check_time + flag_check_period) {
-      if (!m_run_clean_endpoint_scan_threads.load()) {
-        TLOG_DEBUG(0) << "while waiting to clean up endpoint scan threads, negative run gatherer flag detected.";
+      if (!m_run_endpoint_scan_cleanup_thread.load()) {
+        TLOG_DEBUG(2) << "while waiting to clean up endpoint scan threads, negative run gatherer flag detected.";
         break_flag = true;
         break;
       }

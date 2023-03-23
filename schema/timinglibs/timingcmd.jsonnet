@@ -122,11 +122,20 @@ local timingcmd = {
             doc="Mux to endpoint (or not)"),
     ], doc="Structure for payload of timing master set endpoint delay command"),
 
-    timing_endpoints_addresses: s.sequence("TimingEndpointScanAddresses", self.uint_data,
-            doc="A vector of endpoint addresses"),
+    timing_endpoint_location_data: s.record("EndpointLocation", [
+        s.field("fanout_slot", self.int_data,
+                doc="Fanout slot of the endpoint"),
+        s.field("sfp_slot", self.int_data,
+                doc="SFP slot of the endpoint"),
+        s.field("address", self.uint_data,
+                doc="Address of the endpoint"),
+    ], doc="Endpoint location data"),
+
+    timing_endpoint_locations: s.sequence("TimingEndpointLocations", self.timing_endpoint_location_data,
+            doc="A vector of endpoint locations"),
 
     timing_master_endpoint_scan_payload: s.record("TimingMasterEndpointScanPayload",[
-        s.field("endpoints", self.timing_endpoints_addresses,
+        s.field("endpoints", self.timing_endpoint_locations,
             doc="List of target endpoint"),
     ], doc="Structure for payloads of endpoint scan configure commands"),
 
