@@ -350,7 +350,7 @@ TimingHardwareManager::master_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd
   }
   else
   {
-    TLOG_DEBUG(0) << "Queuing: " << command_thread_uid.str();
+    TLOG_DEBUG(1) << "Queuing: " << command_thread_uid.str();
 
     auto thread_key = command_thread_uid.str();
     std::unique_lock map_lock(m_command_threads_map_mutex);
@@ -372,7 +372,7 @@ void TimingHardwareManager::perform_endpoint_scan(const timingcmd::TimingHwCmd& 
 
     std::unique_lock<std::mutex> master_sfp_lock(master_sfp_mutex);
 
-    TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan starting: ept adr: " << endpoint_address << ", ept sfp: " << sfp_slot;
+    TLOG_DEBUG(1) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan starting: ept adr: " << endpoint_address << ", ept sfp: " << sfp_slot;
 
     auto master_design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
 
@@ -384,7 +384,7 @@ void TimingHardwareManager::perform_endpoint_scan(const timingcmd::TimingHwCmd& 
       {
         if (fanout_slot > 0)
         {
-          // configure fanout receiver, wait for good rx
+          // configure fanout receiver
           get_timing_device<const timing::FanoutDesign*>(m_monitored_device_names_fanout.at(fanout_slot))->switch_downstream_mux_channel(sfp_slot, false);
         }
         else
@@ -415,7 +415,7 @@ void TimingHardwareManager::clean_endpoint_scan_threads()
       if (thread.second->joinable())
       {
         std::unique_lock map_lock(m_command_threads_map_mutex);
-        TLOG_DEBUG(0) << thread.first << " thread ready. Cleaning up.";
+        TLOG_DEBUG(2) << thread.first << " thread ready. Cleaning up.";
         thread.second->join();
         m_command_threads.erase(thread.first);
       }
@@ -430,7 +430,7 @@ void TimingHardwareManager::clean_endpoint_scan_threads()
 
     while (next_clean_time > next_flag_check_time + flag_check_period) {
       if (!m_run_endpoint_scan_cleanup_thread.load()) {
-        TLOG_DEBUG(0) << "while waiting to clean up endpoint scan threads, negative run gatherer flag detected.";
+        TLOG_DEBUG(2) << "while waiting to clean up endpoint scan threads, negative run gatherer flag detected.";
         break_flag = true;
         break;
       }
