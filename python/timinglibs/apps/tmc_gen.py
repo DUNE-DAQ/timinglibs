@@ -29,7 +29,7 @@ from daqconf.core.daqmodule import DAQModule
 from daqconf.core.conf_utils import Direction
 
 #===============================================================================
-def get_tmc_app(FIRMWARE_TYPE='pdi',
+def get_tmc_app(FIRMWARE_TYPE='pdii',
                 MASTER_DEVICE_NAME="",
                 MASTER_ENDPOINT_SCAN_PERIOD=0,
                 MASTER_CLOCK_FILE="",
