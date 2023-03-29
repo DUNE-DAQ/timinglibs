@@ -50,10 +50,7 @@ def generate(
         PARTITION_IDS=[],
         FANOUT_DEVICES_NAMES=[],
         FANOUT_CLOCK_FILE="",
-        ENDPOINT_DEVICE_NAME="",
         ENDPOINT_CLOCK_FILE="",
-        ENDPOINT_ADDRESS=0,
-        ENDPOINT_PARTITION=0,
         HSI_CLOCK_FILE="",
         HSI_RANDOM_RATE=1.0,
         PART_TRIGGER_MASK=0xff,
@@ -98,9 +95,12 @@ def generate(
     hsi_conf_gen = daqconf_confgen.hsi(**config_data.hsi)
     if DEBUG: console.log(f"hsi configuration object: {hsi_conf_gen.pod()}")
 
+    tec_conf_gen = timing_app_confgen.timing_endpoint_controller(**config_data.timing_endpoint_controller)
+    if DEBUG: console.log(f"timing_endpoint_controller configuration object: {tec_conf_gen.pod()}")
     
     FIRMWARE_STYLE = thi_conf_gen.firmware_type
     HSI_DEVICE_NAME = hsi_conf_gen.hsi_device_name
+    ENDPOINT_DEVICE_NAME = tec_conf_gen.endpoint_device_name
 
     if FIRMWARE_STYLE == "pdi":
         thi_class="TimingHardwareManagerPDI"
@@ -228,6 +228,9 @@ def generate(
                          ] )
 
     ## endpoint controllers
+    ENDPOINT_ADDRESS = tec_conf_gen.endpoint_address
+    ENDPOINT_PARTITION = tec_conf_gen.endpoint_partition
+
     if ENDPOINT_DEVICE_NAME != "":
         controller_modules.extend( [DAQModule(name = "tec0",
                         plugin = "TimingEndpointController",
@@ -240,7 +243,7 @@ def generate(
         custom_cmds.extend( [
                             
                             ("endpoint_io_reset", acmd([("tec.*", tcmd.IOResetCmdPayload(
-                                                           clock_config=ENDPOINT_CLOCK_FILE,
+                                                           clock_config=tec_conf_gen.endpoint_clock_file,
                                                             soft=False
                                                         ))])),
 
@@ -267,8 +270,8 @@ def generate(
         else:
             console.log('WARNING! Emulated trigger rate of 0 will not disable signal emulation in real HSI hardware! To disable emulated HSI triggers, use  option: "--hsi-source 0" or mask all signal bits', style="bold red")
         
-        startpars = rccmd.StartParams(run=RUN_NUMBER, trigger_interval_ticks = trigger_interval_ticks)
-        resumepars = rccmd.ResumeParams(trigger_interval_ticks = trigger_interval_ticks)
+        startpars = rccmd.StartParams(run=RUN_NUMBER, trigger_rate = HSI_RANDOM_RATE)
+        #resumepars = rccmd.ResumeParams(trigger_interval_ticks = trigger_interval_ticks)
 
         HSI_ENDPOINT_ADDRESS = hsi_conf_gen.hsi_endpoint_address
         HSI_ENDPOINT_PARTITION = hsi_conf_gen.hsi_endpoint_address
@@ -282,7 +285,7 @@ def generate(
                                 plugin = "HSIController",
                                 conf = hsi.ConfParams( device=HSI_DEVICE_NAME,
                                                         clock_frequency=CLOCK_SPEED_HZ,
-                                                        trigger_interval_ticks=trigger_interval_ticks,
+                                                        trigger_rate=HSI_RANDOM_RATE,
                                                         address=HSI_ENDPOINT_ADDRESS,
                                                         partition=HSI_ENDPOINT_PARTITION,
                                                         rising_edge_mask=HSI_RE_MASK,
@@ -290,7 +293,8 @@ def generate(
                                                         invert_edge_mask=HSI_INV_MASK,
                                                         data_source=HSI_SOURCE),
                                 extra_commands = {"start": startpars,
-                                                  "resume": resumepars}), ] )
+                                                  #"resume": resumepars
+                                                  }), ] )
         custom_cmds.extend( [
 
                             ("hsi_io_reset", acmd([("hsi.*", tcmd.IOResetCmdPayload(
@@ -431,18 +435,12 @@ if __name__ == '__main__':
     @click.option('--hsi-clock-file', default="")
     @click.option('--hsi-random-rate', default=1.0)
 
-    @click.option('-e', '--endpoint-device-name', default="")
-    @click.option('--endpoint-clock-file', default="")
-    @click.option('--endpoint-address', default=0)
-    @click.option('--endpoint-partition', default=0)
-
     @click.option('-u', '--uhal-log-level', default="notice")
     @click.option('--debug', default=False, is_flag=True, help="Switch to get a lot of printout and dot files")
     @click.argument('json_dir', type=click.Path(), default='timing_app')
     def cli(config, run_number, partition_ids, part_trig_mask, part_spill_gate, part_rate_control,
         
         fanout_devices_names, fanout_clock_file,
-        endpoint_device_name, endpoint_clock_file, endpoint_address, endpoint_partition,        
         hsi_clock_file, hsi_random_rate,
         uhal_log_level, debug, json_dir):
         """
@@ -456,10 +454,6 @@ if __name__ == '__main__':
                     PARTITION_IDS = partition_ids,
                     FANOUT_DEVICES_NAMES = fanout_devices_names,
                     FANOUT_CLOCK_FILE = fanout_clock_file,
-                    ENDPOINT_DEVICE_NAME = endpoint_device_name,
-                    ENDPOINT_CLOCK_FILE = endpoint_clock_file,
-                    ENDPOINT_ADDRESS = endpoint_address,
-                    ENDPOINT_PARTITION = endpoint_partition,
                     HSI_CLOCK_FILE = hsi_clock_file,
                     HSI_RANDOM_RATE=hsi_random_rate,
                     PART_TRIGGER_MASK=part_trig_mask,
