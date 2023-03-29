@@ -1,4 +1,4 @@
-// This is the configuration schema for timinglibs
+// This is the standalone configuration schema for timinglibs
 
 local moo = import "moo.jsonnet";
 local sdc = import "daqconf/confgen.jsonnet";
