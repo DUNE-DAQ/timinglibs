@@ -385,7 +385,7 @@ void TimingHardwareManager::perform_endpoint_scan(const timingcmd::TimingHwCmd& 
         if (fanout_slot > 0)
         {
           // configure fanout receiver
-          get_timing_device<const timing::FanoutDesign*>(m_monitored_device_names_fanout.at(fanout_slot))->switch_downstream_mux_channel(sfp_slot, false);
+          get_timing_device<const timing::FanoutDesign*>(m_monitored_device_names_fanout.at(fanout_slot-1))->switch_downstream_mux_channel(sfp_slot, false);
         }
         else
         {
