@@ -96,7 +96,7 @@ A DUNE DAQ module for reading `HSIEvent` from `HSI` hardware. The module periodi
 
 In the absence of real `HSI` hardware, this module can be used to emululate an `HSI`, and act as a source of `HSIEvent`s. The timestamp of the emulated `HSIEvent`s is obtained from timestamp estimates provided by `TimestampEstimator`. The distribution of signals in the `HSIEvent` bitmap along with their rate are configurable via the following parameters.
 
-* `clock_frequency`: Assumed clock frequency in Hz (for current-timestamp estimation); default: `50000000`
+* `clock_frequency`: Assumed clock frequency in Hz (for current-timestamp estimation); default: `62500000`
 
 * `timestamp_offset`: Offset for HSIEvent timestamps in units of clock ticks. Positive offset increases timestamp estimate; default: `0`
 

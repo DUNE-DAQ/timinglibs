@@ -39,7 +39,7 @@ def generate(
         PARTITION = "hsi_readout_test",
         OUTPUT_PATH=".",
         TRIGGER_RATE_HZ: int=1,
-        CLOCK_SPEED_HZ: int = 50000000,
+        CLOCK_SPEED_HZ: int = 62500000,
         HSI_TIMESTAMP_OFFSET: int = 0, # Offset for HSIEvent timestamps in units of clock ticks. Positive offset increases timestamp estimate.
         HSI_DEVICE_ID: int = 0,
         MEAN_SIGNAL_MULTIPLICITY: int = 0,
