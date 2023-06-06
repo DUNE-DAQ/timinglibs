@@ -46,7 +46,7 @@ def cli(config, debug, json_dir):
     ## Hack, we shouldn't need to do that, in the future it should be, boot = config_data.boot
     boot = daqconf.boot(**config_data.boot)
     if debug: console.log(f"boot configuration object: {boot.pod()}")
-
+    console.print(boot.k8s_namespace)
     ## etc...
     thi = confgen.timing_hardware_interface(**config_data.timing_hardware_interface)
     if debug: console.log(f"timing_hardware_interface configuration object: {thi.pod()}")
@@ -118,10 +118,9 @@ def cli(config, debug, json_dir):
     from daqconf.core.conf_utils import make_app_command_data
     # Arrange per-app command data into the format used by util.write_json_files()
     app_command_datas = {
-        name : make_app_command_data(the_system, app, name, verbose=debug, use_k8s=boot.use_k8s, use_connectivity_service=boot.use_connectivity_service)
+        name : make_app_command_data(the_system, app, name, verbose=debug, use_k8s=boot.use_k8s, use_connectivity_service=boot.use_connectivity_service, k8s_namespace = boot.k8s_namespace)
         for name,app in the_system.apps.items()
     }
-
     # Make boot.json config
     from daqconf.core.conf_utils import make_system_command_datas, write_json_files
     system_command_datas = make_system_command_datas(
@@ -132,7 +131,8 @@ def cli(config, debug, json_dir):
 
     write_json_files(app_command_datas, system_command_datas, json_dir, verbose=debug)
 
-    console.log(f"Global aapp config generated in {json_dir}")
+    console.log(f"Global app config generated in {json_dir}")
+    console.print()
 
     write_metadata_file(json_dir, "daqconf_timing_gen", config_file)
 
