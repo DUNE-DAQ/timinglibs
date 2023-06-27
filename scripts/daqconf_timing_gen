@@ -40,11 +40,11 @@ def cli(config, debug, json_dir):
     # Loading this one another time... (first time in config_file.generate_cli_from_schema)
     moo.otypes.load_types('timinglibs/confgen.jsonnet')
     import dunedaq.timinglibs.confgen as confgen
-    moo.otypes.load_types('daqconf/confgen.jsonnet')
-    import dunedaq.daqconf.confgen as daqconf
+    moo.otypes.load_types('daqconf/bootgen.jsonnet')
+    import dunedaq.daqconf.bootgen as bootgen
 
     ## Hack, we shouldn't need to do that, in the future it should be, boot = config_data.boot
-    boot = daqconf.boot(**config_data.boot)
+    boot = bootgen.boot(**config_data.boot)
     if debug: console.log(f"boot configuration object: {boot.pod()}")
 
     ## etc...
@@ -57,7 +57,7 @@ def cli(config, debug, json_dir):
     tfc = confgen.timing_fanout_controller(**config_data.timing_fanout_controller)
     if debug: console.log(f"timing_fanout_controller configuration object: {tfc.pod()}")
 
-    if boot.use_k8s and not boot.image:
+    if boot.process_manager == 'k8s' and not boot.k8s_image:
         raise Exception("You need to provide an --image if running with k8s")
 
     console.log("Loading timing hardware config generator")
@@ -118,7 +118,7 @@ def cli(config, debug, json_dir):
     from daqconf.core.conf_utils import make_app_command_data
     # Arrange per-app command data into the format used by util.write_json_files()
     app_command_datas = {
-        name : make_app_command_data(the_system, app, name, verbose=debug, use_k8s=boot.use_k8s, use_connectivity_service=boot.use_connectivity_service)
+        name : make_app_command_data(the_system, app, name, verbose=debug, use_k8s=(boot.process_manager=='k8s'), use_connectivity_service=boot.use_connectivity_service)
         for name,app in the_system.apps.items()
     }
 
