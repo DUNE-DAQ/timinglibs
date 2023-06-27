@@ -72,14 +72,17 @@ def generate(
     moo.otypes.load_types('timinglibs/timing_app_confgen.jsonnet')
     import dunedaq.timinglibs.timing_app_confgen as timing_app_confgen
     
-    moo.otypes.load_types('daqconf/confgen.jsonnet')
-    import dunedaq.daqconf.confgen as daqconf_confgen
-    
+    moo.otypes.load_types('daqconf/bootgen.jsonnet')
+    import dunedaq.daqconf.bootgen as daqconf_bootgen
+
+    moo.otypes.load_types('daqconf/hsigen.jsonnet')
+    import dunedaq.daqconf.hsigen as daqconf_hsigen
+
     moo.otypes.load_types('timinglibs/confgen.jsonnet')
     import dunedaq.timinglibs.confgen as daqconf_timing_confgen
 
     ## Hack, we shouldn't need to do that, in the future it should be, boot = config_data.boot
-    boot = daqconf_confgen.boot(**config_data.boot)
+    boot = daqconf_bootgen.boot(**config_data.boot)
     if DEBUG: console.log(f"boot configuration object: {boot.pod()}")
 
     ## etc...
@@ -92,7 +95,7 @@ def generate(
     tfc_conf_gen = daqconf_timing_confgen.timing_fanout_controller(**config_data.timing_fanout_controller)
     if DEBUG: console.log(f"timing_fanout_controller configuration object: {tfc_conf_gen.pod()}")
 
-    hsi_conf_gen = daqconf_confgen.hsi(**config_data.hsi)
+    hsi_conf_gen = daqconf_hsigen.hsi(**config_data.hsi)
     if DEBUG: console.log(f"hsi configuration object: {hsi_conf_gen.pod()}")
 
     tec_conf_gen = timing_app_confgen.timing_endpoint_controller(**config_data.timing_endpoint_controller)
@@ -376,7 +379,7 @@ def generate(
     from daqconf.core.conf_utils import make_app_command_data
     # Arrange per-app command data into the format used by util.write_json_files()
     app_command_datas = {
-        name : make_app_command_data(the_system, app, name, verbose=DEBUG, use_k8s=boot.use_k8s, use_connectivity_service=boot.use_connectivity_service)
+        name : make_app_command_data(the_system, app, name, verbose=DEBUG, use_k8s=(boot.process_manager=='k8s'), use_connectivity_service=boot.use_connectivity_service)
         for name,app in the_system.apps.items()
     }
 
