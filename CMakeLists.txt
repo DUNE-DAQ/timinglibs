@@ -12,7 +12,6 @@ find_package(rcif REQUIRED)
 find_package(appfwk REQUIRED)
 find_package(timing REQUIRED)
 find_package(nlohmann_json REQUIRED)
-find_package(dfmessages REQUIRED)
 find_package(opmonlib REQUIRED)
 find_package(uhal REQUIRED)
 find_package(pugixml REQUIRED)
@@ -49,12 +48,11 @@ set(TIMINGLIBS_DEPENDENCIES
   iomanager::iomanager
   opmonlib::opmonlib
   nlohmann_json::nlohmann_json
-  dfmessages::dfmessages
   timing::timing
 )
 
 ##############################################################################
-daq_add_library(TimingController.cpp TimestampEstimatorBase.cpp TimestampEstimator.cpp TimestampEstimatorSystem.cpp TimingHardwareManager.cpp TimingMasterController.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES})
+daq_add_library(TimingController.cpp TimingHardwareManager.cpp TimingMasterController.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES})
 
 ##############################################################################
 daq_add_plugin(TimingHardwareManagerPDII duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)
@@ -66,8 +64,6 @@ daq_add_plugin(TimingPartitionController duneDAQModule LINK_LIBRARIES timinglibs
 daq_add_plugin(TimingEndpointController duneDAQModule LINK_LIBRARIES timinglibs)
 
 ##############################################################################
-daq_add_unit_test(TimestampEstimatorSystem_test  LINK_LIBRARIES timinglibs)
-#daq_add_unit_test(TimestampEstimator_test        LINK_LIBRARIES timinglibs)
 
 ##############################################################################
 daq_install()
