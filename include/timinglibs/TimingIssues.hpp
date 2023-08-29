@@ -19,9 +19,6 @@
 
 // NOLINTNEXTLINE(build/define_used)
 #define TLVL_ENTER_EXIT_METHODS 10
-#define TLVL_TIME_SYNC_PROPERTIES 17
-#define TLVL_TIME_SYNC_NOTES 18
-#define TLVL_TIME_SYNC_NEW_ESTIMATE 19
 
 namespace dunedaq {
 
@@ -108,23 +105,6 @@ ERS_DECLARE_ISSUE_BASE(timinglibs,
                        " Failed to register timing hardware command with ID: " << cmd,
                        ((std::string)cmd)((std::string)name),
                        ERS_EMPTY)
-
-ERS_DECLARE_ISSUE(timinglibs, InvalidTimeSync, "An invalid TimeSync message was received", ERS_EMPTY)
-
-ERS_DECLARE_ISSUE(timinglibs,
-                  EarlyTimeSync,
-                  "The most recent TimeSync message is ahead of current system time by " << time_diff << " us.",
-                  ((uint64_t)time_diff)) // NOLINT
-
-ERS_DECLARE_ISSUE(timinglibs,
-                  LateTimeSync,
-                  "The most recent TimeSync message is behind current system time by " << time_diff << " us.",
-                  ((uint64_t)time_diff)) // NOLINT
-
-ERS_DECLARE_ISSUE(timinglibs,
-                  FailedToGetTimestampEstimate,
-                  "Failed to get timestamp estimate (was interrupted)",
-                  ERS_EMPTY)
 
 ERS_DECLARE_ISSUE(timinglibs,
                   AttemptedToControlNonExantInfoGatherer,
