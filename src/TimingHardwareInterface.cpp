@@ -7,7 +7,7 @@
  * received with this code.
  */
 
-#include "TimingHardwareInterface.hpp"
+#include "timinglibs/TimingHardwareInterface.hpp"
 
 #include "timinglibs/hsireadout/Nljs.hpp"
 
