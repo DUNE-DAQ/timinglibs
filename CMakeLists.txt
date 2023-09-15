@@ -49,6 +49,8 @@ set(TIMINGLIBS_DEPENDENCIES
   opmonlib::opmonlib
   nlohmann_json::nlohmann_json
   timing::timing
+  uhal::uhal
+  pugixml::pugixml
 )
 
 ##############################################################################

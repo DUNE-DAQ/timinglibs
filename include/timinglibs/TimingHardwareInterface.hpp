@@ -7,6 +7,7 @@
 #ifndef TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGHARDWAREINTERFACE_HPP_
 #define TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGHARDWAREINTERFACE_HPP_
 
+#include "nlohmann/json.hpp"
 
 #include "uhal/ConnectionManager.hpp"
 #include "uhal/ProtocolUDP.hpp"

@@ -9,9 +9,7 @@
 
 #include "timinglibs/TimingHardwareInterface.hpp"
 
-#include "timinglibs/hsireadout/Nljs.hpp"
-
-#include "timing/TimingIssues.hpp"
+#include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/app/Nljs.hpp"
@@ -24,6 +22,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <regex>
 
 namespace dunedaq {
 namespace timinglibs {
@@ -41,7 +40,7 @@ resolve_environment_variables(std::string& input_string)
 }
 
 TimingHardwareInterface::TimingHardwareInterface()
-  , m_connections_file("")
+  : m_connections_file("")
   , m_connection_manager(nullptr)
 {
 }
@@ -49,8 +48,6 @@ TimingHardwareInterface::TimingHardwareInterface()
 void
 TimingHardwareInterface::configure_uhal(const nlohmann::json& obj)
 {
-  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
-
   if (obj.contains("connections_file")) {
     m_connections_file =  obj["connections_file"];
   }
@@ -59,9 +56,9 @@ TimingHardwareInterface::configure_uhal(const nlohmann::json& obj)
     // throw error
   }
 
-  TLOG_DEBUG(0) << get_name() << "conf: con. file before env var expansion: " << m_connections_file;
+  TLOG_DEBUG(0) << "conf: con. file before env var expansion: " << m_connections_file;
   resolve_environment_variables(m_connections_file);
-  TLOG_DEBUG(0) << get_name() << "conf: con. file after env var expansion:  " << m_connections_file;
+  TLOG_DEBUG(0) << "conf: con. file after env var expansion:  " << m_connections_file;
 
   if (obj.contains("uhal_log_level")) {
     m_uhal_log_level =  obj["uhal_log_level"];
