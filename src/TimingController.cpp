@@ -86,7 +86,10 @@ TimingController::do_configure(const nlohmann::json&)
 void
 TimingController::do_scrap(const nlohmann::json&)
 {
-  m_device_info_receiver->remove_callback();
+  if (m_device_info_receiver)
+  {
+    m_device_info_receiver->remove_callback();
+  }
   m_device_infos_received_count=0;
   m_device_ready = false;
   

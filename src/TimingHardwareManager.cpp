@@ -37,9 +37,6 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
   , m_hw_command_receiver(nullptr)
   , m_gather_interval(1e6)
   , m_gather_interval_debug(10e6)
-  , m_connections_file("")
-  , m_uhal_log_level("notice")
-  , m_connection_manager(nullptr)
   , m_monitored_device_name_master("")
   , m_monitored_device_names_fanout({})
   , m_monitored_device_name_endpoint("")
@@ -64,12 +61,14 @@ TimingHardwareManager::init(const nlohmann::json& /*init_data*/)
 }
 
 void
-TimingHardwareManager::conf(const nlohmann::json& /*conf_data*/)
+TimingHardwareManager::conf(const nlohmann::json& data)
 {
   m_received_hw_commands_counter = 0;
   m_accepted_hw_commands_counter = 0;
   m_rejected_hw_commands_counter = 0;
   m_failed_hw_commands_counter = 0;
+
+  configure_uhal(data); // configure hw ipbus connection
 
   m_hw_command_receiver->add_callback(std::bind(&TimingHardwareManager::process_hardware_command, this, std::placeholders::_1));
 
@@ -78,7 +77,7 @@ TimingHardwareManager::conf(const nlohmann::json& /*conf_data*/)
 }
 
 void
-TimingHardwareManager::scrap(const nlohmann::json& /*data*/)
+TimingHardwareManager::scrap(const nlohmann::json& data)
 {
   m_hw_command_receiver->remove_callback();
 
@@ -94,6 +93,8 @@ TimingHardwareManager::scrap(const nlohmann::json& /*data*/)
   
   stop_hw_mon_gathering();
   
+  scrap_uhal(data);
+
   m_command_threads.clear(); 
   m_info_gatherers.clear();
   m_timing_hw_cmd_map_.clear();

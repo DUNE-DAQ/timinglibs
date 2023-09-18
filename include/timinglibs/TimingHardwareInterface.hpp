@@ -42,10 +42,10 @@ public:
 protected:
   void configure_uhal(const nlohmann::json& obj);
 
+  void scrap_uhal (const nlohmann::json& obj);
   std::string m_connections_file;
   std::string m_uhal_log_level;
   std::unique_ptr<uhal::ConnectionManager> m_connection_manager;
-//  std::unique_ptr<uhal::HwInterface> m_hsi_device;
 };
 } // namespace timinglibs
 } // namespace dunedaq

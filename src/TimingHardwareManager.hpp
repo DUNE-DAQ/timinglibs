@@ -13,6 +13,7 @@
 #define TIMINGLIBS_SRC_TIMINGHARDWAREMANAGER_HPP_
 
 #include "InfoGatherer.hpp"
+#include "timinglibs/TimingHardwareInterface.hpp"
 #include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
@@ -44,23 +45,11 @@
 namespace dunedaq {
 namespace timinglibs {
 
-inline void
-resolve_environment_variables(std::string& input_string)
-{
-  static std::regex env_var_pattern("\\$\\{([^}]+)\\}");
-  std::smatch match;
-  while (std::regex_search(input_string, match, env_var_pattern)) {
-    const char* s = getenv(match[1].str().c_str());
-    const std::string env_var(s == nullptr ? "" : s);
-    input_string.replace(match[0].first, match[0].second, env_var);
-  }
-}
-
 /**
  * @brief TimingHardwareManager creates vectors of ints and writes
  * them to the configured output queues.
  */
-class TimingHardwareManager : public dunedaq::appfwk::DAQModule
+class TimingHardwareManager : public dunedaq::appfwk::DAQModule, public timinglibs::TimingHardwareInterface
 {
 public:
   /**
@@ -77,7 +66,7 @@ public:
   virtual ~TimingHardwareManager() {}
   
   void init(const nlohmann::json& init_data) override;
-  virtual void conf(const nlohmann::json& conf_data);
+  virtual void conf(const nlohmann::json& data);
   virtual void scrap(const nlohmann::json& data);
 
 protected:
@@ -99,9 +88,6 @@ protected:
   uint m_gather_interval_debug;
 
   // uhal members
-  std::string m_connections_file;
-  std::string m_uhal_log_level;
-  std::unique_ptr<uhal::ConnectionManager> m_connection_manager;
   std::map<std::string, std::unique_ptr<uhal::HwInterface>> m_hw_device_map;
   std::mutex m_hw_device_map_mutex;
 
