@@ -50,8 +50,6 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
 
   auto conf_params = conf_data.get<timinghardwaremanagerpdi::ConfParams>();
 
-  m_connections_file = conf_params.connections_file;
-  m_uhal_log_level = conf_params.uhal_log_level;
   m_gather_interval = conf_params.gather_interval;
   m_gather_interval_debug = conf_params.gather_interval_debug;
 
@@ -60,33 +58,7 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
   m_monitored_device_name_endpoint = conf_params.monitored_device_name_endpoint;
   m_monitored_device_name_hsi = conf_params.monitored_device_name_hsi;
 
-  TLOG() << get_name() << "conf: con. file before env var expansion: " << m_connections_file;
-  resolve_environment_variables(m_connections_file);
-  TLOG() << get_name() << "conf: con. file after env var expansion:  " << m_connections_file;
-
-  if (!m_uhal_log_level.compare("debug")) {
-    uhal::setLogLevelTo(uhal::Debug());
-  } else if (!m_uhal_log_level.compare("info")) {
-    uhal::setLogLevelTo(uhal::Info());
-  } else if (!m_uhal_log_level.compare("notice")) {
-    uhal::setLogLevelTo(uhal::Notice());
-  } else if (!m_uhal_log_level.compare("warning")) {
-    uhal::setLogLevelTo(uhal::Warning());
-  } else if (!m_uhal_log_level.compare("error")) {
-    uhal::setLogLevelTo(uhal::Error());
-  } else if (!m_uhal_log_level.compare("fatal")) {
-    uhal::setLogLevelTo(uhal::Fatal());
-  } else {
-    throw InvalidUHALLogLevel(ERS_HERE, m_uhal_log_level);
-  }
-
-  try {
-    m_connection_manager = std::make_unique<uhal::ConnectionManager>("file://" + m_connections_file);
-  } catch (const uhal::exception::FileNotFound& excpt) {
-    std::stringstream message;
-    message << m_connections_file << " not found. Has TIMING_SHARE been set?";
-    throw UHALConnectionsFileIssue(ERS_HERE, message.str(), excpt);
-  }
+  TimingHardwareManager::conf(conf_data);
 
   // monitoring
   // only register monitor threads if we have been given the name of the device to monitor
@@ -113,7 +85,6 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
   }
 
   start_hw_mon_gathering();
-  TimingHardwareManager::conf(conf_data);
 } // NOLINT
 
 void

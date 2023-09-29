@@ -49,10 +49,12 @@ set(TIMINGLIBS_DEPENDENCIES
   opmonlib::opmonlib
   nlohmann_json::nlohmann_json
   timing::timing
+  uhal::uhal
+  pugixml::pugixml
 )
 
 ##############################################################################
-daq_add_library(TimingController.cpp TimingHardwareManager.cpp TimingMasterController.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES})
+daq_add_library(TimingController.cpp TimingHardwareInterface.cpp TimingHardwareManager.cpp TimingMasterController.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES})
 
 ##############################################################################
 daq_add_plugin(TimingHardwareManagerPDII duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)
