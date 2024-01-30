@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="ASCII"?>
+
+<!-- oks-data version 2.2 -->
+
+
+<!DOCTYPE oks-data [
+  <!ELEMENT oks-data (info, (include)?, (comments)?, (obj)+)>
+  <!ELEMENT info EMPTY>
+  <!ATTLIST info
+      name CDATA #IMPLIED
+      type CDATA #IMPLIED
+      num-of-items CDATA #REQUIRED
+      oks-format CDATA #FIXED "data"
+      oks-version CDATA #REQUIRED
+      created-by CDATA #IMPLIED
+      created-on CDATA #IMPLIED
+      creation-time CDATA #IMPLIED
+      last-modified-by CDATA #IMPLIED
+      last-modified-on CDATA #IMPLIED
+      last-modification-time CDATA #IMPLIED
+  >
+  <!ELEMENT include (file)*>
+  <!ELEMENT file EMPTY>
+  <!ATTLIST file
+      path CDATA #REQUIRED
+  >
+  <!ELEMENT comments (comment)*>
+  <!ELEMENT comment EMPTY>
+  <!ATTLIST comment
+      creation-time CDATA #REQUIRED
+      created-by CDATA #REQUIRED
+      created-on CDATA #REQUIRED
+      author CDATA #REQUIRED
+      text CDATA #REQUIRED
+  >
+  <!ELEMENT obj (attr | rel)*>
+  <!ATTLIST obj
+      class CDATA #REQUIRED
+      id CDATA #REQUIRED
+  >
+  <!ELEMENT attr (data)*>
+  <!ATTLIST attr
+      name CDATA #REQUIRED
+      type (bool|s8|u8|s16|u16|s32|u32|s64|u64|float|double|date|time|string|uid|enum|class|-) "-"
+      val CDATA ""
+  >
+  <!ELEMENT data EMPTY>
+  <!ATTLIST data
+      val CDATA #REQUIRED
+  >
+  <!ELEMENT rel (ref)*>
+  <!ATTLIST rel
+      name CDATA #REQUIRED
+      class CDATA ""
+      id CDATA ""
+  >
+  <!ELEMENT ref EMPTY>
+  <!ATTLIST ref
+      class CDATA #REQUIRED
+      id CDATA #REQUIRED
+  >
+]>
+
+<oks-data>
+
+<info name="" type="" num-of-items="3" oks-format="data" oks-version="862f2957270" created-by="jr19588" created-on="kipper.phy.bris.ac.uk" creation-time="20240115T155347" last-modified-by="jr19588" last-modified-on="kipper.phy.bris.ac.uk" last-modification-time="20240115T155347"/>
+
+<include>
+ <file path="/home/jr19588/4.2.1_c8_fddaq/sourcecode/timinglibs/schema/timinglibs/timing.schema.xml"/>
+</include>
+
+
+<obj class="ConfigurationParameters" id="DummyConfig">
+ <attr name="device_str" type="string" val="device"/>
+ <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
+ <attr name="timing_session_name" type="string" val="name"/>
+ <rel name="ApplicationsControlled">
+  <ref class="TimingEndpointController" id="EndpointController"/>
+  <ref class="TimingMasterController" id="MasterController"/>
+  <ref class="TimingPartitionController" id="PartitionController"/>  
+  <ref class="TimingFanoutController" id="FanoutController"/>
+ </rel>
+</obj>
+
+<obj class="TimingEndpointController" id="EndpointController">
+ <attr name="endpoint_id" type="u32" val="0"/>
+ <attr name="address" type="u32" val="0"/>
+ <attr name="parition" type="u32" val="0"/>
+</obj>
+
+<obj class="TimingMasterController" id="MasterController">
+ <attr name="endpoint_scan_period" type="u32" val="0"/>
+ <attr name="clock_config" type="string" val="Unknown"/>
+ <attr name="soft" type="bool" val="0"/>
+ <attr name="fanout_mode" type="string" val="Unknown"/>
+ <attr name="monitored_endpoints" type="string" val="Unknown"/>
+</obj>
+
+<obj class="TimingPartitionController" id="PartitionController">
+ <attr name="parition_id" type="u32" val="0"/>
+ <attr name="trigger_mask" type="u32" val="0"/>
+ <attr name="spill_gate_enabled" type="bool" val="0"/>
+ <attr name="rate_control_enabled" type="bool" val="0"/>
+</obj>
+
+<obj class="TimingFanoutController" id="FanoutController">
+ <attr name="clock_config" type="string" val="Unknown"/>
+</obj>
+
+<obj class="TimingHardwareManagerPDI" id="HardwareManagerPDI">
+    <attr name="connections_file" type="string" val="${TIMING_SHARE}/config/etc/connections.xml"/>
+    <attr name="gather_interval" type="u64" val="1000000"/>
+    <attr name="gather_interval_debug" type="u64" val="10000000"/>
+    <attr name="monitored_device_name_master" type="string" val="Unknown"/>
+    <attr name="monitored_device_names_fanout" type="string" val="Unknown"/>
+    <attr name="monitored_device_name_endpoint" type="string" val="Unknown"/>
+    <attr name="monitored_device_name_hsi" type="string" val="Unknown"/>
+    <attr name="device_info_connection" type="string" val="Unknown"/>
+    <attr name="uhal_log_level" type="string" val="notice"/>  
+</obj>
+
+<obj class="HSIController" id="HSI">
+ <attr name="device" type="string" val="Unknown"/>
+ <attr name="clock_frequency" type="u64" val="62500000"/>
+ <attr name="trigger_rate" type="double" val="1"/>
+ <attr name="address" type="string" val="tcp://127.0.0.1:12344"/>
+ <attr name="partition" type="string" val="hsi_readout_test"/>
+ <attr name="rising_edge_mask" type="u32" val="0"/>
+ <attr name="falling_edge_mask" type="u32" val="0"/>
+ <attr name="invert_edge_mask" type="u32" val="0"/>
+ <attr name="data_source" type="string" val="Unknown"/>
+</obj>
+</oks-data>

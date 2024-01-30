@@ -18,6 +18,16 @@ find_package(pugixml REQUIRED)
 find_package(iomanager REQUIRED)
 find_package(daqconf REQUIRED)
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+find_package(okssystem REQUIRED)
+find_package(oks REQUIRED)
+find_package(genconfig REQUIRED)
+find_package(ers REQUIRED)
+find_package(logging REQUIRED)
+find_package(oksdbinterfaces REQUIRED)
+find_package(coredal REQUIRED)
+
+daq_oks_codegen(timing.schema.xml
+  NAMESPACE dunedaq::timinglibs DEP_PKGS coredal)
 
 daq_codegen( 
 			 timingcmd.jsonnet
