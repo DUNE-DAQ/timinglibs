@@ -17,7 +17,6 @@
 #include "timing/timingfirmwareinfo/InfoNljs.hpp"
 #include "timing/timingfirmwareinfo/InfoStructs.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "ers/Issue.hpp"
 
 #include <chrono>

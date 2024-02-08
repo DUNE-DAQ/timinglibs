@@ -11,7 +11,6 @@
 
 #include "timinglibs/TimingIssues.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/app/Nljs.hpp"
 #include "logging/Logging.hpp"
 #include "rcif/cmd/Nljs.hpp"

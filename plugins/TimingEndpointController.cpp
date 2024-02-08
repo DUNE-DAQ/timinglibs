@@ -17,7 +17,6 @@
 #include "timing/timingendpointinfo/InfoNljs.hpp"
 #include "timing/timingendpointinfo/InfoStructs.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
