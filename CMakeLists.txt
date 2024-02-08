@@ -35,13 +35,6 @@ daq_codegen(
 			 timingfanoutcontroller.jsonnet 
 			 DEP_PKGS appfwk rcif cmdlib iomanager TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
 
-
-daq_add_library(TimingController.cpp TimingHardwareInterface.cpp
-TimingHardwareManager.cpp TimingMasterController.cpp 
-LINK_LIBRARIES oksdbinterfaces::oksdbinterfaces okssystem::okssystem
-logging::logging coredal::coredal oks::oks ers::ers)
-
-
 daq_add_python_bindings(dal_methods.cpp module.cpp LINK_LIBRARIES 
   timinglibs coredal::coredal)
 
@@ -75,7 +68,8 @@ set(TIMINGLIBS_DEPENDENCIES
 )
 
 ##############################################################################
-daq_add_library(TimingController.cpp TimingHardwareInterface.cpp TimingHardwareManager.cpp TimingMasterController.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES})
+daq_add_library(TimingController.cpp TimingHardwareInterface.cpp TimingHardwareManager.cpp TimingMasterController.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES} oksdbinterfaces::oksdbinterfaces okssystem::okssystem
+logging::logging coredal::coredal oks::oks ers::ers)
 
 ##############################################################################
 daq_add_plugin(TimingHardwareManagerPDII duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)
