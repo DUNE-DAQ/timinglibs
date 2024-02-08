@@ -94,7 +94,7 @@ TimingHardwareInterface::configure_uhal(const nlohmann::json& obj)
 }
 
 void
-TimingHardwareInterface::scrap_uhal(const nlohmann::json& data)
+TimingHardwareInterface::scrap_uhal()
 {
   m_connection_manager.reset(nullptr);
   m_connections_file="";

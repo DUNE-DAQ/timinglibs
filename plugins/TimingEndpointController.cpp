@@ -49,8 +49,9 @@ TimingEndpointController::TimingEndpointController(const std::string& name)
 }
 
 void
-TimingEndpointController::do_configure(const nlohmann::json& data)
+TimingEndpointController::do_configure(const nlohmann::json& data, std::shared_ptr<app::ModuleConfiguration> mcfg)
 {
+  auto mdal = mcfg->
   auto conf = data.get<timingendpointcontroller::ConfParams>();
   if (conf.device.empty()) {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
@@ -188,6 +189,7 @@ TimingEndpointController::process_device_info(nlohmann::json info)
   from_json(ept_data, ept_info);
 
   m_endpoint_state = ept_info.state;
+  
   bool ready = ept_info.ready;
 
   TLOG_DEBUG(3) << "state: 0x" << std::hex << m_endpoint_state << ", ready: " << ready << std::dec << ", infos received: " << m_device_infos_received_count;

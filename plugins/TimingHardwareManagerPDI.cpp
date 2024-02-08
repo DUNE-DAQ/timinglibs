@@ -41,22 +41,22 @@ TimingHardwareManagerPDI::TimingHardwareManagerPDI(const std::string& name)
 }
 
 void
-TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
+TimingHardwareManagerPDI::conf(const std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
   register_common_hw_commands_for_design();
   register_master_hw_commands_for_design();
   register_endpoint_hw_commands_for_design();
   register_hsi_hw_commands_for_design();
 
-  auto conf_params = conf_data.get<timinghardwaremanagerpdi::ConfParams>();
+  auto conf_params = auto conf = mcfg->module<dal::TimingHardwareManagerPDI>();
 
-  m_gather_interval = conf_params.gather_interval;
-  m_gather_interval_debug = conf_params.gather_interval_debug;
+  m_gather_interval = conf_params->gather_interval;
+  m_gather_interval_debug = conf_params->gather_interval_debug;
 
-  m_monitored_device_name_master = conf_params.monitored_device_name_master;
-  m_monitored_device_names_fanout = conf_params.monitored_device_names_fanout;
-  m_monitored_device_name_endpoint = conf_params.monitored_device_name_endpoint;
-  m_monitored_device_name_hsi = conf_params.monitored_device_name_hsi;
+  m_monitored_device_name_master = conf_params->monitored_device_name_master;
+  m_monitored_device_names_fanout = conf_params->monitored_device_names_fanout;
+  m_monitored_device_name_endpoint = conf_params->monitored_device_name_endpoint;
+  m_monitored_device_name_hsi = conf_params->monitored_device_name_hsi;
 
   TimingHardwareManager::conf(conf_data);
 

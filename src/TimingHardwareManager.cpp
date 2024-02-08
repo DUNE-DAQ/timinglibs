@@ -77,7 +77,7 @@ TimingHardwareManager::conf(const nlohmann::json& data)
 }
 
 void
-TimingHardwareManager::scrap(const nlohmann::json& data)
+TimingHardwareManager::scrap()
 {
   m_hw_command_receiver->remove_callback();
 
@@ -93,7 +93,7 @@ TimingHardwareManager::scrap(const nlohmann::json& data)
   
   stop_hw_mon_gathering();
   
-  scrap_uhal(data);
+  scrap_uhal();
 
   m_command_threads.clear(); 
   m_info_gatherers.clear();

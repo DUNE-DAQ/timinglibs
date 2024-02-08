@@ -67,7 +67,7 @@ public:
   
   void init(const nlohmann::json& init_data) override;
   virtual void conf(const nlohmann::json& data);
-  virtual void scrap(const nlohmann::json& data);
+  virtual void scrap();
 
 protected:
   // Commands

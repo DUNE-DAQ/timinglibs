@@ -64,7 +64,7 @@ private:
   uint m_managed_partition_id;
 
   // Commands
-  void do_configure(const nlohmann::json& data) override;
+  void do_configure(const std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
   //  void do_scrap(const nlohmann::json& data);

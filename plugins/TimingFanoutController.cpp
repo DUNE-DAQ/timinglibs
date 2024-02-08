@@ -45,16 +45,16 @@ TimingFanoutController::TimingFanoutController(const std::string& name)
 }
 
 void
-TimingFanoutController::do_configure(const nlohmann::json& data)
+TimingFanoutController::do_configure(const std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
-  auto conf = data.get<timingfanoutcontroller::ConfParams>();
-  if (conf.device.empty())
+  auto conf = mcfg->module<dal::TimingFanoutController>();
+  if (conf->device.empty())
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
-  m_timing_device = conf.device;
-  m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
-  m_timing_session_name = conf.timing_session_name;
+  m_timing_device = conf->device;
+  m_hardware_state_recovery_enabled = conf->hardware_state_recovery_enabled;
+  m_timing_session_name = conf->timing_session_name;
   m_device_ready_timeout = std::chrono::milliseconds(20000);
 
   TimingController::do_configure(data); // configure hw command connection
