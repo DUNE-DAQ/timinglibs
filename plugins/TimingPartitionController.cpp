@@ -57,26 +57,26 @@ TimingPartitionController::TimingPartitionController(const std::string& name)
 void
 TimingPartitionController::do_configure(const std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
-  auto conf = mcfg->module<dal::TimingPartitionController>();
+  const auto conf = mcfg->module<dal::TimingPartitionController>();
   // auto conf = data.get<timingpartitioncontroller::PartitionConfParams>();
   if (conf->device.empty())
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
 
-  m_timing_device = conf->device;
-  m_hardware_state_recovery_enabled = conf->hardware_state_recovery_enabled;
-  m_timing_session_name = conf->timing_session_name;
-  m_managed_partition_id = conf->partition_id;
+  const m_timing_device = conf->device;
+  const m_hardware_state_recovery_enabled = conf->hardware_state_recovery_enabled;
+  const m_timing_session_name = conf->timing_session_name;
+  const m_managed_partition_id = conf->partition_id;
 
   // parameters against which to compare partition state
-  m_partition_trigger_mask = conf->trigger_mask;
-  m_partition_control_rate_enabled = conf->rate_control_enabled;
-  m_partition_spill_gate_enabled = conf->spill_gate_enabled;
+  const m_partition_trigger_mask = conf->trigger_mask;
+  const m_partition_control_rate_enabled = conf->rate_control_enabled;
+  const m_partition_spill_gate_enabled = conf->spill_gate_enabled;
 
   TimingController::do_configure(); // configure hw command connection
 
-  std::string controlled_description="Timing partition "+std::to_string(m_managed_partition_id) + " of master";
+  const std::string controlled_description="Timing partition "+std::to_string(m_managed_partition_id) + " of master";
 
   configure_hardware_or_recover_state<TimingPartitionNotReady>(data, controlled_description, m_managed_partition_id);
 
