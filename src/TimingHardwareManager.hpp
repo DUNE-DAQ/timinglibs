@@ -65,7 +65,7 @@ public:
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
   virtual ~TimingHardwareManager() {}
   
-  void init(const nlohmann::json& init_data) override;
+  void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
   virtual void conf(const nlohmann::json& data);
   virtual void scrap();
 

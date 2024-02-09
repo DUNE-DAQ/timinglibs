@@ -88,7 +88,7 @@ public:
   TimingController(TimingController&&) = delete;                 ///< TimingController is not move-constructible
   TimingController& operator=(TimingController&&) = delete;      ///< TimingController is not move-assignable
 
-  void init(const nlohmann::json& init_data) override;
+  void init(std::shared_ptr<appfwk::ModuleConfiguration>) override;
 
 protected:
   // DAQModule commands

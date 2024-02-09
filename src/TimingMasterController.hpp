@@ -64,7 +64,7 @@ public:
 
 protected:
   // Commands
-  void do_configure(const std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
+  void do_configure(const nlohmann::json& data) override;
   void do_start(const nlohmann::json& data) override;
   void do_stop(const nlohmann::json& data) override;
   void send_configure_hardware_commands(const nlohmann::json& data) override;

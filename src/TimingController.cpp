@@ -53,7 +53,7 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
 }
 
 void
-TimingController::init(const nlohmann::json& /*init_data*/)
+TimingController::init(std::shared_ptr<appfwk::ModuleConfiguration>)
 {
 }
 

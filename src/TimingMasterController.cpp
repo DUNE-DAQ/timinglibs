@@ -50,17 +50,17 @@ TimingMasterController::TimingMasterController(const std::string& name)
 }
 
 void
-TimingMasterController::do_configure(const std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
+TimingMasterController::do_configure(const nlohmann::json& data)
 {
-  auto conf = mcfg->module<dal::TimingMasterController>();
-  if (conf->device.empty())
+  auto conf = data.get<timingmastercontroller::ConfParams>();
+  if (conf.device.empty())
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
-  m_timing_device = conf->device;
-  m_hardware_state_recovery_enabled = conf->hardware_state_recovery_enabled;
-  m_timing_session_name = conf->timing_session_name;
-  m_monitored_endpoint_locations = conf->monitored_endpoints;
+  m_timing_device = conf.device;
+  m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
+  m_timing_session_name = conf.timing_session_name;
+  m_monitored_endpoint_locations = conf.monitored_endpoints;
 
   TimingController::do_configure(data); // configure hw command connection
 
@@ -68,7 +68,7 @@ TimingMasterController::do_configure(const std::shared_ptr<appfwk::ModuleConfigu
 
   TLOG() << get_name() << " conf done on master, device: " << m_timing_device;
 
-  m_endpoint_scan_period = conf->endpoint_scan_period;
+  m_endpoint_scan_period = conf.endpoint_scan_period;
   if (m_endpoint_scan_period)
   {
     TLOG() << get_name() << " conf: master, will send delays with period [ms] " << m_endpoint_scan_period;    

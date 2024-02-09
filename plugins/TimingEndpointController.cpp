@@ -49,9 +49,8 @@ TimingEndpointController::TimingEndpointController(const std::string& name)
 }
 
 void
-TimingEndpointController::do_configure(const nlohmann::json& data, std::shared_ptr<app::ModuleConfiguration> mcfg)
+TimingEndpointController::do_configure(const nlohmann::json& data)
 {
-  auto mdal = mcfg->
   auto conf = data.get<timingendpointcontroller::ConfParams>();
   if (conf.device.empty()) {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
@@ -76,10 +75,11 @@ TimingEndpointController::send_configure_hardware_commands(const nlohmann::json&
   do_endpoint_enable(data);
 }
 
+// TODO: CHANGE
 timingcmd::TimingHwCmd
 TimingEndpointController::construct_endpoint_hw_cmd( const std::string& cmd_id)
 {
-    timingcmd::TimingHwCmd hw_cmd;
+  timingcmd::TimingHwCmd hw_cmd;
   timingcmd::TimingEndpointCmdPayload cmd_payload;
   cmd_payload.endpoint_id = m_managed_endpoint_id;
   timingcmd::to_json(hw_cmd.payload, cmd_payload);
@@ -162,6 +162,7 @@ TimingEndpointController::do_endpoint_print_status(const nlohmann::json&)
   ++(m_sent_hw_command_counters.at(5).atomic);
 }
 
+// TODO: CHANGE
 void
 TimingEndpointController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 {
@@ -189,7 +190,6 @@ TimingEndpointController::process_device_info(nlohmann::json info)
   from_json(ept_data, ept_info);
 
   m_endpoint_state = ept_info.state;
-  
   bool ready = ept_info.ready;
 
   TLOG_DEBUG(3) << "state: 0x" << std::hex << m_endpoint_state << ", ready: " << ready << std::dec << ", infos received: " << m_device_infos_received_count;

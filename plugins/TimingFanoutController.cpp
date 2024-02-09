@@ -41,21 +41,21 @@ TimingFanoutController::TimingFanoutController(const std::string& name)
   register_command("fanout_io_reset", &TimingFanoutController::do_fanout_io_reset);
   register_command("fanout_print_status", &TimingFanoutController::do_fanout_print_status);
   register_command("fanout_endpoint_enable", &TimingFanoutController::do_fanout_endpoint_enable);
-  register_command("fanout_endpoint_reset", &TimingFanoutController::do_fanout_endpoint_enable);
+  register_command("fanout_endpoint_reset", &TimingFanoutController::do_fanout_endpoint_reset);
 }
 
 void
-TimingFanoutController::do_configure(const std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
+TimingFanoutController::do_configure(const nlohmann::json& data)
 {
-  const auto conf = mcfg->module<dal::TimingFanoutController>();
-  if (conf->device.empty())
+  auto conf = data.get<timingfanoutcontroller::ConfParams>();
+  if (conf.device.empty())
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
-  const m_timing_device = conf->device;
-  const m_hardware_state_recovery_enabled = conf->hardware_state_recovery_enabled;
-  const m_timing_session_name = conf->timing_session_name;
-  const m_device_ready_timeout = std::chrono::milliseconds(20000);
+  m_timing_device = conf.device;
+  m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
+  m_timing_session_name = conf.timing_session_name;
+  m_device_ready_timeout = std::chrono::milliseconds(20000);
 
   TimingController::do_configure(data); // configure hw command connection
 
@@ -64,6 +64,7 @@ TimingFanoutController::do_configure(const std::shared_ptr<appfwk::ModuleConfigu
   TLOG() << get_name() << "conf done for fanout device: " << m_timing_device;
 }
 
+// TODO: CHANGE
 void
 TimingFanoutController::send_configure_hardware_commands(const nlohmann::json& data)
 {
@@ -73,6 +74,7 @@ TimingFanoutController::send_configure_hardware_commands(const nlohmann::json& d
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
+// TODO: CHANGE
 timingcmd::TimingHwCmd
 TimingFanoutController::construct_fanout_hw_cmd( const std::string& cmd_id)
 {
