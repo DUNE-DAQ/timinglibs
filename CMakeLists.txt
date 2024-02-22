@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(timinglibs VERSION 3.0.0)
+project(timinglibs VERSION 3.1.0)
 
 find_package(daq-cmake REQUIRED)
 
@@ -22,9 +22,8 @@ find_package(okssystem REQUIRED)
 find_package(oks REQUIRED)
 find_package(genconfig REQUIRED)
 find_package(oksdbinterfaces REQUIRED)
-find_package(coredal REQUIRED)
 
-daq_oks_codegen(timing.schema.xml NAMESPACE dunedaq::timinglibs DEP_PKGS coredal)
+daq_oks_codegen(timing.schema.xml)
 
 daq_codegen( 
 			 timingcmd.jsonnet
@@ -34,13 +33,6 @@ daq_codegen(
 			 timingpartitioncontroller.jsonnet
 			 timingfanoutcontroller.jsonnet 
 			 DEP_PKGS appfwk rcif cmdlib iomanager TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
-
-daq_add_python_bindings(dal_methods.cpp module.cpp LINK_LIBRARIES 
-  timinglibs coredal::coredal)
-
-daq_add_application(generate_modules_test generate_modules_test.cxx
-TEST LINK_LIBRARIES timinglibs coredal::coredal oksdbinterfaces::oksdbinterfaces
-logging::logging)
 
 daq_codegen( timingcmd.jsonnet TEMPLATES msgp.hpp.j2 )
 
@@ -68,8 +60,7 @@ set(TIMINGLIBS_DEPENDENCIES
 )
 
 ##############################################################################
-daq_add_library(TimingController.cpp TimingHardwareInterface.cpp TimingHardwareManager.cpp TimingMasterController.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES} oksdbinterfaces::oksdbinterfaces okssystem::okssystem
-logging::logging coredal::coredal oks::oks ers::ers)
+daq_add_library(TimingController.cpp TimingHardwareInterface.cpp TimingHardwareManager.cpp TimingMasterController.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES})
 
 ##############################################################################
 daq_add_plugin(TimingHardwareManagerPDII duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)

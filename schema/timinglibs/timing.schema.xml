@@ -83,7 +83,7 @@
 <info name="" type="" num-of-items="7" oks-format="schema" oks-version="862f2957270" created-by="dianaAntic" created-on="mu2edaq13.fnal.gov" creation-time="20230123T223700" last-modified-by="jr19588" last-modified-on="kipper.phy.bris.ac.uk" last-modification-time="20240130T103334"/>
 
 <include>
- <file path="schema/coredal/dunedaq.schema.xml"/>
+    <file path="schema/coredal/dunedaq.schema.xml"/>
 </include>
 
 <class name="TimingConfigurationParameters">
@@ -91,25 +91,17 @@
  <attribute name="device_str" description="String of managed device name" type="string" init-value="Unknown" is-not-null="yes"/>
  <attribute name="hardware_state_recovery_enabled" description="Control flag for hardware state recovery" type="bool" init-value="true"/>
  <attribute name="timing_session_name" description="Name of managed device timing session" type="string" init-value="Unknown"/>
- <relationship name="ApplicationsControlled" class-type="ConfigurationParameters" low-cc="zero" high-cc="many" is-composite="yes" is-exclusive="yes" is-dependent="yes" /> 
-</class>
-
- <class name="TimingBaseConfParams" description="A base class for declaring timing session information">
-  <superclass name="TimingConfigurationParameters"/>
-  <attribute name="device_str" description="String of managed device name" type="string" init-value="Unknown" is-not-null="yes"/>
-  <attribute name="hardware_state_recovery_enabled" description="Control flag for hardware state recovery" type="bool" init-value="true"/>
-  <attribute name="timing_session_name" description="Name of managed device timing session" type="string" init-value="Unknown"/>
 </class>
 
  <class name="TimingEndpointController" description="Structure for payload of endpoint configure commands">
-  <superclass name="TimingBaseConfParams"/>
+  <superclass name="TimingConfigurationParameters"/>
   <attribute name="endpoint_id" description="ID of target endpoint" type="u32" init-value="true"/>
   <attribute name="address" description="Endpoint address" type="u32" init-value="Unknown"/>
   <attribute name="parition" description="Endpoint partition" type="u32" init-value="Unknown"/>
  </class>
 
  <class name="TimingMasterController" description="TimingMasterController configuration">
-  <superclass name="TimingBaseConfParams"/>
+  <superclass name="TimingConfigurationParameters"/>
   <attribute name="endpoint_scan_period" description="Period between endpoint scans. 0 for disabled." type="u32" init-value="0"/>
   <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
   <attribute name="soft" description="Soft reset" type="bool" init-value="false"/>
@@ -118,7 +110,7 @@
 </class>
 
 <class name="TimingPartitionController" description="TimingPartitionController configuration parameters">
- <superclass name="TimingBaseConfParams"/>
+ <superclass name="TimingConfigurationParameters"/>
  <attribute name="parition_id" description="Part id number" type="u32" init-value="0"/>
  <attribute name="trigger_mask" description="Trigger mask for fixed length cmd distribution" type="u32" init-value="Unknown"/>
  <attribute name="spill_gate_enabled" description="Spill interface on" type="bool" init-value="false"/>
@@ -126,7 +118,7 @@
 </class>
 
 <class name="TimingFanoutController" description="TimingFanoutController configuration">
- <superclass name="TimingBaseConfParams"/>
+ <superclass name="TimingConfigurationParameters"/>
  <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
 </class>
 
