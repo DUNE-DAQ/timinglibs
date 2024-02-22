@@ -21,6 +21,7 @@
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
+#include "iomanager/IOManager.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -51,20 +52,14 @@ TimingEndpointController::TimingEndpointController(const std::string& name)
 void
 TimingEndpointController::do_configure(const nlohmann::json& data)
 {
-  auto conf = data.get<timingendpointcontroller::ConfParams>();
-  if (conf.device.empty()) {
-    throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
-  }
-  m_timing_device = conf.device;
-  m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
-  m_timing_session_name = conf.timing_session_name;
-  m_managed_endpoint_id = conf.endpoint_id;
+  auto iom = iomanager::IOManager::get();
+  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
 
-  TimingController::do_configure(data); // configure hw command connection
+  get_iomanager()->add_callback<TimingEndpointController>(m_managed_endpoint_id, std::bind(&TimingController::do_configure, this, std::placeholders::_1));
 
-  configure_hardware_or_recover_state<TimingEndpointNotReady>(data, "Timing endpoint", m_endpoint_state);
+  TLOG() << get_name() << " successfully started";
+  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_configure() method";
 
-  TLOG() << get_name() << " conf done for endpoint, device: " << m_timing_device;
 }
 
 void

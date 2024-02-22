@@ -58,6 +58,9 @@ TimingHardwareManager::init(std::shared_ptr<appfwk::ModuleConfiguration>)
   // set up queues
   m_hw_command_receiver = iomanager::IOManager::get()->get_receiver<timingcmd::TimingHwCmd>(m_hw_cmd_connection);
   m_endpoint_scan_threads_clean_up_thread = std::make_unique<dunedaq::utilities::ReusableThread>(0);
+
+
+  
 }
 
 void
