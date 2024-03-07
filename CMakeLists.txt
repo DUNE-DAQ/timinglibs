@@ -16,7 +16,6 @@ find_package(opmonlib REQUIRED)
 find_package(uhal REQUIRED)
 find_package(pugixml REQUIRED)
 find_package(iomanager REQUIRED)
-find_package(daqconf REQUIRED)
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
 daq_codegen( 
