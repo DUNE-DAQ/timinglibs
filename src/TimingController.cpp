@@ -14,7 +14,6 @@
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/cmd/Nljs.hpp"
-#include "appfwk/DAQModuleHelper.hpp"
 #include "ers/Issue.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
@@ -53,7 +52,7 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
 }
 
 void
-TimingController::init(const nlohmann::json& /*init_data*/)
+TimingController::init(std::shared_ptr<appfwk::ModuleConfiguration> /*mcfg*/)
 {
 }
 

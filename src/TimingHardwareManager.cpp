@@ -53,7 +53,7 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
 }
 
 void
-TimingHardwareManager::init(const nlohmann::json& /*init_data*/)
+TimingHardwareManager::init(std::shared_ptr<appfwk::ModuleConfiguration> /*mcfg*/)
 {
   // set up queues
   m_hw_command_receiver = iomanager::IOManager::get()->get_receiver<timingcmd::TimingHwCmd>(m_hw_cmd_connection);

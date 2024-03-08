@@ -16,7 +16,6 @@
 
 #include "timing/PDIMasterNode.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 
