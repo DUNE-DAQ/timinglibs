@@ -99,6 +99,14 @@
   <attribute name="address" description="Endpoint address" type="u32" init-value="Unknown"/>
   <attribute name="partition" description="Endpoint partition" type="u32" init-value="Unknown"/>
  </class>
+<!--  timing_endpoint_location_data: s.record("EndpointLocation", [
+        s.field("fanout_slot", self.int_data,
+                doc="Fanout slot of the endpoint"),
+        s.field("sfp_slot", self.int_data,
+                doc="SFP slot of the endpoint"),
+        s.field("address", self.uint_data,
+                doc="Address of the endpoint"),
+    ], doc="Endpoint location data"), -->
 
  <class name="TimingMasterControllerParameters" description="TimingMasterController configuration">
   <superclass name="TimingConfigurationParameters"/>
@@ -106,7 +114,19 @@
   <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
   <attribute name="soft" description="Soft reset" type="bool" init-value="false"/>
   <attribute name="fanout_mode" description="Fanout mode. -1: none, 0: fanout, 1: standalone" type="string" init-value="Unknown"/>
-  <attribute name="monitored_endpoints" description="List of monitored endpoint addresses" type="string" init-value="Unknown"/>
+  <attribute name="monitored_endpoints" description="List of monitored endpoint addresses" type="class" is-multi-value="yes" init-value="TimingEndpointLocations"/>
+</class>
+
+<class name="TimingEndpointLocations" description="A vector of endpoint locations">
+  <superclass name="TimingMasterControllerParameters"/>
+  <attribute name="endpoints" description="Endpoints" type="class" init-value="EndpointLocation" is-multi-value="yes" />
+</class>
+
+<class name="EndpointLocation" description="Endpoint location data">
+  <superclass name="TimingMasterControllerParameters"/>
+  <attribute name="fanout_slot" description="Fanout slot of the endpoint" type="u32" init-value="0"/>
+  <attribute name="sfp_slot" description="SFP slot of the endpoint" type="u32" init-value="0"/>
+  <attribute name="address" description="Address of the endpoint" type="u32" init-value="0"/>
 </class>
 
 <class name="TimingPartitionControllerParameters" description="TimingPartitionController configuration parameters">
@@ -120,6 +140,7 @@
 <class name="TimingFanoutControllerParameters" description="TimingFanoutController configuration">
  <superclass name="TimingConfigurationParameters"/>
  <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
+ <attribute name="device_ready_timeout" type="string" />
 </class>
 
 <class name="TimingHardwareManagerPDIParameters" description="TimingHardwareManager PD-I conf parameters">

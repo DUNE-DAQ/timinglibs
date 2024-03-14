@@ -8,7 +8,7 @@
  */
 
 #include "TimingHardwareManagerPDI.hpp"
-#include "timinglibs/dal/TimingHardwareManagerPDI.hpp"
+#include "timinglibs/dal/TimingHardwareManagerPDIParameters.hpp"
 
 #include "timinglibs/timinghardwaremanagerpdi/Nljs.hpp"
 #include "timinglibs/timinghardwaremanagerpdi/Structs.hpp"
@@ -48,7 +48,7 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
   register_endpoint_hw_commands_for_design();
   register_hsi_hw_commands_for_design();
 
-  auto mdal = m_params->module<dal::TimingHardwareManagerPDI>(get_name()); 
+  auto mdal = m_params->module<dal::TimingHardwareManagerPDIParameters>(get_name()); 
   auto conf_params = conf_data.get<timinghardwaremanagerpdi::ConfParams>();
 
   m_gather_interval = mdal->get_gather_interval();

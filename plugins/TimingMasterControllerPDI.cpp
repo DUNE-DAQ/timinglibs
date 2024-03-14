@@ -8,7 +8,7 @@
  */
 
 #include "TimingMasterControllerPDI.hpp"
-#include "timinglibs/dal/TimingMasterController.hpp"
+#include "timinglibs/dal/TimingMasterControllerParameters.hpp"
 
 #include "timinglibs/timingmastercontroller/Nljs.hpp"
 #include "timinglibs/timingmastercontroller/Structs.hpp"

@@ -8,7 +8,7 @@
  */
 
 #include "TimingMasterController.hpp"
-#include "timinglibs/dal/TimingMasterController.hpp"
+#include "timinglibs/dal/TimingMasterControllerParameters.hpp"
 
 #include "timinglibs/timingmastercontroller/Nljs.hpp"
 #include "timinglibs/timingmastercontroller/Structs.hpp"
@@ -56,7 +56,7 @@ void
 TimingMasterController::do_configure(const nlohmann::json& data)
 {
   // auto conf = data.get<timingmastercontroller::ConfParams>();
-  auto mdal = m_params->module<dal::TimingMasterController>(get_name()); 
+  auto mdal = m_params->module<dal::TimingMasterControllerParameters>(get_name()); 
 
   if (mdal->get_device_str().empty())
   {

@@ -8,7 +8,7 @@
  */
 
 #include "TimingPartitionController.hpp"
-#include "timinglibs/dal/TimingPartitionController.hpp"
+#include "timinglibs/dal/TimingPartitionControllerParameters.hpp"
 
 #include "timinglibs/timingpartitioncontroller/Nljs.hpp"
 #include "timinglibs/timingpartitioncontroller/Structs.hpp"
@@ -59,7 +59,7 @@ void
 TimingPartitionController::do_configure(const nlohmann::json& data)
 {
   auto conf = data.get<timingpartitioncontroller::PartitionConfParams>();
-  auto mdal = m_params->module<dal::TimingPartitionController>(get_name()); 
+  auto mdal = m_params->module<dal::TimingPartitionControllerParameters>(get_name()); 
 
   if (mdal->get_device_str().empty())
   {
