@@ -15,7 +15,6 @@ find_dependency(pugixml)
 find_dependency(cmdlib)
 find_dependency(rcif)
 find_dependency(iomanager)
-find_dependency(daqconf)
 
 # Figure out whether or not this dependency is an installed package or
 # in repo form
