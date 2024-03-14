@@ -99,14 +99,6 @@
   <attribute name="address" description="Endpoint address" type="u32" init-value="Unknown"/>
   <attribute name="partition" description="Endpoint partition" type="u32" init-value="Unknown"/>
  </class>
-<!--  timing_endpoint_location_data: s.record("EndpointLocation", [
-        s.field("fanout_slot", self.int_data,
-                doc="Fanout slot of the endpoint"),
-        s.field("sfp_slot", self.int_data,
-                doc="SFP slot of the endpoint"),
-        s.field("address", self.uint_data,
-                doc="Address of the endpoint"),
-    ], doc="Endpoint location data"), -->
 
  <class name="TimingMasterControllerParameters" description="TimingMasterController configuration">
   <superclass name="TimingConfigurationParameters"/>
@@ -140,7 +132,7 @@
 <class name="TimingFanoutControllerParameters" description="TimingFanoutController configuration">
  <superclass name="TimingConfigurationParameters"/>
  <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
- <attribute name="device_ready_timeout" type="string" />
+ <attribute name="device_ready_timeout" type="u32" init-value="20000" />
 </class>
 
 <class name="TimingHardwareManagerPDIParameters" description="TimingHardwareManager PD-I conf parameters">

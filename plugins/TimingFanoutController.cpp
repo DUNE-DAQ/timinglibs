@@ -57,7 +57,7 @@ TimingFanoutController::do_configure(const nlohmann::json& data)
   m_timing_device = mdal->get_device_str();
   m_hardware_state_recovery_enabled = mdal->get_hardware_state_recovery_enabled();
   m_timing_session_name = mdal->get_timing_session_name();
-  m_device_ready_timeout = std::chrono::milliseconds(20000);
+  m_device_ready_timeout = std::chrono::milliseconds(mdal->get_device_ready_timeout());
 
   TimingController::do_configure(data); // configure hw command connection
 
