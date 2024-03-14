@@ -20,12 +20,14 @@
 #include "timinglibs/timingcmd/msgp.hpp"
 
 #include "appfwk/DAQModule.hpp"
-#include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/app/Nljs.hpp"
 #include "appfwk/app/Structs.hpp"
 #include "ers/Issue.hpp"
 #include "iomanager/Receiver.hpp"
 #include "logging/Logging.hpp"
+
+#include "appfwk/ModuleConfiguration.hpp"
+#include "coredal/Connection.hpp"
 
 #include "timing/TimingNode.hpp"
 #include "timing/EndpointDesignInterface.hpp"
@@ -65,7 +67,7 @@ public:
   TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
   virtual ~TimingHardwareManager() {}
   
-  void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
+  void init(std::shared_ptr<appfwk::ModuleConfiguration> /*mcfg*/) override;
   virtual void conf(const nlohmann::json& data);
   virtual void scrap();
 
@@ -161,6 +163,8 @@ protected:
   virtual void clean_endpoint_scan_threads();
   std::unique_ptr<dunedaq::utilities::ReusableThread> m_endpoint_scan_threads_clean_up_thread;
   std::atomic<bool> m_run_endpoint_scan_cleanup_thread;
+  std::shared_ptr<appfwk::ModuleConfiguration> m_params;
+
 };
 
 } // namespace timinglibs

@@ -8,6 +8,8 @@
  */
 
 #include "TimingFanoutController.hpp"
+#include "timinglibs/dal/TimingFanoutController.hpp"
+
 #include "timinglibs/timingfanoutcontroller/Nljs.hpp"
 #include "timinglibs/timingfanoutcontroller/Structs.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
@@ -16,7 +18,6 @@
 #include "timing/timingendpointinfo/InfoNljs.hpp"
 #include "timing/timingendpointinfo/InfoStructs.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 
@@ -47,14 +48,15 @@ TimingFanoutController::TimingFanoutController(const std::string& name)
 void
 TimingFanoutController::do_configure(const nlohmann::json& data)
 {
-  auto conf = data.get<timingfanoutcontroller::ConfParams>();
-  if (conf.device.empty())
+  auto mdal = m_params->module<dal::TimingFanoutController>(get_name()); 
+  if (mdal->get_device_str().empty())
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
-  m_timing_device = conf.device;
-  m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
-  m_timing_session_name = conf.timing_session_name;
+  
+  m_timing_device = mdal->get_device_str();
+  m_hardware_state_recovery_enabled = mdal->get_hardware_state_recovery_enabled();
+  m_timing_session_name = mdal->get_timing_session_name();
   m_device_ready_timeout = std::chrono::milliseconds(20000);
 
   TimingController::do_configure(data); // configure hw command connection

@@ -7,7 +7,10 @@
  * received with this code.
  */
 
+// #include "timinglibs/dal/TimingEndpointController.hpp"
 #include "TimingEndpointController.hpp"
+#include "timinglibs/dal/TimingEndpointController.hpp"
+
 #include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
@@ -17,11 +20,9 @@
 #include "timing/timingendpointinfo/InfoNljs.hpp"
 #include "timing/timingendpointinfo/InfoStructs.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
-#include "iomanager/IOManager.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -51,15 +52,22 @@ TimingEndpointController::TimingEndpointController(const std::string& name)
 
 void
 TimingEndpointController::do_configure(const nlohmann::json& data)
-{
-  auto iom = iomanager::IOManager::get();
-  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering do_configure() method";
+{  
+  auto mdal = m_params->module<dal::TimingEndpointController>(get_name()); 
 
-  get_iomanager()->add_callback<TimingEndpointController>(m_managed_endpoint_id, std::bind(&TimingController::do_configure, this, std::placeholders::_1));
+  if (mdal->get_device_str().empty()) {
+    throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
+  }
+  m_timing_device = mdal->get_device_str();
+  m_hardware_state_recovery_enabled = mdal->get_hardware_state_recovery_enabled();
+  m_timing_session_name = mdal->get_timing_session_name();
+  m_managed_endpoint_id = mdal->get_endpoint_id();
 
-  TLOG() << get_name() << " successfully started";
-  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting do_configure() method";
+  TimingController::do_configure(data); // configure hw command connection
 
+  configure_hardware_or_recover_state<TimingEndpointNotReady>(data, "Timing endpoint", m_endpoint_state);
+
+  TLOG() << get_name() << " conf done for endpoint, device: " << m_timing_device;
 }
 
 void

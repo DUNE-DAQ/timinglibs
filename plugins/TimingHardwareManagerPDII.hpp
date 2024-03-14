@@ -70,7 +70,7 @@ public:
   TimingHardwareManagerPDII& operator=(TimingHardwareManagerPDII&&) =
     delete; ///< TimingHardwareManagerPDII is not move-assignable
 
-  void conf(const nlohmann::json& conf_data) override;
+  void conf(const nlohmann::json&) override;
   void start(const nlohmann::json& data);
   void stop(const nlohmann::json& data);
 

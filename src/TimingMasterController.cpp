@@ -16,9 +16,10 @@
 #include "timing/timingfirmwareinfo/InfoNljs.hpp"
 #include "timing/timingfirmwareinfo/InfoStructs.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
+#include "appfwk/ModuleConfiguration.hpp"
+#include "appfwk/DAQModule.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -67,7 +68,7 @@ TimingMasterController::do_configure(const nlohmann::json& data)
   configure_hardware_or_recover_state<TimingMasterNotReady>(data, "Timing master");
 
   TLOG() << get_name() << " conf done on master, device: " << m_timing_device;
-
+  
   m_endpoint_scan_period = conf.endpoint_scan_period;
   if (m_endpoint_scan_period)
   {

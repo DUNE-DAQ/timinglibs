@@ -5,6 +5,7 @@ find_package(daq-cmake REQUIRED)
 
 daq_setup_environment()
 
+find_package(coredal REQUIRED)
 find_package(ers REQUIRED)     
 find_package(logging REQUIRED)
 find_package(cmdlib REQUIRED)
@@ -16,14 +17,16 @@ find_package(opmonlib REQUIRED)
 find_package(uhal REQUIRED)
 find_package(pugixml REQUIRED)
 find_package(iomanager REQUIRED)
-find_package(daqconf REQUIRED)
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 find_package(okssystem REQUIRED)
 find_package(oks REQUIRED)
 find_package(genconfig REQUIRED)
 find_package(oksdbinterfaces REQUIRED)
 
-daq_oks_codegen(timing.schema.xml)
+# include_directories(${CMAKE_BINARY_DIR}/coredal ${CMAKE_BINARY_DIR}/timinglibs ${CMAKE_BINARY_DIR}/dal)
+
+daq_oks_codegen(timing.schema.xml NAMESPACE dunedaq::timinglibs::dal DALDIR dal DEP_PKGS coredal)
+
 
 daq_codegen( 
 			 timingcmd.jsonnet
@@ -60,7 +63,8 @@ set(TIMINGLIBS_DEPENDENCIES
 )
 
 ##############################################################################
-daq_add_library(TimingController.cpp TimingHardwareInterface.cpp TimingHardwareManager.cpp TimingMasterController.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES})
+daq_add_library(TimingController.cpp TimingHardwareInterface.cpp TimingHardwareManager.cpp TimingMasterController.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES} oksdbinterfaces::oksdbinterfaces okssystem::okssystem
+logging::logging coredal::coredal oks::oks ers::ers appfwk::appfwk)
 
 ##############################################################################
 daq_add_plugin(TimingHardwareManagerPDII duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)

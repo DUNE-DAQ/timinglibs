@@ -16,6 +16,7 @@
 #include "timing/FanoutDesign.hpp"
 #include "timing/timingfirmware/Nljs.hpp"
 #include "timing/timingfirmware/Structs.hpp"
+#include "appfwk/ModuleConfiguration.hpp"
 
 #include <memory>
 #include <string>
@@ -53,19 +54,19 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
 }
 
 void
-TimingHardwareManager::init(std::shared_ptr<appfwk::ModuleConfiguration>)
+TimingHardwareManager::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
+  m_params = mcfg;
   // set up queues
   m_hw_command_receiver = iomanager::IOManager::get()->get_receiver<timingcmd::TimingHwCmd>(m_hw_cmd_connection);
   m_endpoint_scan_threads_clean_up_thread = std::make_unique<dunedaq::utilities::ReusableThread>(0);
-
-
   
 }
 
 void
 TimingHardwareManager::conf(const nlohmann::json& data)
 {
+
   m_received_hw_commands_counter = 0;
   m_accepted_hw_commands_counter = 0;
   m_rejected_hw_commands_counter = 0;

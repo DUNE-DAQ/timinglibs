@@ -93,14 +93,14 @@
  <attribute name="timing_session_name" description="Name of managed device timing session" type="string" init-value="Unknown"/>
 </class>
 
- <class name="TimingEndpointController" description="Structure for payload of endpoint configure commands">
+ <class name="TimingEndpointControllerParameters" description="Structure for payload of endpoint configure commands">
   <superclass name="TimingConfigurationParameters"/>
   <attribute name="endpoint_id" description="ID of target endpoint" type="u32" init-value="true"/>
   <attribute name="address" description="Endpoint address" type="u32" init-value="Unknown"/>
-  <attribute name="parition" description="Endpoint partition" type="u32" init-value="Unknown"/>
+  <attribute name="partition" description="Endpoint partition" type="u32" init-value="Unknown"/>
  </class>
 
- <class name="TimingMasterController" description="TimingMasterController configuration">
+ <class name="TimingMasterControllerParameters" description="TimingMasterController configuration">
   <superclass name="TimingConfigurationParameters"/>
   <attribute name="endpoint_scan_period" description="Period between endpoint scans. 0 for disabled." type="u32" init-value="0"/>
   <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
@@ -109,20 +109,20 @@
   <attribute name="monitored_endpoints" description="List of monitored endpoint addresses" type="string" init-value="Unknown"/>
 </class>
 
-<class name="TimingPartitionController" description="TimingPartitionController configuration parameters">
+<class name="TimingPartitionControllerParameters" description="TimingPartitionController configuration parameters">
  <superclass name="TimingConfigurationParameters"/>
- <attribute name="parition_id" description="Part id number" type="u32" init-value="0"/>
+ <attribute name="partition_id" description="Part id number" type="u32" init-value="0"/>
  <attribute name="trigger_mask" description="Trigger mask for fixed length cmd distribution" type="u32" init-value="Unknown"/>
  <attribute name="spill_gate_enabled" description="Spill interface on" type="bool" init-value="false"/>
  <attribute name="rate_control_enabled" description="Rate control on" type="bool" init-value="false"/>
 </class>
 
-<class name="TimingFanoutController" description="TimingFanoutController configuration">
+<class name="TimingFanoutControllerParameters" description="TimingFanoutController configuration">
  <superclass name="TimingConfigurationParameters"/>
  <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
 </class>
 
-<class name="TimingHardwareManagerPDI" description="TimingHardwareManager PD-I conf parameters">
+<class name="TimingHardwareManagerPDIParameters" description="TimingHardwareManager PD-I conf parameters">
  <superclass name="DaqModule"/>
  <attribute name="connections_file" description="device connections file" type="string" init-value="${TIMING_SHARE}/config/etc/connections.xml"/>
  <attribute name="gather_interval" description="Hardware device data gather interval [us]" type="u64" init-value="1e6"/>
@@ -133,10 +133,10 @@
  <attribute name="monitored_device_name_hsi" description="Name of hsi device to be monitored" type="string" init-value="Unknown"/>
  <attribute name="device_info_connection" description="String of managed hsi device info connection" type="string" init-value="Unknown"/>
  <attribute name="uhal_log_level" description="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug." type="string" init-value="notice"/>  
- <relationship name="configuration" class-type="TimingHardwareManagerPDI" low-cc="zero" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no" />
+ <relationship name="configuration" class-type="TimingHardwareManagerPDIParameters" low-cc="zero" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no" />
 </class>
 
-<class name="HSIController">
+<class name="HSIControllerParameters">
  <superclass name="DaqModule"/>
  <attribute name="device" type="string" init-value="Unknown"/>
  <attribute name="clock_frequency" type="u64" init-value="62500000"/>
@@ -147,7 +147,7 @@
  <attribute name="falling_edge_mask" description="Falling edge mask for HSI triggering" type="u32" init-value="Unknown"/>
  <attribute name="invert_edge_mask" description="Invert edge mask for HSI triggering" type="u32" init-value="Unknown"/>
  <attribute name="data_source" description="Source of data for HSI triggering" type="string" init-value="Unknown"/>
- <relationship name="configuration" class-type="HSIController" low-cc="zero" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no" />
+ <relationship name="configuration" class-type="HSIControllerParameters" low-cc="zero" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no" />
 </class>
   
 </oks-schema>

@@ -14,10 +14,14 @@
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/cmd/Nljs.hpp"
-#include "appfwk/DAQModuleHelper.hpp"
 #include "ers/Issue.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
+#include "appfwk/ModuleConfiguration.hpp"
+#include "appfwk/DAQModule.hpp"
+
+#include "coredal/DaqModule.hpp"
+#include "coredal/Connection.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -55,41 +59,7 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
 void
 TimingController::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
-
-  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Entering init() method";
-  auto mdal = mcfg->module<dal::TimingController>(get_name());
-  for (auto con : mdal->get_inputs()) {
-    if (con->get_data_type() == datatype_to_string<TimingEndpointController>()) {
-      m_managed_endpoint_id = con->UID();
-    }
-    if (con->get_data_type() == datatype_to_string<TimingParitionController>()) {
-      m_managed_partition_id = con->UID();
-    }
-    if (con->get_data_type() == datatype_to_string<TimingFanoutController>()) {
-      m_device_info_connection_id = con->UID();
-    }
-    if (con->get_data_type() == datatype_to_string<TimingMasterControllerPDI>()) {
-      m_device_info_connection_id = con->UID();
-    }
-    if (con->get_data_type() == datatype_to_string<TimingMasterControllerPDII>()) {
-      m_device_info_connection_id = con->UID();
-    }
-  }
-
-  // these are just tests to check if the connections are ok
-  auto iom = iomanager::IOManager::get();
-  iom->get_receiver<TimingEndpointController>(m_managed_endpoint_id);
-  iom->get_receiver<TimingParitionController>(m_managed_partition_id);
-  iom->get_receiver<TimingFanoutController>(m_device_info_connection_id);
-  iom->get_receiver<TimingMasterControllerPDI>(m_device_info_connection_id);
-  iom->get_receiver<TimingMasterControllerPDII>(m_device_info_connection_id);
-
-  m_timing_device = mdal->device();
-  m_hardware_state_recovery_enabled = mdal->hardware_state_recovery_enabled();
-  m_timing_session_name = mdal->timing_session_name();
-  m_managed_endpoint_id = mdal->endpoint_id();
-
-  TLOG_DEBUG(TLVL_ENTER_EXIT_METHODS) << get_name() << ": Exiting init() method";
+  m_params = mcfg;
 }
 
 void
