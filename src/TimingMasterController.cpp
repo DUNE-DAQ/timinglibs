@@ -8,6 +8,8 @@
  */
 
 #include "TimingMasterController.hpp"
+#include "timinglibs/dal/TimingMasterController.hpp"
+
 #include "timinglibs/timingmastercontroller/Nljs.hpp"
 #include "timinglibs/timingmastercontroller/Structs.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
@@ -53,15 +55,17 @@ TimingMasterController::TimingMasterController(const std::string& name)
 void
 TimingMasterController::do_configure(const nlohmann::json& data)
 {
-  auto conf = data.get<timingmastercontroller::ConfParams>();
-  if (conf.device.empty())
+  // auto conf = data.get<timingmastercontroller::ConfParams>();
+  auto mdal = m_params->module<dal::TimingMasterController>(get_name()); 
+
+  if (mdal->get_device_str().empty())
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
-  m_timing_device = conf.device;
-  m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
-  m_timing_session_name = conf.timing_session_name;
-  m_monitored_endpoint_locations = conf.monitored_endpoints;
+  m_timing_device = mdal->get_device_str();
+  m_hardware_state_recovery_enabled = mdal->get_hardware_state_recovery_enabled();
+  m_timing_session_name = mdal->get_timing_session_name();
+  // m_monitored_endpoint_locations = mdal->get_monitored_endpoints();
 
   TimingController::do_configure(data); // configure hw command connection
 
@@ -69,7 +73,7 @@ TimingMasterController::do_configure(const nlohmann::json& data)
 
   TLOG() << get_name() << " conf done on master, device: " << m_timing_device;
   
-  m_endpoint_scan_period = conf.endpoint_scan_period;
+  m_endpoint_scan_period = mdal->get_endpoint_scan_period();
   if (m_endpoint_scan_period)
   {
     TLOG() << get_name() << " conf: master, will send delays with period [ms] " << m_endpoint_scan_period;    
