@@ -17,10 +17,6 @@
 #include "ers/Issue.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
-#include "appfwk/ModuleConfiguration.hpp"
-#include "appfwk/DAQModule.hpp"
-
-#include "coredal/DaqModule.hpp"
 #include "coredal/Connection.hpp"
 
 #include <chrono>

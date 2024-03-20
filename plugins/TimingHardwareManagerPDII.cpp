@@ -49,14 +49,13 @@ TimingHardwareManagerPDII::conf(const nlohmann::json& conf_data)
   register_endpoint_hw_commands_for_design();
   register_hsi_hw_commands_for_design();
 
-  auto conf_params = conf_data.get<timinghardwaremanagerpdi::ConfParams>();
   auto mdal = m_params->module<dal::TimingHardwareManagerPDIParameters>(get_name()); 
 
   m_gather_interval = mdal->get_gather_interval();
   m_gather_interval_debug = mdal->get_gather_interval_debug();
 
   m_monitored_device_name_master = mdal->get_monitored_device_name_master();
-  m_monitored_device_names_fanout = conf_params.monitored_device_names_fanout;
+  m_monitored_device_names_fanout = mdal->get_monitored_device_names_fanout();
   m_monitored_device_name_endpoint = mdal->get_monitored_device_name_endpoint();
   m_monitored_device_name_hsi = mdal->get_monitored_device_name_hsi();
 

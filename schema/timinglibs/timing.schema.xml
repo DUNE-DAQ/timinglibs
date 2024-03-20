@@ -141,12 +141,17 @@
  <attribute name="gather_interval" description="Hardware device data gather interval [us]" type="u64" init-value="1e6"/>
  <attribute name="gather_interval_debug" description="Hardware device data gather debug interval [us]" type="u64" init-value="10e6"/>
  <attribute name="monitored_device_name_master" description="Name of timing master device to be monitored" type="string" init-value="Unknown"/>
- <attribute name="monitored_device_names_fanout" description="Names of timing fanout devices to be monitored" type="string" init-value="Unknown"/>
+ <attribute name="monitored_device_names_fanout" description="Names of timing fanout devices to be monitored"  type="class" is-multi-value="yes" init-value="FanoutDeviceNamesVector"/>
  <attribute name="monitored_device_name_endpoint" description="Name of timing endpoint device to be monitored" type="string" init-value="Unknown"/>
  <attribute name="monitored_device_name_hsi" description="Name of hsi device to be monitored" type="string" init-value="Unknown"/>
  <attribute name="device_info_connection" description="String of managed hsi device info connection" type="string" init-value="Unknown"/>
  <attribute name="uhal_log_level" description="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug." type="string" init-value="notice"/>  
  <relationship name="configuration" class-type="TimingHardwareManagerPDIParameters" low-cc="zero" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no" />
+</class>
+
+<class name="FanoutDeviceNamesVector" description="A vector of fanout device names">
+  <superclass name="TimingHardwareManagerPDIParameters"/>
+  <attribute name="fanout_device_names_vector" description="A vector of fanout device names" type="string" init-value="FanoutDeviceName" is-multi-value="yes" />
 </class>
 
 <class name="HSIControllerParameters">

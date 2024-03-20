@@ -58,7 +58,6 @@ TimingPartitionController::TimingPartitionController(const std::string& name)
 void
 TimingPartitionController::do_configure(const nlohmann::json& data)
 {
-  auto conf = data.get<timingpartitioncontroller::PartitionConfParams>();
   auto mdal = m_params->module<dal::TimingPartitionControllerParameters>(get_name()); 
 
   if (mdal->get_device_str().empty())
