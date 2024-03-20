@@ -106,12 +106,12 @@
   <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
   <attribute name="soft" description="Soft reset" type="bool" init-value="false"/>
   <attribute name="fanout_mode" description="Fanout mode. -1: none, 0: fanout, 1: standalone" type="string" init-value="Unknown"/>
-  <attribute name="monitored_endpoints" description="List of monitored endpoint addresses" type="class" is-multi-value="yes" init-value="TimingEndpointLocations"/>
+  <attribute name="monitored_endpoints" description="List of monitored endpoint addresses" type="string" is-multi-value="yes" init-value="TimingEndpointLocations"/>
 </class>
 
 <class name="TimingEndpointLocations" description="A vector of endpoint locations">
   <superclass name="TimingMasterControllerParameters"/>
-  <attribute name="endpoints" description="Endpoints" type="class" init-value="EndpointLocation" is-multi-value="yes" />
+  <attribute name="endpoints" description="Endpoints" type="string" init-value="EndpointLocation" is-multi-value="yes" />
 </class>
 
 <class name="EndpointLocation" description="Endpoint location data">
