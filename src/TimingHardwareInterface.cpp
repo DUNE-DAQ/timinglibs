@@ -8,8 +8,11 @@
  */
 
 #include "timinglibs/TimingHardwareInterface.hpp"
+#include "timinglibs/dal/TimingHardwareManagerPDIParameters.hpp"
+#include "appfwk/DAQModule.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
+#include "coredal/Connection.hpp"
 
 #include "appfwk/app/Nljs.hpp"
 #include "logging/Logging.hpp"
@@ -45,27 +48,29 @@ TimingHardwareInterface::TimingHardwareInterface()
 }
 
 void
-TimingHardwareInterface::configure_uhal(const nlohmann::json& obj)
+TimingHardwareInterface::configure_uhal()
 {
-  if (obj.contains("connections_file")) {
-    m_connections_file =  obj["connections_file"];
-  }
-  else
-  {
-    // throw error
-  }
+  // auto mdal = m_params->module<dal::TimingHardwareManagerPDIParameters>(get_name()); 
+  // m_uhal_log_level = mdal->get_uhal_log_level();
+  // if (obj.contains("connections_file")) {
+  //   m_connections_file =  obj["connections_file"];
+  // }
+  // else
+  // {
+  //   // throw error
+  // }
 
-  TLOG_DEBUG(0) << "conf: con. file before env var expansion: " << m_connections_file;
-  resolve_environment_variables(m_connections_file);
-  TLOG_DEBUG(0) << "conf: con. file after env var expansion:  " << m_connections_file;
+  // TLOG_DEBUG(0) << "conf: con. file before env var expansion: " << m_connections_file;
+  // resolve_environment_variables(m_connections_file);
+  // TLOG_DEBUG(0) << "conf: con. file after env var expansion:  " << m_connections_file;
 
-  if (obj.contains("uhal_log_level")) {
-    m_uhal_log_level =  obj["uhal_log_level"];
-  }
-  else
-  {
-    // throw error
-  }
+  // if (obj.contains("uhal_log_level")) {
+  //   m_uhal_log_level =  obj["uhal_log_level"];
+  // }
+  // else
+  // {
+  //   // throw error
+  // }
 
   if (!m_uhal_log_level.compare("debug")) {
     uhal::setLogLevelTo(uhal::Debug());
@@ -83,13 +88,13 @@ TimingHardwareInterface::configure_uhal(const nlohmann::json& obj)
     throw InvalidUHALLogLevel(ERS_HERE, m_uhal_log_level);
   }
 
-  try {
-    m_connection_manager = std::make_unique<uhal::ConnectionManager>("file://" + m_connections_file);
-  } catch (const uhal::exception::FileNotFound& excpt) {
-    std::stringstream message;
-    message << m_connections_file << " not found. Has TIMING_SHARE been set?";
-    throw UHALConnectionsFileIssue(ERS_HERE, message.str(), excpt);
-  }
+  // try {
+  //   m_connection_manager = std::make_unique<uhal::ConnectionManager>("file://" + m_connections_file);
+  // } catch (const uhal::exception::FileNotFound& excpt) {
+  //   std::stringstream message;
+  //   message << m_connections_file << " not found. Has TIMING_SHARE been set?";
+  //   throw UHALConnectionsFileIssue(ERS_HERE, message.str(), excpt);
+  // }
 }
 
 void
