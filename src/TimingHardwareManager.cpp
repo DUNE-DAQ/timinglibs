@@ -394,7 +394,24 @@ void TimingHardwareManager::perform_endpoint_scan(const timingcmd::TimingHwCmd& 
         }
       }
       // configure any master mux, possibly
-      master_design->get_master_node_plain()->scan_endpoint(endpoint_address, false);
+      auto scan_result = master_design->get_master_node_plain()->scan_endpoint(endpoint_address, false);
+      if (scan_result.alive)
+      {
+        auto current_rtt = scan_result.round_trip_time;
+        if (m_monitored_endpoints_round_trip_times.count(endpoint_address))
+        {
+          if (m_monitored_endpoints_round_trip_times[endpoint_address] != current_rtt)
+          {
+            TLOG() << "New round trip time for endpoint " << endpoint_address << " measured. Previous: "
+              << m_monitored_endpoints_round_trip_times[endpoint_address] << ", current: " << current_rtt;
+          }
+        }
+        else
+        {
+           TLOG() << "First measured round trip time for endpoint " << endpoint_address << " is: " << current_rtt;
+        }
+        m_monitored_endpoints_round_trip_times[endpoint_address]=current_rtt;
+      }
       master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, false);
     }
     catch(std::exception& e)
