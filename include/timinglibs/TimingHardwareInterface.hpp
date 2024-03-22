@@ -9,6 +9,7 @@
 
 #include "nlohmann/json.hpp"
 #include "appfwk/DAQModule.hpp"
+#include "timinglibs/dal/TimingHardwareManagerPDIParameters.hpp"
 
 #include "uhal/ConnectionManager.hpp"
 #include "uhal/ProtocolUDP.hpp"
@@ -42,7 +43,7 @@ public:
   TimingHardwareInterface& operator=(TimingHardwareInterface&&) = delete;      ///< TimingHardwareInterface is not move-assignable
 
 protected:
-  void configure_uhal();
+  void configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareManagerPDIParameters mdal);
 
   void scrap_uhal ();
   std::string m_connections_file;

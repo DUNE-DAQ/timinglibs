@@ -48,10 +48,10 @@ TimingHardwareInterface::TimingHardwareInterface()
 }
 
 void
-TimingHardwareInterface::configure_uhal()
+TimingHardwareInterface::configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareManagerPDIParameters mdal)
 {
-  // auto mdal = m_params->module<dal::TimingHardwareManagerPDIParameters>(get_name()); 
-  // m_uhal_log_level = mdal->get_uhal_log_level();
+  // auto mdal = dal->get_name();
+  m_uhal_log_level = mdal.get_uhal_log_level();
   // if (obj.contains("connections_file")) {
   //   m_connections_file =  obj["connections_file"];
   // }
