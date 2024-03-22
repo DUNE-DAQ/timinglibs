@@ -7,7 +7,10 @@
  * received with this code.
  */
 
+// #include "timinglibs/dal/TimingEndpointController.hpp"
 #include "TimingEndpointController.hpp"
+#include "timinglibs/dal/TimingEndpointControllerParameters.hpp"
+
 #include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
@@ -49,15 +52,16 @@ TimingEndpointController::TimingEndpointController(const std::string& name)
 
 void
 TimingEndpointController::do_configure(const nlohmann::json& data)
-{
-  auto conf = data.get<timingendpointcontroller::ConfParams>();
-  if (conf.device.empty()) {
+{  
+  auto mdal = m_params->module<dal::TimingEndpointControllerParameters>(get_name()); 
+
+  if (mdal->get_device_str().empty()) {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
-  m_timing_device = conf.device;
-  m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
-  m_timing_session_name = conf.timing_session_name;
-  m_managed_endpoint_id = conf.endpoint_id;
+  m_timing_device = mdal->get_device_str();
+  m_hardware_state_recovery_enabled = mdal->get_hardware_state_recovery_enabled();
+  m_timing_session_name = mdal->get_timing_session_name();
+  m_managed_endpoint_id = mdal->get_endpoint_id();
 
   TimingController::do_configure(data); // configure hw command connection
 
@@ -74,10 +78,11 @@ TimingEndpointController::send_configure_hardware_commands(const nlohmann::json&
   do_endpoint_enable(data);
 }
 
+// TODO: CHANGE
 timingcmd::TimingHwCmd
 TimingEndpointController::construct_endpoint_hw_cmd( const std::string& cmd_id)
 {
-    timingcmd::TimingHwCmd hw_cmd;
+  timingcmd::TimingHwCmd hw_cmd;
   timingcmd::TimingEndpointCmdPayload cmd_payload;
   cmd_payload.endpoint_id = m_managed_endpoint_id;
   timingcmd::to_json(hw_cmd.payload, cmd_payload);
@@ -160,6 +165,7 @@ TimingEndpointController::do_endpoint_print_status(const nlohmann::json&)
   ++(m_sent_hw_command_counters.at(5).atomic);
 }
 
+// TODO: CHANGE
 void
 TimingEndpointController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 {

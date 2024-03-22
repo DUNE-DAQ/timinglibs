@@ -13,7 +13,6 @@
 #define TIMINGLIBS_PLUGINS_TIMINGENDPOINTCONTROLLER_HPP_
 
 #include "timinglibs/TimingController.hpp"
-
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingendpointcontroller/Nljs.hpp"
@@ -25,6 +24,9 @@
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 #include "utilities/WorkerThread.hpp"
+
+#include "iomanager/Receiver.hpp"
+#include "iomanager/Sender.hpp"
 
 #include <memory>
 #include <string>
@@ -58,7 +60,7 @@ private:
   uint m_managed_endpoint_id;
 
   // Commands
-  void do_configure(const nlohmann::json& data) override;
+  void do_configure(const nlohmann::json&) override;
   void send_configure_hardware_commands(const nlohmann::json& data) override;
 
   timingcmd::TimingHwCmd construct_endpoint_hw_cmd(const std::string& cmd_id);
@@ -75,6 +77,7 @@ private:
   void get_info(opmonlib::InfoCollector& ci, int level) override;
   void process_device_info(nlohmann::json info) override;
   uint32_t m_endpoint_state;
+
 };
 } // namespace timinglibs
 } // namespace dunedaq

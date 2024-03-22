@@ -8,6 +8,8 @@
  */
 
 #include "TimingPartitionController.hpp"
+#include "timinglibs/dal/TimingPartitionControllerParameters.hpp"
+
 #include "timinglibs/timingpartitioncontroller/Nljs.hpp"
 #include "timinglibs/timingpartitioncontroller/Structs.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
@@ -56,21 +58,22 @@ TimingPartitionController::TimingPartitionController(const std::string& name)
 void
 TimingPartitionController::do_configure(const nlohmann::json& data)
 {
-  auto conf = data.get<timingpartitioncontroller::PartitionConfParams>();
-  if (conf.device.empty())
+  auto mdal = m_params->module<dal::TimingPartitionControllerParameters>(get_name()); 
+
+  if (mdal->get_device_str().empty())
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
 
-  m_timing_device = conf.device;
-  m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
-  m_timing_session_name = conf.timing_session_name;
-  m_managed_partition_id = conf.partition_id;
+  m_timing_device = mdal->get_device_str();
+  m_hardware_state_recovery_enabled = mdal->get_hardware_state_recovery_enabled();
+  m_timing_session_name = mdal->get_timing_session_name();
+  m_managed_partition_id = mdal->get_partition_id();
 
   // parameters against which to compare partition state
-  m_partition_trigger_mask = conf.trigger_mask;
-  m_partition_control_rate_enabled = conf.rate_control_enabled;
-  m_partition_spill_gate_enabled = conf.spill_gate_enabled;
+  m_partition_trigger_mask = mdal->get_trigger_mask();
+  m_partition_control_rate_enabled = mdal->get_rate_control_enabled();
+  m_partition_spill_gate_enabled = mdal->get_spill_gate_enabled();
 
   TimingController::do_configure(data); // configure hw command connection
 
@@ -81,8 +84,7 @@ TimingPartitionController::do_configure(const nlohmann::json& data)
   TLOG() << get_name() << " conf done on device: " << m_timing_device << ", managed part id: " << m_managed_partition_id;
 }
 
-void
-TimingPartitionController::do_start(const nlohmann::json& data)
+void TimingPartitionController::do_start(const nlohmann::json &data)
 {
   TimingController::do_start(data); // set sent cmd counters to 0
   do_partition_start(data);

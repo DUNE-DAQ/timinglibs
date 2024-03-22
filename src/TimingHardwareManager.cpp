@@ -16,6 +16,7 @@
 #include "timing/FanoutDesign.hpp"
 #include "timing/timingfirmware/Nljs.hpp"
 #include "timing/timingfirmware/Structs.hpp"
+#include "appfwk/ModuleConfiguration.hpp"
 
 #include <memory>
 #include <string>
@@ -53,22 +54,26 @@ TimingHardwareManager::TimingHardwareManager(const std::string& name)
 }
 
 void
-TimingHardwareManager::init(std::shared_ptr<appfwk::ModuleConfiguration> /*mcfg*/)
+TimingHardwareManager::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
+  m_params = mcfg;
   // set up queues
   m_hw_command_receiver = iomanager::IOManager::get()->get_receiver<timingcmd::TimingHwCmd>(m_hw_cmd_connection);
   m_endpoint_scan_threads_clean_up_thread = std::make_unique<dunedaq::utilities::ReusableThread>(0);
+  
 }
 
 void
-TimingHardwareManager::conf(const nlohmann::json& data)
+TimingHardwareManager::conf(const nlohmann::json&)
 {
   m_received_hw_commands_counter = 0;
   m_accepted_hw_commands_counter = 0;
   m_rejected_hw_commands_counter = 0;
   m_failed_hw_commands_counter = 0;
 
-  configure_uhal(data); // configure hw ipbus connection
+  auto mdal = m_params->module<dal::TimingHardwareManagerPDIParameters>(get_name());
+
+  configure_uhal(mdal); // configure hw ipbus connection
 
   m_hw_command_receiver->add_callback(std::bind(&TimingHardwareManager::process_hardware_command, this, std::placeholders::_1));
 
@@ -77,7 +82,7 @@ TimingHardwareManager::conf(const nlohmann::json& data)
 }
 
 void
-TimingHardwareManager::scrap(const nlohmann::json& data)
+TimingHardwareManager::scrap()
 {
   m_hw_command_receiver->remove_callback();
 
@@ -93,7 +98,7 @@ TimingHardwareManager::scrap(const nlohmann::json& data)
   
   stop_hw_mon_gathering();
   
-  scrap_uhal(data);
+  scrap_uhal();
 
   m_command_threads.clear(); 
   m_info_gatherers.clear();

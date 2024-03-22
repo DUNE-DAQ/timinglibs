@@ -17,6 +17,7 @@
 #include "ers/Issue.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
+#include "coredal/Connection.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -52,8 +53,9 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
 }
 
 void
-TimingController::init(std::shared_ptr<appfwk::ModuleConfiguration> /*mcfg*/)
+TimingController::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
+  m_params = mcfg;
 }
 
 void
