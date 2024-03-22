@@ -71,9 +71,9 @@ TimingHardwareManager::conf(const nlohmann::json&)
   m_rejected_hw_commands_counter = 0;
   m_failed_hw_commands_counter = 0;
 
-  // auto mdal = m_params->module<dal::TimingHardwareManagerPDIParameters>(get_name());
+  auto mdal = m_params->module<dal::TimingHardwareManagerPDIParameters>(get_name());
 
-  configure_uhal(*m_params->module<dal::TimingHardwareManagerPDIParameters>(get_name())); // configure hw ipbus connection
+  configure_uhal(mdal); // configure hw ipbus connection
 
   m_hw_command_receiver->add_callback(std::bind(&TimingHardwareManager::process_hardware_command, this, std::placeholders::_1));
 
