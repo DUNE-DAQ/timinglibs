@@ -8,14 +8,13 @@
 #define TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGHARDWAREINTERFACE_HPP_
 
 #include "nlohmann/json.hpp"
-#include "timinglibs/dal/TimingHardwareManagerPDIParameters.hpp"
+#include "timinglibs/dal/TimingHardwareInterface.hpp"
 
 #include "uhal/ConnectionManager.hpp"
 #include "uhal/ProtocolUDP.hpp"
 #include "uhal/log/exception.hpp"
 #include "uhal/utilities/files.hpp"
 #include <ers/Issue.hpp>
-#include "appfwk/DAQModule.hpp"
 
 #include <memory>
 #include <string>
@@ -42,13 +41,12 @@ public:
   TimingHardwareInterface& operator=(TimingHardwareInterface&&) = delete;      ///< TimingHardwareInterface is not move-assignable
 
 protected:
-  void configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareManagerPDIParameters* mdal);
+  void configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareInterface* mdal);
 
   void scrap_uhal ();
   std::string m_connections_file;
   std::string m_uhal_log_level;
   std::unique_ptr<uhal::ConnectionManager> m_connection_manager;
-  std::shared_ptr<appfwk::ModuleConfiguration> m_params;
 };
 } // namespace timinglibs
 } // namespace dunedaq

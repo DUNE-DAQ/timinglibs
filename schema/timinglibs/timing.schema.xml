@@ -94,16 +94,28 @@
  </class>
 
  <class name="HSIController">
-  <superclass name="DaqModule"/>
+  <superclass name="TimingController"/>
   <attribute name="device" type="string" init-value="Unknown"/>
   <attribute name="clock_frequency" type="u64" init-value="62500000"/>
   <attribute name="trigger_rate" type="double" init-value="1"/>
   <attribute name="address" type="string" init-value="tcp://127.0.0.1:12344"/>
   <attribute name="partition" type="string" init-value="hsi_readout_test"/>
+  <attribute name="control_hardware_io" description="control flag for controlling hardware io" type="bool" init-value="false"/>
   <attribute name="rising_edge_mask" description="Rising edge mask for HSI triggering" type="u32" init-value="Unknown"/>
   <attribute name="falling_edge_mask" description="Falling edge mask for HSI triggering" type="u32" init-value="Unknown"/>
   <attribute name="invert_edge_mask" description="Invert edge mask for HSI triggering" type="u32" init-value="Unknown"/>
   <attribute name="data_source" description="Source of data for HSI triggering" type="string" init-value="Unknown"/>
+  <relationship name="uhal_config" description="Configuration for uhal" class-type="TimingHardwareInterface" low-cc="one" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no"/>
+ </class>
+
+ <class name="HSIEventSender">
+  <superclass name="DaqModule"/>
+ </class>
+
+ <class name="HSIReadout">
+  <superclass name="HSIEventSender"/>
+  <attribute name="readout_period" description="Hardware device poll perio [us]" type="u64" init-value="1000"/>
+  <attribute name="hsi_device_name" type="string" init-value="Unknown"/>
   <relationship name="uhal_config" description="Configuration for uhal" class-type="TimingHardwareInterface" low-cc="one" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no"/>
  </class>
 

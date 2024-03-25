@@ -14,6 +14,7 @@
 
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/TimingIssues.hpp"
+#include "timinglibs/dal/TimingController.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/app/Nljs.hpp"
@@ -126,7 +127,7 @@ protected:
   std::atomic<bool> m_device_ready;
   std::atomic<uint> m_device_infos_received_count;
   std::atomic<bool> m_hardware_state_recovery_enabled;
-  std::shared_ptr<appfwk::ModuleConfiguration> m_params;
+  const dal::TimingController* m_params;
 
 };
 } // namespace timinglibs
