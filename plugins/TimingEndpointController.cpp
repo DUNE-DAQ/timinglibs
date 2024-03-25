@@ -9,7 +9,7 @@
 
 // #include "timinglibs/dal/TimingEndpointController.hpp"
 #include "TimingEndpointController.hpp"
-#include "timinglibs/dal/TimingEndpointControllerParameters.hpp"
+#include "timinglibs/dal/TimingEndpointController.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
@@ -53,7 +53,7 @@ TimingEndpointController::TimingEndpointController(const std::string& name)
 void
 TimingEndpointController::do_configure(const nlohmann::json& data)
 {  
-  auto mdal = m_params->module<dal::TimingEndpointControllerParameters>(get_name()); 
+  auto mdal = m_params->cast<dal::TimingEndpointController>(); 
 
   if (mdal->get_device_str().empty()) {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");

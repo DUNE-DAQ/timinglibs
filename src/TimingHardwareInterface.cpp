@@ -8,8 +8,6 @@
  */
 
 #include "timinglibs/TimingHardwareInterface.hpp"
-#include "timinglibs/dal/TimingHardwareManagerPDIParameters.hpp"
-#include "appfwk/DAQModule.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
 #include "coredal/Connection.hpp"
@@ -48,7 +46,7 @@ TimingHardwareInterface::TimingHardwareInterface()
 }
 
 void
-TimingHardwareInterface::configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareManagerPDIParameters* mdal)
+TimingHardwareInterface::configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareInterface* mdal)
 {
   m_uhal_log_level = mdal->get_uhal_log_level();
 
@@ -68,7 +66,7 @@ TimingHardwareInterface::configure_uhal(const dunedaq::timinglibs::dal::TimingHa
     throw InvalidUHALLogLevel(ERS_HERE, m_uhal_log_level);
   }
 
-  m_connections_file = "";
+  m_connections_file = mdal->get_connections_file();
   try {
     m_connection_manager = std::make_unique<uhal::ConnectionManager>("file://" + m_connections_file);
   } catch (const uhal::exception::FileNotFound& excpt) {

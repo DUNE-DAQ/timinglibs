@@ -80,86 +80,105 @@
 
 <oks-schema>
 
-<info name="" type="" num-of-items="7" oks-format="schema" oks-version="862f2957270" created-by="dianaAntic" created-on="mu2edaq13.fnal.gov" creation-time="20230123T223700" last-modified-by="jr19588" last-modified-on="kipper.phy.bris.ac.uk" last-modification-time="20240130T103334"/>
+<info name="" type="" num-of-items="11" oks-format="schema" oks-version="862f2957270" created-by="dianaAntic" created-on="mu2edaq13.fnal.gov" creation-time="20230123T223700" last-modified-by="eflumerf" last-modified-on="ironvirt9.mshome.net" last-modification-time="20240325T173708"/>
 
 <include>
-    <file path="schema/coredal/dunedaq.schema.xml"/>
+ <file path="schema/coredal/dunedaq.schema.xml"/>
 </include>
 
-<class name="TimingConfigurationParameters">
- <superclass name="DaqModule"/>
- <attribute name="device_str" description="String of managed device name" type="string" init-value="Unknown" is-not-null="yes"/>
- <attribute name="hardware_state_recovery_enabled" description="Control flag for hardware state recovery" type="bool" init-value="true"/>
- <attribute name="timing_session_name" description="Name of managed device timing session" type="string" init-value="Unknown"/>
-</class>
 
- <class name="TimingEndpointControllerParameters" description="Structure for payload of endpoint configure commands">
-  <superclass name="TimingConfigurationParameters"/>
+ <class name="EndpointLocation" description="Endpoint location data">
+  <attribute name="fanout_slot" description="Fanout slot of the endpoint" type="u32" init-value="0"/>
+  <attribute name="sfp_slot" description="SFP slot of the endpoint" type="u32" init-value="0"/>
+  <attribute name="address" description="Address of the endpoint" type="u32" init-value="0"/>
+ </class>
+
+ <class name="HSIController">
+  <superclass name="TimingController"/>
+  <attribute name="device" type="string" init-value="Unknown"/>
+  <attribute name="clock_frequency" type="u64" init-value="62500000"/>
+  <attribute name="trigger_rate" type="double" init-value="1"/>
+  <attribute name="address" type="string" init-value="tcp://127.0.0.1:12344"/>
+  <attribute name="partition" type="string" init-value="hsi_readout_test"/>
+  <attribute name="control_hardware_io" description="control flag for controlling hardware io" type="bool" init-value="false"/>
+  <attribute name="rising_edge_mask" description="Rising edge mask for HSI triggering" type="u32" init-value="Unknown"/>
+  <attribute name="falling_edge_mask" description="Falling edge mask for HSI triggering" type="u32" init-value="Unknown"/>
+  <attribute name="invert_edge_mask" description="Invert edge mask for HSI triggering" type="u32" init-value="Unknown"/>
+  <attribute name="data_source" description="Source of data for HSI triggering" type="string" init-value="Unknown"/>
+  <relationship name="uhal_config" description="Configuration for uhal" class-type="TimingHardwareInterface" low-cc="one" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no"/>
+ </class>
+
+ <class name="HSIEventSender">
+  <superclass name="DaqModule"/>
+ </class>
+
+ <class name="HSIReadout">
+  <superclass name="HSIEventSender"/>
+  <attribute name="readout_period" description="Hardware device poll perio [us]" type="u64" init-value="1000"/>
+  <attribute name="hsi_device_name" type="string" init-value="Unknown"/>
+  <relationship name="uhal_config" description="Configuration for uhal" class-type="TimingHardwareInterface" low-cc="one" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no"/>
+ </class>
+
+ <class name="TimingController">
+  <superclass name="DaqModule"/>
+  <attribute name="device_str" description="String of managed device name" type="string" init-value="Unknown" is-not-null="yes"/>
+  <attribute name="hardware_state_recovery_enabled" description="Control flag for hardware state recovery" type="bool" init-value="true"/>
+  <attribute name="timing_session_name" description="Name of managed device timing session" type="string" init-value="Unknown"/>
+ </class>
+
+ <class name="TimingEndpointController" description="Structure for payload of endpoint configure commands">
+  <superclass name="TimingController"/>
   <attribute name="endpoint_id" description="ID of target endpoint" type="u32" init-value="true"/>
   <attribute name="address" description="Endpoint address" type="u32" init-value="Unknown"/>
   <attribute name="partition" description="Endpoint partition" type="u32" init-value="Unknown"/>
  </class>
 
- <class name="TimingMasterControllerParameters" description="TimingMasterController configuration">
-  <superclass name="TimingConfigurationParameters"/>
+ <class name="TimingFanoutController" description="TimingFanoutController configuration">
+  <superclass name="TimingController"/>
+  <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
+  <attribute name="device_ready_timeout" type="u32" init-value="20000"/>
+ </class>
+
+ <class name="TimingHardwareInterface" description="TimingHardwareInterface configuration">
+  <attribute name="uhal_log_level" description="Log level for uhal." type="enum" range="fatal,error,warning,notice,info,debug" init-value="notice"/>
+  <attribute name="connections_file" description="device connections file" type="string" init-value="${TIMING_SHARE}/config/etc/connections.xml"/>
+ </class>
+
+ <class name="TimingHardwareManager" description="TimingHardwareManager conf parameters">
+  <attribute name="template_for" type="class" init-value="TimingHardwareManagerPDI" is-not-null="yes"/>
+  <attribute name="gather_interval" description="Hardware device data gather interval [us]" type="u64" init-value="1e6"/>
+  <attribute name="gather_interval_debug" description="Hardware device data gather debug interval [us]" type="u64" init-value="10e6"/>
+  <attribute name="monitored_device_name_master" description="Name of timing master device to be monitored" type="string" init-value="Unknown"/>
+  <attribute name="monitored_device_names_fanout" description="Names of timing fanout devices to be monitored" type="string" is-multi-value="yes" init-value="FanoutDeviceNames"/>
+  <attribute name="monitored_device_name_endpoint" description="Name of timing endpoint device to be monitored" type="string" init-value="Unknown"/>
+  <attribute name="monitored_device_name_hsi" description="Name of hsi device to be monitored" type="string" init-value="Unknown"/>
+  <attribute name="device_info_connection" description="String of managed hsi device info connection" type="string" init-value="Unknown"/>
+  <relationship name="uhal_config" description="Configuration for uhal" class-type="TimingHardwareInterface" low-cc="one" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no"/>
+ </class>
+
+ <class name="TimingHardwareManagerPDI">
+  <superclass name="DaqModule"/>
+ </class>
+
+ <class name="TimingHardwareManagerPDII">
+  <superclass name="DaqModule"/>
+ </class>
+
+ <class name="TimingMasterController" description="TimingMasterController configuration">
+  <superclass name="TimingController"/>
   <attribute name="endpoint_scan_period" description="Period between endpoint scans. 0 for disabled." type="u32" init-value="0"/>
   <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
   <attribute name="soft" description="Soft reset" type="bool" init-value="false"/>
   <attribute name="fanout_mode" description="Fanout mode. -1: none, 0: fanout, 1: standalone" type="string" init-value="Unknown"/>
-  <attribute name="monitored_endpoints" description="List of monitored endpoint addresses" type="string" is-multi-value="yes" init-value="TimingEndpointLocations"/>
-</class>
+  <relationship name="monitored_endpoints" description="List of monitored endpoint addresses" class-type="EndpointLocation" low-cc="one" high-cc="many" is-composite="no" is-exclusive="no" is-dependent="no"/>
+ </class>
 
-<class name="TimingEndpointLocations" description="A vector of endpoint locations">
-  <superclass name="TimingMasterControllerParameters"/>
-  <attribute name="endpoints" description="Endpoints" type="string" init-value="EndpointLocation" is-multi-value="yes" />
-</class>
+ <class name="TimingPartitionController" description="TimingPartitionController configuration">
+  <superclass name="TimingController"/>
+  <attribute name="partition_id" description="Part id number" type="u32" init-value="0"/>
+  <attribute name="trigger_mask" description="Trigger mask for fixed length cmd distribution" type="u32" init-value="Unknown"/>
+  <attribute name="spill_gate_enabled" description="Spill interface on" type="bool" init-value="false"/>
+  <attribute name="rate_control_enabled" description="Rate control on" type="bool" init-value="false"/>
+ </class>
 
-<class name="EndpointLocation" description="Endpoint location data">
-  <superclass name="TimingMasterControllerParameters"/>
-  <attribute name="fanout_slot" description="Fanout slot of the endpoint" type="u32" init-value="0"/>
-  <attribute name="sfp_slot" description="SFP slot of the endpoint" type="u32" init-value="0"/>
-  <attribute name="address" description="Address of the endpoint" type="u32" init-value="0"/>
-</class>
-
-<class name="TimingPartitionControllerParameters" description="TimingPartitionController configuration parameters">
- <superclass name="TimingConfigurationParameters"/>
- <attribute name="partition_id" description="Part id number" type="u32" init-value="0"/>
- <attribute name="trigger_mask" description="Trigger mask for fixed length cmd distribution" type="u32" init-value="Unknown"/>
- <attribute name="spill_gate_enabled" description="Spill interface on" type="bool" init-value="false"/>
- <attribute name="rate_control_enabled" description="Rate control on" type="bool" init-value="false"/>
-</class>
-
-<class name="TimingFanoutControllerParameters" description="TimingFanoutController configuration">
- <superclass name="TimingConfigurationParameters"/>
- <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
- <attribute name="device_ready_timeout" type="u32" init-value="20000" />
-</class>
-
-<class name="TimingHardwareManagerPDIParameters" description="TimingHardwareManager PD-I conf parameters">
- <superclass name="DaqModule"/>
- <attribute name="connections_file" description="device connections file" type="string" init-value="${TIMING_SHARE}/config/etc/connections.xml"/>
- <attribute name="gather_interval" description="Hardware device data gather interval [us]" type="u64" init-value="1e6"/>
- <attribute name="gather_interval_debug" description="Hardware device data gather debug interval [us]" type="u64" init-value="10e6"/>
- <attribute name="monitored_device_name_master" description="Name of timing master device to be monitored" type="string" init-value="Unknown"/>
- <attribute name="monitored_device_names_fanout" description="Names of timing fanout devices to be monitored"  type="string" is-multi-value="yes" init-value="FanoutDeviceNames"/>
- <attribute name="monitored_device_name_endpoint" description="Name of timing endpoint device to be monitored" type="string" init-value="Unknown"/>
- <attribute name="monitored_device_name_hsi" description="Name of hsi device to be monitored" type="string" init-value="Unknown"/>
- <attribute name="device_info_connection" description="String of managed hsi device info connection" type="string" init-value="Unknown"/>
- <attribute name="uhal_log_level" description="Log level for uhal. Possible values are: fatal, error, warning, notice, info, debug." type="string" init-value="notice"/>  
-</class>
-
-<class name="HSIControllerParameters">
- <superclass name="DaqModule"/>
- <attribute name="device" type="string" init-value="Unknown"/>
- <attribute name="clock_frequency" type="u64" init-value="62500000"/>
- <attribute name="trigger_rate" type="double" init-value="1"/>
- <attribute name="address" type="string" init-value="tcp://127.0.0.1:12344"/>
- <attribute name="partition" type="string" init-value="hsi_readout_test"/>
- <attribute name="rising_edge_mask" description="Rising edge mask for HSI triggering" type="u32" init-value="Unknown"/>
- <attribute name="falling_edge_mask" description="Falling edge mask for HSI triggering" type="u32" init-value="Unknown"/>
- <attribute name="invert_edge_mask" description="Invert edge mask for HSI triggering" type="u32" init-value="Unknown"/>
- <attribute name="data_source" description="Source of data for HSI triggering" type="string" init-value="Unknown"/>
- <relationship name="configuration" class-type="HSIControllerParameters" low-cc="zero" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no" />
-</class>
-  
 </oks-schema>

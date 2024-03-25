@@ -8,7 +8,7 @@
  */
 
 #include "TimingFanoutController.hpp"
-#include "timinglibs/dal/TimingFanoutControllerParameters.hpp"
+#include "timinglibs/dal/TimingFanoutController.hpp"
 
 #include "timinglibs/timingfanoutcontroller/Nljs.hpp"
 #include "timinglibs/timingfanoutcontroller/Structs.hpp"
@@ -48,7 +48,7 @@ TimingFanoutController::TimingFanoutController(const std::string& name)
 void
 TimingFanoutController::do_configure(const nlohmann::json& data)
 {
-  auto mdal = m_params->module<dal::TimingFanoutControllerParameters>(get_name()); 
+  auto mdal = m_params->cast<dal::TimingFanoutController>(); 
   if (mdal->get_device_str().empty())
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
