@@ -44,9 +44,7 @@ public:
 protected:
   void configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareManagerPDIParameters* mdal);
   void scrap_uhal ();
-  // TODO: remove once hsilibs has converted to OKS
-  void configure_uhal(const nlohmann::json& data);
-  void scrap_uhal (const nlohmann::json& data);
+  
   std::string m_connections_file;
   std::string m_uhal_log_level;
   std::unique_ptr<uhal::ConnectionManager> m_connection_manager;
