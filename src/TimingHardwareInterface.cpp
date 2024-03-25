@@ -68,7 +68,7 @@ TimingHardwareInterface::configure_uhal(const dunedaq::timinglibs::dal::TimingHa
     throw InvalidUHALLogLevel(ERS_HERE, m_uhal_log_level);
   }
 
-  m_connections_file = "";
+  m_connections_file = mdal->get_connections_file();
   try {
     m_connection_manager = std::make_unique<uhal::ConnectionManager>("file://" + m_connections_file);
   } catch (const uhal::exception::FileNotFound& excpt) {
