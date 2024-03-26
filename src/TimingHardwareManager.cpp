@@ -412,6 +412,10 @@ void TimingHardwareManager::perform_endpoint_scan(const timingcmd::TimingHwCmd& 
         }
         m_monitored_endpoints_round_trip_times[endpoint_address]=current_rtt;
       }
+      else
+      {
+        TLOG() << endpoint_address << " endpoint was not alive...";
+      }
       master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, false);
     }
     catch(std::exception& e)
