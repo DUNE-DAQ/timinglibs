@@ -161,6 +161,7 @@ protected:
   virtual void clean_endpoint_scan_threads();
   std::unique_ptr<dunedaq::utilities::ReusableThread> m_endpoint_scan_threads_clean_up_thread;
   std::atomic<bool> m_run_endpoint_scan_cleanup_thread;
+  std::map<uint,int> m_monitored_endpoints_round_trip_times;
 };
 
 } // namespace timinglibs
