@@ -20,8 +20,8 @@ find_package(iomanager REQUIRED)
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 find_package(okssystem REQUIRED)
 find_package(oks REQUIRED)
-find_package(genconfig REQUIRED)
-find_package(oksdbinterfaces REQUIRED)
+find_package(oksdalgen REQUIRED)
+find_package(conffwk REQUIRED)
 
 daq_oks_codegen(timing.schema.xml NAMESPACE dunedaq::timinglibs::dal DALDIR dal DEP_PKGS coredal)
 
@@ -61,7 +61,7 @@ set(TIMINGLIBS_DEPENDENCIES
 )
 
 ##############################################################################
-daq_add_library(TimingController.cpp TimingHardwareInterface.cpp TimingHardwareManager.cpp TimingMasterController.cpp TimingHardwareInterface.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES} oksdbinterfaces::oksdbinterfaces okssystem::okssystem
+daq_add_library(TimingController.cpp TimingHardwareInterface.cpp TimingHardwareManager.cpp TimingMasterController.cpp TimingHardwareInterface.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES} conffwk::conffwk okssystem::okssystem
 logging::logging coredal::coredal oks::oks ers::ers appfwk::appfwk)
 
 ##############################################################################
