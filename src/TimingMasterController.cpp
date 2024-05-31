@@ -47,6 +47,8 @@ TimingMasterController::TimingMasterController(const std::string& name)
   register_command("master_send_fl_command", &TimingMasterController::do_master_send_fl_command);
   register_command("master_measure_endpoint_rtt", &TimingMasterController::do_master_measure_endpoint_rtt);
   register_command("master_endpoint_scan", &TimingMasterController::do_master_endpoint_scan);
+  register_command("master_set_periodic_command_sends", &TimingMasterController::do_master_set_periodic_command_sends);
+  // master_set_periodic_command_send
 }
 
 void
@@ -184,6 +186,19 @@ TimingMasterController::do_master_endpoint_scan(const nlohmann::json& data)
   hw_cmd.payload = data;
   
   TLOG_DEBUG(2) << "endpoint scan data: " << data.dump();
+
+  send_hw_cmd(std::move(hw_cmd));
+  ++(m_sent_hw_command_counters.at(6).atomic);
+}
+
+void
+TimingMasterController::do_master_set_periodic_command_sends(const nlohmann::json& data)
+{
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_master_hw_cmd( "do_master_set_periodic_command_sends");
+  hw_cmd.payload = data;
+  
+  TLOG_DEBUG(2) << "periodic commands: " << data.dump();
 
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(6).atomic);

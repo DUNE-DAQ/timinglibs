@@ -79,6 +79,7 @@ protected:
   void do_master_send_fl_command(const nlohmann::json& data);
   void do_master_measure_endpoint_rtt(const nlohmann::json& data);
   void do_master_endpoint_scan(const nlohmann::json& data);
+  void do_master_set_periodic_command_sends(const nlohmann::json& data);
 
   // pass op mon info
   void get_info(opmonlib::InfoCollector& ci, int level) override;

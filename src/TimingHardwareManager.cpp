@@ -490,6 +490,19 @@ TimingHardwareManager::send_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd)
   design->get_master_node_plain()->send_fl_cmd(cmd_payload.fl_cmd_id, cmd_payload.channel, cmd_payload.number_of_commands_to_send);
 }
 
+
+void
+TimingHardwareManager::send_periodic_cmd(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " send periodic cmd";
+  timingcmd::TimingMasterSendFLCmdCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  // auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  // design->get_master_node_plain()->send_fl_cmd(cmd_payload.fl_cmd_id, cmd_payload.channel, cmd_payload.number_of_commands_to_send);
+}
+
+
 // endpoint commands
 void
 TimingHardwareManager::endpoint_enable(const timingcmd::TimingHwCmd& hw_cmd)

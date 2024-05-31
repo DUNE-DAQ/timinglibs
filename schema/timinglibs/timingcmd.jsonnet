@@ -103,6 +103,8 @@ local timingcmd = {
             doc="Channel on which to send command"),
         s.field("number_of_commands_to_send", self.uint_data,
             doc="How many commands to send"),
+        s.field("rate", self.uint_data,
+            doc="Rate of command sends"),
     ], doc="Structure for payload of endpoint configure commands"),
 
     timing_master_set_endpoint_delay_cmd_payload: s.record("TimingMasterSetEndpointDelayCmdPayload",[
@@ -120,6 +122,17 @@ local timingcmd = {
             doc="Control SFP or not"),
         s.field("sfp_mux", self.int_data,
             doc="Mux to endpoint (or not)"),
+    ], doc="Structure for payload of timing master set endpoint delay command"),
+
+    timing_master_set_periodic_command_sends: s.record("TimingMasterSendPeriodicCommand",[
+        s.field("cmd_id", self.uint_data,
+            doc="ID of target endpoint"),
+        s.field("channel", self.uint_data,
+            doc="Channel on which to send command"),
+        s.field("number_of_commands_to_send", self.uint_data,
+            doc="How many commands to send"),
+        s.field("rate", self.uint_data,
+            doc="Rate of command sends"),
     ], doc="Structure for payload of timing master set endpoint delay command"),
 
     timing_endpoint_location_data: s.record("EndpointLocation", [

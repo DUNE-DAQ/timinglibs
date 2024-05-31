@@ -121,6 +121,7 @@ protected:
   void set_timestamp(const timingcmd::TimingHwCmd& hw_cmd);
   void set_endpoint_delay(const timingcmd::TimingHwCmd& hw_cmd);
   void send_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd);
+  void send_periodic_cmd(const timingcmd::TimingHwCmd& hw_cmd);
   void master_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd);
 
   // timing partition commands

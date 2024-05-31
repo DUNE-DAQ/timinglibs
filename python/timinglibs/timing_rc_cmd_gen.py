@@ -27,7 +27,8 @@ def generate_timing_rc_cmds(
         ("master_send_fl_command",    acmd([ (MASTER_CONTROLLER_MOD_NAME, tcmd.TimingMasterSendFLCmdCmdPayload(
                                                                 fl_cmd_id=0x1,
                                                                 channel=0,
-                                                                number_of_commands_to_send=1))])),
+                                                                number_of_commands_to_send=1,
+                                                                rate=10))])),
         ("master_set_endpoint_delay", acmd([ (MASTER_CONTROLLER_MOD_NAME, tcmd.TimingMasterSetEndpointDelayCmdPayload(
                                                                 address=0,
                                                                 coarse_delay=0,
@@ -36,6 +37,11 @@ def generate_timing_rc_cmds(
                                                                 measure_rtt=False,
                                                                 control_sfp=False,
                                                                 sfp_mux=-1))])),
+        ("master_send_periodic_command_sends", acmd([ (MASTER_CONTROLLER_MOD_NAME, tcmd.TimingMasterSendPeriodicCommand(
+                                                                cmd_id=0x1,
+                                                                channel=0,
+                                                                number_of_commands_to_send=1,
+                                                                rate=10))])),
         ]
 
     data_dir = f"{JSON_DIR}/data"
