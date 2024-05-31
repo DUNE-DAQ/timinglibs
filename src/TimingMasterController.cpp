@@ -48,7 +48,7 @@ TimingMasterController::TimingMasterController(const std::string& name)
   register_command("master_measure_endpoint_rtt", &TimingMasterController::do_master_measure_endpoint_rtt);
   register_command("master_endpoint_scan", &TimingMasterController::do_master_endpoint_scan);
   register_command("master_set_periodic_command_sends", &TimingMasterController::do_master_set_periodic_command_sends);
-  // master_set_periodic_command_send
+
 }
 
 void
