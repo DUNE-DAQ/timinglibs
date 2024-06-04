@@ -499,7 +499,7 @@ TimingHardwareManager::start_send_periodic_fl_cmd(const timingcmd::TimingHwCmd& 
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
   auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
-  design->get_master_node_plain()->enable_periodic_fl_cmd(cmd_payload.fl_cmd_id, cmd_payload.channel, cmd_payload.rate, cmd_payload.poisson, cmd_payload.clock_frequency_hz);
+  design->enable_periodic_fl_cmd(cmd_payload.fl_cmd_id, cmd_payload.channel, cmd_payload.rate, cmd_payload.poisson);
 }
 
 

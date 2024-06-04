@@ -103,8 +103,6 @@ local timingcmd = {
             doc="Channel on which to send command"),
         s.field("number_of_commands_to_send", self.uint_data,
             doc="How many commands to send"),
-        s.field("rate", self.uint_data,
-            doc="Rate of command sends"),
     ], doc="Structure for payload of endpoint configure commands"),
 
     timing_master_set_endpoint_delay_cmd_payload: s.record("TimingMasterSetEndpointDelayCmdPayload",[
@@ -133,8 +131,6 @@ local timingcmd = {
             doc="Rate of command sends"),
         s.field("poisson", self.bool_data,
             doc="Poisson"),
-        s.field("clock_frequency_hz", self.uint_data,
-            doc="Clock frequency"),
     ], doc="Structure for sending of periodic timing master commands"),
 
     timing_master_stop_periodic_command_sends: s.record("TimingMasterStopPeriodicFLCmd",[

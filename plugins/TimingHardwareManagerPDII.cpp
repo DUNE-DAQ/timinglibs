@@ -111,6 +111,9 @@ TimingHardwareManagerPDII::register_master_hw_commands_for_design()
   register_timing_hw_command("set_endpoint_delay", &TimingHardwareManagerPDII::set_endpoint_delay);
   register_timing_hw_command("send_fl_command", &TimingHardwareManagerPDII::send_fl_cmd);
   register_timing_hw_command("master_endpoint_scan", &TimingHardwareManagerPDII::master_endpoint_scan);
+  register_timing_hw_command("master_start_periodic_fl_commands", &TimingHardwareManagerPDII::start_send_periodic_fl_cmd);
+  register_timing_hw_command("master_stop_periodic_fl_commands", &TimingHardwareManagerPDII::stop_send_periodic_fl_cmd);
+
 }
 
 void
