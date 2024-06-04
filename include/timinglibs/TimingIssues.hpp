@@ -100,6 +100,13 @@ ERS_DECLARE_ISSUE_BASE(timinglibs,
                        ((std::string)device))
 
 ERS_DECLARE_ISSUE_BASE(timinglibs,
+                       InvalidFLCommandID,
+                       timinglibs::FailedToExecuteHardwareCommand,
+                       " Tried to execture invalid fixed lengh command " << fl_cmd_id << ". ",
+                       ((std::string)hw_cmd_id)((std::string)device),
+                       ((int)fl_cmd_id))
+
+ERS_DECLARE_ISSUE_BASE(timinglibs,
                        TimingHardwareCommandRegistrationFailed,
                        appfwk::CommandRegistrationFailed,
                        " Failed to register timing hardware command with ID: " << cmd,

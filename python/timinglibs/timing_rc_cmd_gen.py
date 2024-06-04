@@ -37,7 +37,7 @@ def generate_timing_rc_cmds(
                                                                 control_sfp=False,
                                                                 sfp_mux=-1))])),
         ("master_start_periodic_fl_commands", acmd([ (MASTER_CONTROLLER_MOD_NAME, tcmd.TimingMasterStartPeriodicFLCmd(
-                                                                fl_cmd_id=0x1,
+                                                                fl_cmd_id=256,
                                                                 channel=0,
                                                                 rate=10,
                                                                 poisson=False))])),

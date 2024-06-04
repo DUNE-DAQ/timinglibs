@@ -499,6 +499,10 @@ TimingHardwareManager::start_send_periodic_fl_cmd(const timingcmd::TimingHwCmd& 
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
   auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  if (cmd_payload.fl_cmd_id == 0 || cmd_payload.fl_cmd_id ==1){
+    TLOG(0) << " Invalid command id (0 or 1) sent";
+    ers::warning(InvalidFLCommandID(ERS_HERE, hw_cmd.id, hw_cmd.device, cmd_payload.fl_cmd_id));
+  }
   design->enable_periodic_fl_cmd(cmd_payload.fl_cmd_id, cmd_payload.channel, cmd_payload.rate, cmd_payload.poisson);
 }
 
