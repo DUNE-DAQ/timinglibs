@@ -40,13 +40,11 @@ def generate_timing_rc_cmds(
         ("master_start_periodic_fl_commands", acmd([ (MASTER_CONTROLLER_MOD_NAME, tcmd.TimingMasterStartPeriodicFLCmd(
                                                                 fl_cmd_id=0x1,
                                                                 channel=0,
-                                                                number_of_commands_to_send=1,
-                                                                rate=10))])),
+                                                                rate=10,
+                                                                poisson=False,
+                                                                clock_frequency_hz=10))])),
         ("master_stop_periodic_fl_commands", acmd([ (MASTER_CONTROLLER_MOD_NAME, tcmd.TimingMasterStopPeriodicFLCmd(
-                                                                fl_cmd_id=0x1,
-                                                                channel=0,
-                                                                number_of_commands_to_send=1,
-                                                                rate=10))])),
+                                                                channel=0))])),
         ]
 
     data_dir = f"{JSON_DIR}/data"
