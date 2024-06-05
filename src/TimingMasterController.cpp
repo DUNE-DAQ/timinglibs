@@ -30,7 +30,7 @@ namespace dunedaq {
 namespace timinglibs {
 
 TimingMasterController::TimingMasterController(const std::string& name)
-  : dunedaq::timinglibs::TimingController(name, 7) // 2nd arg: how many hw commands can this module send?
+  : dunedaq::timinglibs::TimingController(name, 9) // 2nd arg: how many hw commands can this module send?
   , m_endpoint_scan_period(0)
   , endpoint_scan_thread(std::bind(&TimingMasterController::endpoint_scan, this, std::placeholders::_1))
 {
@@ -202,7 +202,7 @@ TimingMasterController::do_master_start_periodic_fl_commands(const nlohmann::jso
   TLOG_DEBUG(2) << "periodic commands start: " << data.dump();
 
   send_hw_cmd(std::move(hw_cmd));
-  ++(m_sent_hw_command_counters.at(6).atomic);
+  ++(m_sent_hw_command_counters.at(7).atomic);
 }
 
 void
@@ -215,7 +215,7 @@ TimingMasterController::do_master_stop_periodic_fl_commands(const nlohmann::json
   TLOG_DEBUG(2) << "periodic commands stop: " << data.dump();
 
   send_hw_cmd(std::move(hw_cmd));
-  ++(m_sent_hw_command_counters.at(6).atomic);
+  ++(m_sent_hw_command_counters.at(8).atomic);
 }
 
 void
@@ -228,7 +228,11 @@ TimingMasterController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
   module_info.sent_master_print_status_cmds = m_sent_hw_command_counters.at(2).atomic.load();
   module_info.sent_master_set_endpoint_delay_cmds = m_sent_hw_command_counters.at(3).atomic.load();
   module_info.sent_master_send_fl_command_cmds = m_sent_hw_command_counters.at(4).atomic.load();
-
+  module_info.sent_master_measure_endpoint_rtt = m_sent_hw_command_counters.at(5).atomic.load();
+  module_info.sent_master_endpoint_scan = m_sent_hw_command_counters.at(6).atomic.load();
+  module_info.sent_master_start_periodic_fl_commands = m_sent_hw_command_counters.at(7).atomic.load();
+  module_info.sent_master_stop_periodic_fl_commands = m_sent_hw_command_counters.at(8).atomic.load();
+  
   // for (uint i = 0; i < m_number_hw_commands; ++i) {
   //  module_info.sent_hw_command_counters.push_back(m_sent_hw_command_counters.at(i).atomic.load());
   //}

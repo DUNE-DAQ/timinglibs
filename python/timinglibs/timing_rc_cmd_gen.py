@@ -26,7 +26,7 @@ def generate_timing_rc_cmds(
     cmds = [
         ("master_send_fl_command",    acmd([ (MASTER_CONTROLLER_MOD_NAME, tcmd.TimingMasterSendFLCmdCmdPayload(
                                                                 fl_cmd_id=0x1,
-                                                                channel=0,
+                                                                channel=256,
                                                                 number_of_commands_to_send=1))])),
         ("master_set_endpoint_delay", acmd([ (MASTER_CONTROLLER_MOD_NAME, tcmd.TimingMasterSetEndpointDelayCmdPayload(
                                                                 address=0,
@@ -38,7 +38,7 @@ def generate_timing_rc_cmds(
                                                                 sfp_mux=-1))])),
         ("master_start_periodic_fl_commands", acmd([ (MASTER_CONTROLLER_MOD_NAME, tcmd.TimingMasterStartPeriodicFLCmd(
                                                                 fl_cmd_id=256,
-                                                                channel=0,
+                                                                channel=256,
                                                                 rate=10,
                                                                 poisson=False))])),
         ("master_stop_periodic_fl_commands", acmd([ (MASTER_CONTROLLER_MOD_NAME, tcmd.TimingMasterStopPeriodicFLCmd(
