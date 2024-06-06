@@ -490,6 +490,34 @@ TimingHardwareManager::send_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd)
   design->get_master_node_plain()->send_fl_cmd(cmd_payload.fl_cmd_id, cmd_payload.channel, cmd_payload.number_of_commands_to_send);
 }
 
+
+void
+TimingHardwareManager::start_send_periodic_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " send periodic cmd";
+  timingcmd::TimingMasterStartPeriodicFLCmd cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  if (cmd_payload.fl_cmd_id == 0 || cmd_payload.fl_cmd_id ==1){
+    TLOG(0) << " Invalid command id (0 or 1) sent";
+    ers::warning(InvalidFLCommandID(ERS_HERE, hw_cmd.id, hw_cmd.device, cmd_payload.fl_cmd_id));
+  }
+  design->enable_periodic_fl_cmd(cmd_payload.fl_cmd_id, cmd_payload.channel, cmd_payload.rate, cmd_payload.poisson);
+}
+
+
+void
+TimingHardwareManager::stop_send_periodic_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd)
+{
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " stop periodic cmd";
+  timingcmd::TimingMasterStopPeriodicFLCmd cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
+  design->get_master_node_plain()->disable_periodic_fl_cmd(cmd_payload.channel);
+}
+
 // endpoint commands
 void
 TimingHardwareManager::endpoint_enable(const timingcmd::TimingHwCmd& hw_cmd)
