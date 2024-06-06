@@ -26,7 +26,7 @@
 #include "utilities/WorkerThread.hpp"
 
 #include "appfwk/ModuleConfiguration.hpp"
-#include "coredal/Connection.hpp"
+#include "confmodel/Connection.hpp"
 
 #include <memory>
 #include <string>
