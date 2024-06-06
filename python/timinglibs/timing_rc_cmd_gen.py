@@ -42,7 +42,7 @@ def generate_timing_rc_cmds(
                                                                 rate=10,
                                                                 poisson=False))])),
         ("master_stop_periodic_fl_commands", acmd([ (MASTER_CONTROLLER_MOD_NAME, tcmd.TimingMasterStopPeriodicFLCmd(
-                                                                channel=0))])),
+                                                                channel=256))])),
         ]
 
     data_dir = f"{JSON_DIR}/data"
