@@ -122,6 +122,22 @@ local timingcmd = {
             doc="Mux to endpoint (or not)"),
     ], doc="Structure for payload of timing master set endpoint delay command"),
 
+    timing_master_start_periodic_command_sends: s.record("TimingMasterStartPeriodicFLCmd",[
+        s.field("fl_cmd_id", self.uint_data,
+            doc="ID of target endpoint"),
+        s.field("channel", self.uint_data,
+            doc="Channel on which to send command"),
+        s.field("rate", self.double_data,
+            doc="Rate of command sends"),
+        s.field("poisson", self.bool_data,
+            doc="Poisson"),
+    ], doc="Structure for sending of periodic timing master commands"),
+
+    timing_master_stop_periodic_command_sends: s.record("TimingMasterStopPeriodicFLCmd",[
+        s.field("channel", self.uint_data,
+            doc="Channel on which to send command"),
+    ], doc="Structure for stopping of periodic timing master commands"),
+
     timing_endpoint_location_data: s.record("EndpointLocation", [
         s.field("fanout_slot", self.int_data,
                 doc="Fanout slot of the endpoint"),

@@ -13,6 +13,11 @@ local info = {
        s.field("sent_master_print_status_cmds", self.uint8, doc="Number of sent print_status commands"),
        s.field("sent_master_set_endpoint_delay_cmds", self.uint8, doc="Number of sent set_endpoint_delay commands"),
        s.field("sent_master_send_fl_command_cmds", self.uint8, doc="Number of sent send_fl_command commands"),
+       s.field("sent_master_measure_endpoint_rtt", self.uint8, doc="Number of sent measure_endpoint_rtt commands"),
+       s.field("sent_master_endpoint_scan", self.uint8, doc="Number of sent endpoint_scan commands"),
+       s.field("sent_master_start_periodic_fl_commands", self.uint8, doc="Number of start_periodic_fl_command commands"),
+       s.field("sent_master_stop_periodic_fl_commands", self.uint8, doc="Number of stop_periodic_fl_command commands")
+
    ], doc="TimingMasterController information")
 };
 
