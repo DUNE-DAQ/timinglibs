@@ -23,6 +23,8 @@ local cs = {
                 doc="Name of managed device timing session"),
         s.field("clock_config", self.str, "",
             doc="Path of clock config file"),
+        s.field("clock_source", self.uint_data,
+            doc="Clock source, 0 for PLL input 0, 1 for in 1, etc.. 255 for free run mode"),
     ], doc="TimingFanoutController configuration"),
 
 };

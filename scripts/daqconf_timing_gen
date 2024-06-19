@@ -93,7 +93,7 @@ def cli(config, debug, json_dir):
             HARDWARE_STATE_RECOVERY_ENABLED = tmc.enable_hardware_state_recovery,
             MASTER_ENDPOINT_SCAN_PERIOD     = tmc.master_endpoint_scan_period,
             MASTER_CLOCK_FILE               = tmc.master_clock_file,
-            MASTER_CLOCK_MODE               = tmc.master_clock_mode,
+            MASTER_CLOCK_SOURCE             = tmc.master_clock_source,
             MONITORED_ENDPOINTS             = tmc.monitored_endpoints,
             HOST                            = tmc.host_tmc,
             DEBUG                           = debug
@@ -105,6 +105,7 @@ def cli(config, debug, json_dir):
             FANOUT_DEVICE_NAME              = tfc.fanout_device_name,
             HARDWARE_STATE_RECOVERY_ENABLED = tfc.enable_hardware_state_recovery,
             FANOUT_CLOCK_FILE               = tfc.fanout_clock_file,
+            FANOUT_CLOCK_SOURCE             = tfc.fanout_clock_source,
             HOST                            = tfc.host_tfc,
             DEBUG                           = debug)
         conf_order.append('tfc')

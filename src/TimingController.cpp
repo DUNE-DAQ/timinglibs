@@ -50,6 +50,9 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
   for (auto it = m_sent_hw_command_counters.begin(); it != m_sent_hw_command_counters.end(); ++it) {
     it->atomic.store(0);
   }
+
+  register_command("io_reset", &TimingController::do_io_reset);
+  register_command("print_status", &TimingController::do_print_status);
 }
 
 void
@@ -117,6 +120,42 @@ TimingController::send_hw_cmd(timingcmd::TimingHwCmd&& hw_cmd)
       oss_warn.str(),
       std::chrono::duration_cast<std::chrono::milliseconds>(m_hw_cmd_out_timeout).count()));
   }
+}
+
+timingcmd::TimingHwCmd
+TimingController::construct_hw_cmd( const std::string& cmd_id)
+{
+  timingcmd::TimingHwCmd hw_cmd;
+  hw_cmd.id = cmd_id;
+  hw_cmd.device = m_timing_device;
+  return hw_cmd;
+}
+
+timingcmd::TimingHwCmd
+TimingController::construct_hw_cmd( const std::string& cmd_id, const nlohmann::json& payload)
+{
+  auto hw_cmd =  construct_hw_cmd(cmd_id);
+  hw_cmd.payload = payload;
+  return hw_cmd;
+}
+
+void
+TimingController::do_io_reset(const nlohmann::json& data)
+{
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_hw_cmd( "io_reset", data);
+
+  send_hw_cmd(std::move(hw_cmd));
+  ++(m_sent_hw_command_counters.at(0).atomic);
+}
+
+void
+TimingController::do_print_status(const nlohmann::json&)
+{
+  timingcmd::TimingHwCmd hw_cmd =
+  construct_hw_cmd( "print_status");
+  send_hw_cmd(std::move(hw_cmd));
+  ++(m_sent_hw_command_counters.at(1).atomic);
 }
 
 } // namespace timinglibs

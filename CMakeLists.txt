@@ -54,16 +54,16 @@ set(TIMINGLIBS_DEPENDENCIES
 )
 
 ##############################################################################
-daq_add_library(TimingController.cpp TimingHardwareInterface.cpp TimingHardwareManager.cpp TimingMasterController.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES})
+daq_add_library(TimingController.cpp TimingEndpointControllerBase.cpp TimingHardwareInterface.cpp TimingHardwareManagerBase.cpp TimingMasterControllerBase.cpp LINK_LIBRARIES ${TIMINGLIBS_DEPENDENCIES})
 
 ##############################################################################
 daq_add_plugin(TimingHardwareManagerPDII duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)
 daq_add_plugin(TimingHardwareManagerPDI duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)
 daq_add_plugin(TimingMasterControllerPDII duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(TimingMasterControllerPDI duneDAQModule LINK_LIBRARIES timinglibs)
+daq_add_plugin(TimingEndpointController duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(TimingFanoutController duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(TimingPartitionController duneDAQModule LINK_LIBRARIES timinglibs)
-daq_add_plugin(TimingEndpointController duneDAQModule LINK_LIBRARIES timinglibs)
 
 ##############################################################################
 

@@ -1,5 +1,5 @@
 /**
- * @file TimingHardwareManager.cpp TimingHardwareManager class
+ * @file TimingHardwareManagerBase.cpp TimingHardwareManagerBase class
  * implementation
  *
  * This is part of the DUNE DAQ Software Suite, copyright 2020.
@@ -31,7 +31,7 @@ namespace dunedaq {
 namespace timinglibs {
 
 TimingHardwareManagerPDI::TimingHardwareManagerPDI(const std::string& name)
-  : TimingHardwareManager(name)
+  : TimingHardwareManagerBase(name)
 {
   register_command("conf", &TimingHardwareManagerPDI::conf);
   register_command("start", &TimingHardwareManagerPDI::start);
@@ -58,7 +58,7 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
   m_monitored_device_name_endpoint = conf_params.monitored_device_name_endpoint;
   m_monitored_device_name_hsi = conf_params.monitored_device_name_hsi;
 
-  TimingHardwareManager::conf(conf_data);
+  TimingHardwareManagerBase::conf(conf_data);
 
   // monitoring
   // only register monitor threads if we have been given the name of the device to monitor

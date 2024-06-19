@@ -1,7 +1,7 @@
 /**
- * @file TimingHardwareManager.hpp
+ * @file TimingHardwareManagerBase.hpp
  *
- * TimingHardwareManager is a DAQModule implementation that
+ * TimingHardwareManagerBase is a DAQModule implementation that
  * provides the interface to the timing system hardware.
  *
  * This is part of the DUNE DAQ Software Suite, copyright 2020.
@@ -46,24 +46,24 @@ namespace dunedaq {
 namespace timinglibs {
 
 /**
- * @brief TimingHardwareManager creates vectors of ints and writes
+ * @brief TimingHardwareManagerBase creates vectors of ints and writes
  * them to the configured output queues.
  */
-class TimingHardwareManager : public dunedaq::appfwk::DAQModule, public timinglibs::TimingHardwareInterface
+class TimingHardwareManagerBase : public dunedaq::appfwk::DAQModule, public timinglibs::TimingHardwareInterface
 {
 public:
   /**
-   * @brief TimingHardwareManager Constructor
-   * @param name Instance name for this TimingHardwareManager instance
+   * @brief TimingHardwareManagerBase Constructor
+   * @param name Instance name for this TimingHardwareManagerBase instance
    */
-  explicit TimingHardwareManager(const std::string& name);
+  explicit TimingHardwareManagerBase(const std::string& name);
 
-  TimingHardwareManager(const TimingHardwareManager&) = delete; ///< TimingHardwareManager is not copy-constructible
-  TimingHardwareManager& operator=(const TimingHardwareManager&) =
-    delete;                                                ///< TimingHardwareManager is not copy-assignable
-  TimingHardwareManager(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-constructible
-  TimingHardwareManager& operator=(TimingHardwareManager&&) = delete; ///< TimingHardwareManager is not move-assignable
-  virtual ~TimingHardwareManager() {}
+  TimingHardwareManagerBase(const TimingHardwareManagerBase&) = delete; ///< TimingHardwareManagerBase is not copy-constructible
+  TimingHardwareManagerBase& operator=(const TimingHardwareManagerBase&) =
+    delete;                                                ///< TimingHardwareManagerBase is not copy-assignable
+  TimingHardwareManagerBase(TimingHardwareManagerBase&&) = delete; ///< TimingHardwareManagerBase is not move-constructible
+  TimingHardwareManagerBase& operator=(TimingHardwareManagerBase&&) = delete; ///< TimingHardwareManagerBase is not move-assignable
+  virtual ~TimingHardwareManagerBase() {}
   
   void init(const nlohmann::json& init_data) override;
   virtual void conf(const nlohmann::json& data);
@@ -166,7 +166,7 @@ protected:
 } // namespace timinglibs
 } // namespace dunedaq
 
-#include "detail/TimingHardwareManager.hxx"
+#include "detail/TimingHardwareManagerBase.hxx"
 
 #endif // TIMINGLIBS_SRC_TIMINGHARDWAREMANAGER_HPP_
 

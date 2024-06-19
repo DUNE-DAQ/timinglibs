@@ -2,7 +2,7 @@ namespace dunedaq::timinglibs {
 
 template<class Child>
 void
-TimingHardwareManager::register_timing_hw_command(const std::string& hw_cmd_id,
+TimingHardwareManagerBase::register_timing_hw_command(const std::string& hw_cmd_id,
                                                   void (Child::*f)(const timingcmd::TimingHwCmd&))
 {
   using namespace std::placeholders;
@@ -19,7 +19,7 @@ TimingHardwareManager::register_timing_hw_command(const std::string& hw_cmd_id,
 
 template<class TIMING_DEV>
 TIMING_DEV
-TimingHardwareManager::get_timing_device(const std::string& device_name)
+TimingHardwareManagerBase::get_timing_device(const std::string& device_name)
 {
   auto device = get_timing_device_plain(device_name);
   auto timing_device = dynamic_cast<TIMING_DEV>(device);

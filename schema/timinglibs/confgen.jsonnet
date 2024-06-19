@@ -36,7 +36,7 @@ local cs = {
     s.field('master_device_name',             types.string,  default="",          doc='Device name of timing master hw'),
     s.field('master_endpoint_scan_period',    self.number,  default=0,           doc="Master controller continuously scans the endpoint addresses provided. This controls period of scan [ms]. 0 for disable."),
     s.field('master_clock_file',              types.path, default="",          doc='Path to custom PLL config file for master device'),
-    s.field('master_clock_mode',              self.number,  default=-1,          doc='Fanout mode for master device.'),
+    s.field('master_clock_source',            self.number,  default=0,          doc='PLL input for master device.'),
     s.field('monitored_endpoints',            timingcmd.TimingEndpointLocations, default=[], doc='List of endpoints to be monitored.'),
   ]),
 
@@ -45,6 +45,7 @@ local cs = {
     s.field('fanout_device_name',             types.string,  default="",          doc='Device name of timing fanout hw'),
     s.field('host_tfc',                       types.host, default='localhost', doc='Host to run the (global) timing master controller app on'),
     s.field('fanout_clock_file',              types.path, default="",          doc='Path to custom PLL config file for fanout device'),
+    s.field('fanout_clock_source',            self.number, default=1,          doc='PLL input for fanout device.'),
   ]),
 
   timing_gen: s.record('timing_gen', [

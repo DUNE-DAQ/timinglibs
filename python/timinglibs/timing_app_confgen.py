@@ -148,7 +148,7 @@ def generate(
                                         device=tmc_conf_gen.master_device_name,
                                         endpoint_scan_period=tmc_conf_gen.master_endpoint_scan_period,
                                         clock_config=tmc_conf_gen.master_clock_file,
-                                        fanout_mode=tmc_conf_gen.master_clock_mode,
+                                        clock_source=tmc_conf_gen.master_clock_source,
                                         monitored_endpoints=tmc_conf_gen.monitored_endpoints,
                                         ))])
 
