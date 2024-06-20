@@ -146,7 +146,7 @@
 
  <class name="TimingHardwareManager" description="TimingHardwareManager configuration">
   <superclass name="TimingHardwareInterface"/>  
-  <attribute name="gather_interval" description="Hardware devicefanout_device_names_vector data gather interval [us]" type="u64" init-value="1e6"/>
+  <attribute name="gather_interval" description="Hardware device data gather interval [us]" type="u64" init-value="1e6"/>
   <attribute name="gather_interval_debug" description="Hardware device data gather debug interval [us]" type="u64" init-value="10e6"/>
   <attribute name="monitored_device_name_master" description="Name of timing master device to be monitored" type="string" init-value="Unknown"/>
   <attribute name="monitored_device_names_fanout" description="Names of timing fanout devices to be monitored" type="string" is-multi-value="yes" init-value="FanoutDeviceNames"/>
