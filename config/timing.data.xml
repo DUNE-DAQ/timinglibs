@@ -146,7 +146,7 @@
     <attr name="address" type="u32" val="0"/>
 </obj>
 
-<obj class="TimingMasterController" id="tmc">
+<obj class="TimingMasterControllerPDI" id="tmc">
     <attr name="endpoint_scan_period" type="u32" val="0"/>
     <attr name="clock_config" type="string" val="https://github.com/DUNE-DAQ/timing/blob/develop/config/etc/clock/nocdr/Si5395-RevA-069a_ep-Registers.txt"/>
     <attr name="soft" type="bool" val="0"/>
@@ -156,7 +156,7 @@
     <attr name="address" type="u32" val="0"/>
 </obj>
    
-<obj class="TimingHardwareInterface" id="thi">
+<obj class="TimingHardwareManagerPDII" id="thi">
  <attr name="uhal_log_level" type="enum" val="notice"/>
  <attr name="connections_file" type="string" val="/home/jr19588/NFD_DEV_240507_C8/.test_connections.xml"/>
 </obj>

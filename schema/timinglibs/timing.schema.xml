@@ -144,9 +144,9 @@
   <attribute name="connections_file" description="device connections file" type="string" init-value="${TIMING_SHARE}/config/etc/connections.xml"/>
  </class>
 
- <class name="TimingHardwareManager" description="TimingHardwareManager conf parameters">
-  <attribute name="template_for" type="class" init-value="TimingHardwareManagerPDI" is-not-null="yes"/>
-  <attribute name="gather_interval" description="Hardware device data gather interval [us]" type="u64" init-value="1e6"/>
+ <class name="TimingHardwareManager" description="TimingHardwareManager configuration">
+  <superclass name="TimingHardwareInterface"/>  
+  <attribute name="gather_interval" description="Hardware devicefanout_device_names_vector data gather interval [us]" type="u64" init-value="1e6"/>
   <attribute name="gather_interval_debug" description="Hardware device data gather debug interval [us]" type="u64" init-value="10e6"/>
   <attribute name="monitored_device_name_master" description="Name of timing master device to be monitored" type="string" init-value="Unknown"/>
   <attribute name="monitored_device_names_fanout" description="Names of timing fanout devices to be monitored" type="string" is-multi-value="yes" init-value="FanoutDeviceNames"/>
@@ -157,11 +157,11 @@
  </class>
 
  <class name="TimingHardwareManagerPDI">
-  <superclass name="DaqModule"/>
+  <superclass name="TimingHardwareManager"/>
  </class>
 
  <class name="TimingHardwareManagerPDII">
-  <superclass name="DaqModule"/>
+  <superclass name="TimingHardwareManager"/>
  </class>
 
  <class name="TimingMasterController" description="TimingMasterController configuration">
@@ -173,6 +173,14 @@
   <relationship name="monitored_endpoints" description="List of monitored endpoint addresses" class-type="EndpointLocation" low-cc="one" high-cc="many" is-composite="no" is-exclusive="no" is-dependent="no"/>
  </class>
 
+<class name="TimingMasterControllerPDI">
+    <superclass name="TimingMasterController"/>
+</class>
+  
+<class name="TimingMasterControllerPDII">
+    <superclass name="TimingMasterController"/>
+</class>
+  
  <class name="TimingPartitionController" description="TimingPartitionController configuration">
   <superclass name="TimingController"/>
   <attribute name="partition_id" description="Part id number" type="u32" init-value="0"/>
