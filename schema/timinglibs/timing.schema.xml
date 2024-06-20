@@ -121,7 +121,7 @@
 
  <class name="TimingController">
   <superclass name="DaqModule"/>
-  <attribute name="device_str" description="String of managed device name" type="string" init-value="Unknown" is-not-null="yes"/>
+  <attribute name="device" description="String of managed device name" type="string" init-value="Unknown" is-not-null="yes"/>
   <attribute name="hardware_state_recovery_enabled" description="Control flag for hardware state recovery" type="bool" init-value="true"/>
   <attribute name="timing_session_name" description="Name of managed device timing session" type="string" init-value="Unknown"/>
  </class>

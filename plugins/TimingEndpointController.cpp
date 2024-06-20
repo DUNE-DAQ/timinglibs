@@ -55,12 +55,10 @@ TimingEndpointController::do_configure(const nlohmann::json& data)
 {  
   auto mdal = m_params->cast<dal::TimingEndpointController>(); 
 
-  if (mdal->get_device_str().empty()) {
+  if (mdal->get_device().empty()) {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
-  m_timing_device = mdal->get_device_str();
-  m_hardware_state_recovery_enabled = mdal->get_hardware_state_recovery_enabled();
-  m_timing_session_name = mdal->get_timing_session_name();
+  
   m_managed_endpoint_id = mdal->get_endpoint_id();
 
   TimingController::do_configure(data); // configure hw command connection

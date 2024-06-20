@@ -61,6 +61,12 @@ TimingController::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 void
 TimingController::do_configure(const nlohmann::json&)
 {
+  auto mdal = m_params->cast<dal::TimingController>(); 
+
+  m_timing_device = mdal->get_device();
+  m_hardware_state_recovery_enabled = mdal->get_hardware_state_recovery_enabled();
+  m_timing_session_name = mdal->get_timing_session_name();
+
   if (m_timing_session_name.empty())
   {
     m_hw_command_sender = iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(m_hw_command_out_connection);
