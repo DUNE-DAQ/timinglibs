@@ -61,8 +61,14 @@ TimingMasterController::do_configure(const nlohmann::json& data)
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
-  
-  // m_monitored_endpoint_locations = mdal->get_monitored_endpoints();
+
+  // for (auto endpoints : mdal->get_monitoredEndpointsSet()->get_monitored_endpoints()) {
+  //   m_monitored_endpoint_locations.push_back(endpoints->get_fanout_slot());
+  //   m_monitored_endpoint_locations.push_back(endpoints->get_sfp_slot());
+  //   m_monitored_endpoint_locations.push_back(endpoints->get_address());
+  // }
+
+  m_monitored_endpoint_locations = mdal->get_monitoredEndpointsSet()->get_monitored_endpoints()->address();
 
   TimingController::do_configure(data); // configure hw command connection
 
@@ -224,7 +230,10 @@ TimingMasterController::endpoint_scan(std::atomic<bool>& running_flag)
 
     timingcmd::TimingMasterEndpointScanPayload cmd_payload;
     cmd_payload.endpoints = m_monitored_endpoint_locations;
-    
+
+    // dal::TimingMasterController::TimingMasterEndpointScanPayload cmd_payload;
+    // cmd_payload.endpoints = m_monitored_endpoint_locations;
+
     hw_cmd.payload = cmd_payload;
     send_hw_cmd(std::move(hw_cmd));
 

@@ -86,13 +86,6 @@
  <file path="schema/coredal/dunedaq.schema.xml"/>
 </include>
 
-
- <class name="EndpointLocation" description="Endpoint location data">
-  <attribute name="fanout_slot" description="Fanout slot of the endpoint" type="u32" init-value="0"/>
-  <attribute name="sfp_slot" description="SFP slot of the endpoint" type="u32" init-value="0"/>
-  <attribute name="address" description="Address of the endpoint" type="u32" init-value="0"/>
- </class>
-
  <class name="HSIController">
   <superclass name="TimingController"/>
   <attribute name="device" type="string" init-value="Unknown"/>
@@ -164,14 +157,30 @@
   <superclass name="TimingHardwareManager"/>
  </class>
 
+ <class name="EndpointLocation" description="Endpoint location data">
+    <superclass name="TimingMasterController"/>
+    <attribute name="fanout_slot" description="Fanout slot of the endpoint" type="u32" init-value="0"/>
+    <attribute name="sfp_slot" description="SFP slot of the endpoint" type="u32" init-value="0"/>
+    <attribute name="address" description="Address of the endpoint" type="u32" init-value="0"/>
+</class>
+
+ <class name="EndpointLocationSet">
+    <relationship name="monitored_endpoints" class-type="EndpointLocation" low-cc="one" high-cc="many" is-composite="yes" is-exclusive="no" is-dependent="yes"/>
+</class>
+
  <class name="TimingMasterController" description="TimingMasterController configuration">
   <superclass name="TimingController"/>
   <attribute name="endpoint_scan_period" description="Period between endpoint scans. 0 for disabled." type="u32" init-value="0"/>
   <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
   <attribute name="soft" description="Soft reset" type="bool" init-value="false"/>
   <attribute name="fanout_mode" description="Fanout mode. -1: none, 0: fanout, 1: standalone" type="string" init-value="Unknown"/>
-  <relationship name="monitored_endpoints" description="List of monitored endpoint addresses" class-type="EndpointLocation" low-cc="one" high-cc="many" is-composite="no" is-exclusive="no" is-dependent="no"/>
+  <relationship name="monitoredEndpointsSet" description="List of monitored endpoint addresses" class-type="EndpointLocationSet"  low-cc="one" high-cc="one" is-composite="yes" is-exclusive="no" is-dependent="yes"/>
  </class>
+
+
+<class name="TimingMasterEndpointScanPayload">
+    <attribute name="endpoints" type="class" init-value="EndpointLocation" />
+</class>
 
 <class name="TimingMasterControllerPDI">
     <superclass name="TimingMasterController"/>

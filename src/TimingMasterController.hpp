@@ -13,6 +13,7 @@
 #define TIMINGLIBS_PLUGINS_TIMINGMASTERCONTROLLER_HPP_
 
 #include "timinglibs/TimingController.hpp"
+#include "timinglibs/dal/TimingMasterController.hpp"
 
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
