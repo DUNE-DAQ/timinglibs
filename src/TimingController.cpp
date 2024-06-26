@@ -17,7 +17,7 @@
 #include "ers/Issue.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
-#include "coredal/Connection.hpp"
+#include "confmodel/Connection.hpp"
 
 #include <chrono>
 #include <cstdlib>

@@ -83,7 +83,7 @@
 <info name="" type="" num-of-items="11" oks-format="schema" oks-version="862f2957270" created-by="dianaAntic" created-on="mu2edaq13.fnal.gov" creation-time="20230123T223700" last-modified-by="eflumerf" last-modified-on="ironvirt9.mshome.net" last-modification-time="20240325T173708"/>
 
 <include>
- <file path="schema/coredal/dunedaq.schema.xml"/>
+ <file path="schema/confmodel/dunedaq.schema.xml"/>
 </include>
 
  <class name="HSIController">

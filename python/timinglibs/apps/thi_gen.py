@@ -8,7 +8,7 @@
 #
 # As with testapp_noreadout_confgen.py
 # in this directory, no modules from the readout package are used: the
-# fragments are provided by the FakeDataProd module from dfmodules
+# fragments are provided by the FakeDataProdModule module from dfmodules
 
 
 # Set moo schema search path

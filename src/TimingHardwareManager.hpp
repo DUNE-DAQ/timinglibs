@@ -27,7 +27,7 @@
 #include "logging/Logging.hpp"
 
 #include "timinglibs/dal/TimingHardwareManager.hpp"
-#include "coredal/Connection.hpp"
+#include "confmodel/Connection.hpp"
 
 #include "timing/TimingNode.hpp"
 #include "timing/EndpointDesignInterface.hpp"

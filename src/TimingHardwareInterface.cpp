@@ -10,7 +10,7 @@
 #include "timinglibs/TimingHardwareInterface.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
-#include "coredal/Connection.hpp"
+#include "confmodel/Connection.hpp"
 
 #include "appfwk/app/Nljs.hpp"
 #include "logging/Logging.hpp"
