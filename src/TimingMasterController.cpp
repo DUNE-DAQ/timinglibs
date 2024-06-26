@@ -8,6 +8,7 @@
  */
 
 #include "TimingMasterController.hpp"
+#include "timinglibs/dal/EndpointLocationSet.hpp"
 #include "timinglibs/dal/TimingMasterController.hpp"
 
 #include "timinglibs/timingmastercontroller/Nljs.hpp"
@@ -68,7 +69,7 @@ TimingMasterController::do_configure(const nlohmann::json& data)
   //   m_monitored_endpoint_locations.push_back(endpoints->get_address());
   // }
 
-  m_monitored_endpoint_locations = mdal->get_monitoredEndpointsSet()->get_monitored_endpoints()->address();
+  m_monitored_endpoint_locations = mdal->get_monitoredEndpointsSet()->get_monitored_endpoints();
 
   TimingController::do_configure(data); // configure hw command connection
 
