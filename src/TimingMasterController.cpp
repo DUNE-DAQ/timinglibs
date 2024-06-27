@@ -9,6 +9,7 @@
 
 #include "TimingMasterController.hpp"
 #include "timinglibs/dal/EndpointLocationSet.hpp"
+#include "timinglibs/dal/EndpointLocation.hpp"
 #include "timinglibs/dal/TimingMasterController.hpp"
 
 #include "timinglibs/timingmastercontroller/Nljs.hpp"
@@ -63,13 +64,15 @@ TimingMasterController::do_configure(const nlohmann::json& data)
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
 
-  // for (auto endpoints : mdal->get_monitoredEndpointsSet()->get_monitored_endpoints()) {
-  //   m_monitored_endpoint_locations.push_back(endpoints->get_fanout_slot());
-  //   m_monitored_endpoint_locations.push_back(endpoints->get_sfp_slot());
-  //   m_monitored_endpoint_locations.push_back(endpoints->get_address());
-  // }
+  auto monitored_endpoints = mdal->get_monitoredEndpointsSet()->get_monitored_endpoints();
 
-  m_monitored_endpoint_locations = mdal->get_monitoredEndpointsSet()->get_monitored_endpoints();
+   for (auto endpoint : monitored_endpoints) {
+    timingcmd::EndpointLocation endpoint_location;
+    endpoint_location.address = endpoint->get_address();
+    endpoint_location.fanout_slot = endpoint->get_fanout_slot();
+    endpoint_location.sfp_slot = endpoint->get_sfp_slot();
+    m_monitored_endpoint_locations.push_back(endpoint_location);
+   }
 
   TimingController::do_configure(data); // configure hw command connection
 
