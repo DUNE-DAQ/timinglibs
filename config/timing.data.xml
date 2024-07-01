@@ -66,8 +66,8 @@
 <info name="" type="" num-of-items="2" oks-format="data" oks-version="862f2957270" created-by="jr19588" created-on="kipper.phy.bris.ac.uk" creation-time="20240417T160310" last-modified-by="jr19588" last-modified-on="kipper.phy.bris.ac.uk" last-modification-time="20240417T160310"/>
 
 <include>
- <file path="/home/jr19588/NFD_DEV_240507_C8/sourcecode/timinglibs/schema/timinglibs/timing.schema.xml"/>
- <file path="schema/coredal/dunedaq.schema.xml"/>
+ <file path="schema/timinglibs/timing.schema.xml"/>
+ <file path="schema/confmodel/dunedaq.schema.xml"/>
 </include>
 
 <obj class="DaqApplication" id="tmc">
