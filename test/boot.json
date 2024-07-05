@@ -46,34 +46,34 @@
                 "-i",
                 "{INFO_SVC}",
                 "--configurationService",
-                "oksconflibs:config/timing.data.xml"
+                "oksconfig:config/timing.data.xml"
             ],
             "cmd": "daq_application",
             "comment": "Application profile using PATH variables (lower start time)",
             "env": {
                 "CET_PLUGIN_PATH": "getenv",
                 "CMD_FAC": "rest://localhost:{APP_PORT}",
-                "CONNECTION_SERVER": "localhost",
+                "CONNECTION_SERVER": "kipper.phy.bris.ac.uk",
                 "DETCHANNELMAPS_SHARE": "getenv",
+                "DUNEDAQ_DB_PATH": "getenv",
                 "DUNEDAQ_SHARE_PATH": "getenv",
                 "INFO_SVC": "file://info_{APP_NAME}_{APP_PORT}.json",
                 "LD_LIBRARY_PATH": "getenv",
                 "PATH": "getenv",
                 "TIMING_SHARE": "getenv",
-                "TRACE_FILE": "getenv:/tmp/trace_buffer_{APP_HOST}_{DUNEDAQ_PARTITION}",
-		"DUNEDAQ_SHARE_PATH": "getenv"
+                "TRACE_FILE": "getenv:/tmp/trace_buffer_{APP_HOST}_{DUNEDAQ_PARTITION}"
             }
         }
     },
     "external_connections": [],
     "hosts-ctrl": {
-        "connectionservice": "localhost",
-        "thi": "localhost",
-        "tmc": "localhost"
+        "connectionservice": "kipper.phy.bris.ac.uk",
+        "thi": "kipper.phy.bris.ac.uk",
+        "tmc": "kipper.phy.bris.ac.uk"
     },
     "hosts-data": {
-        "thi": "localhost",
-        "tmc": "localhost"
+        "thi": "kipper.phy.bris.ac.uk",
+        "tmc": "kipper.phy.bris.ac.uk"
     },
     "response_listener": {
         "port": 56789
