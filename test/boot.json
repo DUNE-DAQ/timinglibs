@@ -2,12 +2,12 @@
   "apps": {
     "thi": {
       "exec": "daq_application_ssh",
-      "host": "local",
+      "host": "thi",
       "port": 3333
     },
     "tmc": {
       "exec": "daq_application_ssh",
-      "host": "local",
+      "host": "tmc",
       "port": 3334
     }
   },
@@ -72,7 +72,8 @@
     "local": "localhost"
   },
   "hosts-data": {
-    "local": "localhost"
+    "thi": "localhost",
+    "tmc": "localhost"
   },
   "response_listener": {
     "port": 56789
