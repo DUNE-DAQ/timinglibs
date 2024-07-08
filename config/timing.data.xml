@@ -74,7 +74,7 @@
     <attr name="application_name" type="string" val="daq_application"/>
     <rel name="runs_on" class="VirtualHost" id="vlocalhost"/>
     <rel name="modules">
-     <ref class="TimingMasterControllerPDI" id="tmc"/>
+     <ref class="TimingMasterControllerPDII" id="tmc"/>
     </rel>
 </obj>
 
@@ -164,29 +164,29 @@
  <rel name="runs_on" class="PhysicalHost" id="localhost"/>
 </obj>
 
-<obj class="TimingController" id="TimingController1">
- <attr name="device" type="string" val="TEST_CTL"/>
- <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
- <attr name="timing_session_name" type="string" val="test"/>
-</obj>
-
-<obj class="EndpointLocation" id="monitored_endpoints">
+<obj class="EndpointLocation" id="dummy_endpoint">
     <attr name="fanout_slot" type="u32" val="0"/>
     <attr name="sfp_slot" type="u32" val="0"/>
     <attr name="address" type="u32" val="0"/>
 </obj>
 
-<obj class="TimingMasterControllerPDI" id="tmc">
+<obj class="TimingMasterControllerPDII" id="tmc">
+    <attr name="device" type="string" val="MST_FMC"/>
+    <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
+    <attr name="timing_session_name" type="string" val=""/>
     <attr name="endpoint_scan_period" type="u32" val="0"/>
     <attr name="clock_config" type="string" val="https://github.com/DUNE-DAQ/timing/blob/develop/config/etc/clock/nocdr/Si5395-RevA-069a_ep-Registers.txt"/>
     <attr name="soft" type="bool" val="0"/>
     <attr name="fanout_mode" type="string" val="-1"/>
-    <rel name="monitoredEndpointsSet" class="EndpointLocationSet" id="ept-list"></rel>
+    <rel name="monitored_endpoints">
+     <ref class="EndpointLocation" id="dummy_endpoint"/>
+    </rel>
 </obj>
-   
+
 <obj class="TimingHardwareManagerPDII" id="thi">
  <attr name="uhal_log_level" type="enum" val="notice"/>
- <attr name="connections_file" type="string" val="/home/jr19588/NFD_DEV_240507_C8/.test_connections.xml"/>
+ <attr name="connections_file" type="string" val="$TIMING_SHARE/config/etc/connections.xml"/>
+ <attr name="monitored_device_name_master" type="string" val="MST_FMC"/>
 </obj>
 
 </oks-data>

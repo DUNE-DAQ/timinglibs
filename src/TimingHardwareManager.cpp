@@ -71,7 +71,7 @@ TimingHardwareManager::conf(const nlohmann::json&)
   m_rejected_hw_commands_counter = 0;
   m_failed_hw_commands_counter = 0;
 
-  configure_uhal(m_params->get_uhal_config()); // configure hw ipbus connection
+  configure_uhal(m_params); // configure hw ipbus connection
 
   m_hw_command_receiver->add_callback(std::bind(&TimingHardwareManager::process_hardware_command, this, std::placeholders::_1));
 

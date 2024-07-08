@@ -98,7 +98,6 @@
   <attribute name="falling_edge_mask" description="Falling edge mask for HSI triggering" type="u32" init-value="Unknown"/>
   <attribute name="invert_edge_mask" description="Invert edge mask for HSI triggering" type="u32" init-value="Unknown"/>
   <attribute name="data_source" description="Source of data for HSI triggering" type="string" init-value="Unknown"/>
-  <relationship name="uhal_config" description="Configuration for uhal" class-type="TimingHardwareInterface" low-cc="one" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no"/>
  </class>
 
  <class name="HSIEventSender">
@@ -109,7 +108,6 @@
   <superclass name="HSIEventSender"/>
   <attribute name="readout_period" description="Hardware device poll perio [us]" type="u64" init-value="1000"/>
   <attribute name="hsi_device_name" type="string" init-value="Unknown"/>
-  <relationship name="uhal_config" description="Configuration for uhal" class-type="TimingHardwareInterface" low-cc="one" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no"/>
  </class>
 
  <class name="TimingController">
@@ -142,12 +140,10 @@
   <superclass name="DaqModule" />
   <attribute name="gather_interval" description="Hardware device data gather interval [us]" type="u64" init-value="1e6"/>
   <attribute name="gather_interval_debug" description="Hardware device data gather debug interval [us]" type="u64" init-value="10e6"/>
-  <attribute name="monitored_device_name_master" description="Name of timing master device to be monitored" type="string" init-value="Unknown"/>
-  <attribute name="monitored_device_names_fanout" description="Names of timing fanout devices to be monitored" type="string" is-multi-value="yes" init-value="FanoutDeviceNames"/>
-  <attribute name="monitored_device_name_endpoint" description="Name of timing endpoint device to be monitored" type="string" init-value="Unknown"/>
-  <attribute name="monitored_device_name_hsi" description="Name of hsi device to be monitored" type="string" init-value="Unknown"/>
-  <attribute name="device_info_connection" description="String of managed hsi device info connection" type="string" init-value="Unknown"/>
-  <relationship name="uhal_config" description="Configuration for uhal" class-type="TimingHardwareInterface" low-cc="one" high-cc="one" is-composite="no" is-exclusive="no" is-dependent="no"/>
+  <attribute name="monitored_device_name_master" description="Name of timing master device to be monitored" type="string" init-value=""/>
+  <attribute name="monitored_device_names_fanout" description="Names of timing fanout devices to be monitored" type="string" is-multi-value="yes" init-value=""/>
+  <attribute name="monitored_device_name_endpoint" description="Name of timing endpoint device to be monitored" type="string" init-value=""/>
+  <attribute name="monitored_device_name_hsi" description="Name of hsi device to be monitored" type="string" init-value=""/>
 </class>
 
  <class name="TimingHardwareManagerPDI">
@@ -159,14 +155,9 @@
  </class>
 
  <class name="EndpointLocation" description="Endpoint location data">
-    <superclass name="TimingMasterController"/>
     <attribute name="fanout_slot" description="Fanout slot of the endpoint" type="u32" init-value="0"/>
     <attribute name="sfp_slot" description="SFP slot of the endpoint" type="u32" init-value="0"/>
     <attribute name="address" description="Address of the endpoint" type="u32" init-value="0"/>
-</class>
-
-<class name="EndpointLocationSet">
-    <relationship name="monitored_endpoints" class-type="EndpointLocation" low-cc="one" high-cc="many" is-composite="yes" is-exclusive="no" is-dependent="yes"/>
 </class>
 
  <class name="TimingMasterController" description="TimingMasterController configuration">
@@ -175,7 +166,7 @@
   <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
   <attribute name="soft" description="Soft reset" type="bool" init-value="false"/>
   <attribute name="fanout_mode" description="Fanout mode. -1: none, 0: fanout, 1: standalone" type="string" init-value="Unknown"/>
-  <relationship name="monitoredEndpointsSet" description="List of monitored endpoint addresses" class-type="EndpointLocationSet"  low-cc="one" high-cc="one" is-composite="yes" is-exclusive="no" is-dependent="yes"/>
+  <relationship name="monitored_endpoints" description="List of monitored endpoint locations" class-type="EndpointLocation"  low-cc="zero" high-cc="many" is-composite="yes" is-exclusive="no" is-dependent="yes"/>
  </class>
 
 

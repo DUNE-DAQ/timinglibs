@@ -64,7 +64,7 @@ TimingMasterController::do_configure(const nlohmann::json& data)
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
 
-  auto monitored_endpoints = mdal->get_monitoredEndpointsSet()->get_monitored_endpoints();
+  auto monitored_endpoints = mdal->get_monitored_endpoints();
 
    for (auto endpoint : monitored_endpoints) {
     timingcmd::EndpointLocation endpoint_location;
