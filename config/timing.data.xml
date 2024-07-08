@@ -151,6 +151,19 @@
     </rel>
 </obj>
 
+<obj class="PhysicalHost" id="localhost">
+ <rel name="contains">
+  <ref class="ProcessingResource" id="cpus"/>
+ </rel>
+</obj>
+
+<obj class="VirtualHost" id="vlocalhost">
+ <rel name="uses">
+  <ref class="ProcessingResource" id="cpus"/>
+ </rel>
+ <rel name="runs_on" class="PhysicalHost" id="localhost"/>
+</obj>
+
 <obj class="TimingController" id="TimingController1">
  <attr name="device" type="string" val="TEST_CTL"/>
  <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
