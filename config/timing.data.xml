@@ -119,6 +119,32 @@
 </obj>
 
 
+<obj class="Service" id="timing_commands">
+ <attr name="protocol" type="string" val="tcp"/>
+ <attr name="port" type="u16" val="0"/>
+</obj>
+
+<obj class="NetworkConnection" id="timing_cmds">
+ <attr name="data_type" type="string" val="TimingHwCmd"/>
+ <attr name="send_timeout_ms" type="u32" val="100"/>
+ <attr name="recv_timeout_ms" type="u32" val="100"/>
+ <attr name="connection_type" type="enum" val="kSendRecv"/>
+ <rel name="associated_service" class="Service" id="timing_commands"/>
+</obj>
+
+<obj class="Service" id="device_op_mon">
+ <attr name="protocol" type="string" val="tcp"/>
+ <attr name="port" type="u16" val="0"/>
+</obj>
+
+<obj class="NetworkConnection" id="MST_FMC_info">
+ <attr name="data_type" type="string" val="JSON"/>
+ <attr name="send_timeout_ms" type="u32" val="100"/>
+ <attr name="recv_timeout_ms" type="u32" val="100"/>
+ <attr name="connection_type" type="enum" val="kPubSub"/>
+ <rel name="associated_service" class="Service" id="device_op_mon"/>
+</obj>
+
 <obj class="ConnectionService" id="connectionservice">
     <attr name="application_name" type="string" val="gunicorn"/>
     <attr name="commandline_parameters" type="string" val="--bind=0.0.0.0:15000 --workers=1 --worker-class=gthread --threads=2 --timeout=0 --pid=connectionservice_15000.pid connection-service.connection-flask:app"/>
@@ -181,12 +207,24 @@
     <rel name="monitored_endpoints">
      <ref class="EndpointLocation" id="dummy_endpoint"/>
     </rel>
+    <rel name="outputs">
+     <ref class="NetworkConnection" id="timing_cmds"/>
+    </rel>
+    <rel name="inputs">
+     <ref class="NetworkConnection" id="MST_FMC_info"/>
+    </rel>
 </obj>
 
 <obj class="TimingHardwareManagerPDII" id="thi">
  <attr name="uhal_log_level" type="enum" val="notice"/>
- <attr name="connections_file" type="string" val="$TIMING_SHARE/config/etc/connections.xml"/>
+ <attr name="connections_file" type="string" val="connections.xml"/>
  <attr name="monitored_device_name_master" type="string" val="MST_FMC"/>
+ <rel name="inputs">
+  <ref class="NetworkConnection" id="timing_cmds"/>
+ </rel>
+ <rel name="outputs">
+  <ref class="NetworkConnection" id="MST_FMC_info"/>
+ </rel>
 </obj>
 
 </oks-data>

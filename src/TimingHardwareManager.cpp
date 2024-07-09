@@ -58,9 +58,22 @@ TimingHardwareManager::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
   m_params = mcfg->module<timinglibs::dal::TimingHardwareManager>(get_name());
   // set up queues
-  m_hw_command_receiver = iomanager::IOManager::get()->get_receiver<timingcmd::TimingHwCmd>(m_hw_cmd_connection);
+  for (auto con : m_params->get_inputs())
+  {
+    if (con->get_data_type() == datatype_to_string<timingcmd::TimingHwCmd>()) {
+      m_hw_cmd_connection = con->UID();
+      TLOG() << "m_hw_cmd_connection: " << m_hw_cmd_connection;
+    }
+  }
+
+  try
+  {
+    m_hw_command_receiver = iomanager::IOManager::get()->get_receiver<timingcmd::TimingHwCmd>(m_hw_cmd_connection);
+  } catch (const ers::Issue& excpt) {
+    throw InvalidQueueFatalError(ERS_HERE, get_name(), "input", excpt);
+  }
+
   m_endpoint_scan_threads_clean_up_thread = std::make_unique<dunedaq::utilities::ReusableThread>(0);
-  
 }
 
 void
