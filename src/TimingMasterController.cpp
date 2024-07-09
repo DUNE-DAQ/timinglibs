@@ -8,7 +8,6 @@
  */
 
 #include "TimingMasterController.hpp"
-#include "timinglibs/dal/EndpointLocationSet.hpp"
 #include "timinglibs/dal/EndpointLocation.hpp"
 #include "timinglibs/dal/TimingMasterController.hpp"
 
