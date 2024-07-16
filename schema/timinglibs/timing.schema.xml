@@ -155,8 +155,8 @@
  </class>
 
  <class name="EndpointLocation" description="Endpoint location data">
-    <attribute name="fanout_slot" description="Fanout slot of the endpoint" type="u32" init-value="0"/>
-    <attribute name="sfp_slot" description="SFP slot of the endpoint" type="u32" init-value="0"/>
+    <attribute name="fanout_slot" description="Fanout slot of the endpoint" type="s32" init-value="-1"/>
+    <attribute name="sfp_slot" description="SFP slot of the endpoint" type="s32" init-value="-1"/>
     <attribute name="address" description="Address of the endpoint" type="u32" init-value="0"/>
 </class>
 

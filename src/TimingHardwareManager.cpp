@@ -389,7 +389,7 @@ void TimingHardwareManager::perform_endpoint_scan(const timingcmd::TimingHwCmd& 
 
     std::unique_lock<std::mutex> master_sfp_lock(master_sfp_mutex);
 
-    TLOG_DEBUG(1) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan starting: ept adr: " << endpoint_address << ", ept sfp: " << sfp_slot;
+    TLOG_DEBUG(1) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan starting: ept adr: " << endpoint_address << ", ept sfp: " << sfp_slot << ", fanout slot: " << fanout_slot;
 
     auto master_design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
 
