@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="ASCII"?>
+
+<!-- oks-data version 2.2 -->
+
+
+<!DOCTYPE oks-data [
+  <!ELEMENT oks-data (info, (include)?, (comments)?, (obj)+)>
+  <!ELEMENT info EMPTY>
+  <!ATTLIST info
+      name CDATA #IMPLIED
+      type CDATA #IMPLIED
+      num-of-items CDATA #REQUIRED
+      oks-format CDATA #FIXED "data"
+      oks-version CDATA #REQUIRED
+      created-by CDATA #IMPLIED
+      created-on CDATA #IMPLIED
+      creation-time CDATA #IMPLIED
+      last-modified-by CDATA #IMPLIED
+      last-modified-on CDATA #IMPLIED
+      last-modification-time CDATA #IMPLIED
+  >
+  <!ELEMENT include (file)*>
+  <!ELEMENT file EMPTY>
+  <!ATTLIST file
+      path CDATA #REQUIRED
+  >
+  <!ELEMENT comments (comment)*>
+  <!ELEMENT comment EMPTY>
+  <!ATTLIST comment
+      creation-time CDATA #REQUIRED
+      created-by CDATA #REQUIRED
+      created-on CDATA #REQUIRED
+      author CDATA #REQUIRED
+      text CDATA #REQUIRED
+  >
+  <!ELEMENT obj (attr | rel)*>
+  <!ATTLIST obj
+      class CDATA #REQUIRED
+      id CDATA #REQUIRED
+  >
+  <!ELEMENT attr (data)*>
+  <!ATTLIST attr
+      name CDATA #REQUIRED
+      type (bool|s8|u8|s16|u16|s32|u32|s64|u64|float|double|date|time|string|uid|enum|class|-) "-"
+      val CDATA ""
+  >
+  <!ELEMENT data EMPTY>
+  <!ATTLIST data
+      val CDATA #REQUIRED
+  >
+  <!ELEMENT rel (ref)*>
+  <!ATTLIST rel
+      name CDATA #REQUIRED
+      class CDATA ""
+      id CDATA ""
+  >
+  <!ELEMENT ref EMPTY>
+  <!ATTLIST ref
+      class CDATA #REQUIRED
+      id CDATA #REQUIRED
+  >
+]>
+
+<oks-data>
+
+<info name="" type="" num-of-items="2" oks-format="data" oks-version="862f2957270" created-by="jr19588" created-on="kipper.phy.bris.ac.uk" creation-time="20240417T160310" last-modified-by="jr19588" last-modified-on="kipper.phy.bris.ac.uk" last-modification-time="20240417T160310"/>
+
+<include>
+    <file path="schema/confmodel/dunedaq.schema.xml"/>
+    <file path="schema/timinglibs/timing.schema.xml"/>
+</include>
+
+<obj class="DaqApplication" id="tmc">
+    <attr name="application_name" type="string" val="daq_application"/>
+    <rel name="runs_on" class="VirtualHost" id="vlocalhost"/>
+    <rel name="modules">
+     <ref class="TimingMasterControllerPDII" id="tmc"/>
+    </rel>
+</obj>
+
+<obj class="DaqApplication" id="thi">
+    <attr name="application_name" type="string" val="daq_application"/>
+    <rel name="runs_on" class="VirtualHost" id="vlocalhost"/>
+    <rel name="modules">
+     <ref class="TimingHardwareManagerPDII" id="thi"/>
+    </rel>
+</obj>
+
+<obj class="Session" id="test-session">
+    <attr name="use_connectivity_server" type="bool" val="1"/>
+    <attr name="connectivity_service_interval_ms" type="u32" val="2000"/>
+    <attr name="data_request_timeout_ms" type="u32" val="1000"/>
+    <attr name="data_rate_slowdown_factor" type="u32" val="1"/>
+    <attr name="rte_script" type="string" val="/home/jr19588/NFD_DEV_240507_C8/install/daq_app_rte.sh"/>
+    <rel name="environment">
+     <ref class="VariableSet" id="common-env"/>
+    </rel>
+    <rel name="segment" class="Segment" id="generated-segment"/>  
+</obj>
+
+<obj class="RCApplication" id="my-controller">
+    <attr name="commandline_parameters" type="string">
+     <data val="file:////home/jr19588/NFD_DEV_240701_C8/sourcecode/timinglibs/controller.json ${PORT} my-controller test-session"/>
+    </attr>
+    <attr name="application_name" type="string" val="drunc-controller"/>
+    <rel name="runs_on" class="VirtualHost" id="controller"/>
+    <rel name="exposes_service">
+        <ref class="Service" id="root-controller_control"/>
+    </rel>
+    <rel name="fsm" class="FSMconfiguration" id="fsmConf-test"/>
+</obj>
+
+<obj class="Segment" id="generated-segment">
+    <rel name="applications">
+     <ref class="DaqApplication" id="tmc"/>
+     <ref class="DaqApplication" id="thi"/>
+    </rel>
+    <rel name="controller" class="RCApplication" id="my-controller"/>
+</obj>
+
+
+<obj class="Service" id="timing_commands">
+ <attr name="protocol" type="string" val="tcp"/>
+ <attr name="port" type="u16" val="0"/>
+</obj>
+
+<obj class="NetworkConnection" id="timing_cmds">
+ <attr name="data_type" type="string" val="TimingHwCmd"/>
+ <attr name="send_timeout_ms" type="u32" val="100"/>
+ <attr name="recv_timeout_ms" type="u32" val="100"/>
+ <attr name="connection_type" type="enum" val="kSendRecv"/>
+ <rel name="associated_service" class="Service" id="timing_commands"/>
+</obj>
+
+<obj class="Service" id="device_op_mon">
+ <attr name="protocol" type="string" val="tcp"/>
+ <attr name="port" type="u16" val="0"/>
+</obj>
+
+<obj class="NetworkConnection" id="MST_FMC_info">
+ <attr name="data_type" type="string" val="JSON"/>
+ <attr name="send_timeout_ms" type="u32" val="100"/>
+ <attr name="recv_timeout_ms" type="u32" val="100"/>
+ <attr name="connection_type" type="enum" val="kPubSub"/>
+ <rel name="associated_service" class="Service" id="device_op_mon"/>
+</obj>
+
+<obj class="ConnectionService" id="connectionservice">
+    <attr name="application_name" type="string" val="gunicorn"/>
+    <attr name="commandline_parameters" type="string" val="--bind=0.0.0.0:15000 --workers=1 --worker-class=gthread --threads=2 --timeout=0 --pid=connectionservice_15000.pid connection-service.connection-flask:app"/>
+    <attr name="threads" type="u16" val="1"/>
+    <rel name="applicationEnvironment">
+     <ref class="VariableSet" id="consvc_ssh"/>
+    </rel>
+    <rel name="runs_on" class="VirtualHost" id="connectionservice"/>
+</obj>
+
+   <obj class="VariableSet" id="common-env">
+    <rel name="contains">
+     <ref class="Variable" id="DUNEDAQ_ERS_ERROR"/>
+     <ref class="Variable" id="DUNEDAQ_ERS_FATAL"/>
+     <ref class="Variable" id="DUNEDAQ_ERS_INFO"/>
+     <ref class="Variable" id="DUNEDAQ_ERS_VERBOSITY_LEVEL"/>
+     <ref class="Variable" id="DUNEDAQ_ERS_WARNING"/>
+     <ref class="Variable" id="DUNEDAQ_PARTITION"/>
+    </rel>
+   </obj>
+
+<obj class="VariableSet" id="daq_application_ssh">
+    <rel name="contains">
+     <ref class="Variable" id="CMD_FAC"/>
+     <ref class="Variable" id="CONNECTION_SERVER"/>
+     <ref class="Variable" id="DETCHANNELMAPS_SHARE"/>
+     <ref class="Variable" id="INFO_SVC"/>
+     <ref class="Variable" id="TIMING_SHARE"/>
+     <ref class="Variable" id="TRACE_FILE"/>
+    </rel>
+</obj>
+
+<obj class="PhysicalHost" id="localhost">
+ <rel name="contains">
+  <ref class="ProcessingResource" id="cpus"/>
+ </rel>
+</obj>
+
+<obj class="VirtualHost" id="vlocalhost">
+ <rel name="uses">
+  <ref class="ProcessingResource" id="cpus"/>
+ </rel>
+ <rel name="runs_on" class="PhysicalHost" id="localhost"/>
+</obj>
+
+ <obj class="EndpointLocation" id="dummy_endpoint1">
+    <attr name="fanout_slot" type="s32" val="-1"/>
+    <attr name="sfp_slot" type="s32" val="-1"/>
+    <attr name="address" type="u32" val="1"/>
+ </obj>
+
+ <obj class="EndpointLocation" id="dummy_endpoint2">
+    <attr name="fanout_slot" type="s32" val="-1"/>
+    <attr name="sfp_slot" type="s32" val="-1"/>
+    <attr name="address" type="u32" val="2"/>
+ </obj>
+
+ <obj class="EndpointLocation" id="dummy_endpoint3">
+    <attr name="fanout_slot" type="s32" val="-1"/>
+    <attr name="sfp_slot" type="s32" val="-1"/>
+    <attr name="address" type="u32" val="3"/>
+ </obj>
+
+ <obj class="EndpointLocation" id="dummy_endpoint4">
+    <attr name="fanout_slot" type="s32" val="-1"/>
+    <attr name="sfp_slot" type="s32" val="-1"/>
+    <attr name="address" type="u32" val="4"/>
+ </obj>
+
+<obj class="TimingMasterControllerPDII" id="tmc">
+    <attr name="device" type="string" val="MST_FMC"/>
+    <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
+    <attr name="timing_session_name" type="string" val=""/>
+    <attr name="endpoint_scan_period" type="u32" val="1000"/>
+    <attr name="clock_config" type="string" val="https://github.com/DUNE-DAQ/timing/blob/develop/config/etc/clock/nocdr/Si5395-RevA-069a_ep-Registers.txt"/>
+    <attr name="soft" type="bool" val="0"/>
+    <attr name="fanout_mode" type="s32" val="-1"/>
+    <rel name="monitored_endpoints">
+     <ref class="EndpointLocation" id="dummy_endpoint1"/>
+     <ref class="EndpointLocation" id="dummy_endpoint2"/>
+     <ref class="EndpointLocation" id="dummy_endpoint3"/>
+     <ref class="EndpointLocation" id="dummy_endpoint4"/>
+    </rel>
+    <rel name="outputs">
+     <ref class="NetworkConnection" id="timing_cmds"/>
+    </rel>
+    <rel name="inputs">
+     <ref class="NetworkConnection" id="MST_FMC_info"/>
+    </rel>
+</obj>
+
+<obj class="TimingHardwareManagerPDII" id="thi">
+ <attr name="uhal_log_level" type="enum" val="notice"/>
+ <attr name="connections_file" type="string" val="connections.xml"/>
+ <attr name="monitored_device_name_master" type="string" val="MST_FMC"/>
+ <rel name="inputs">
+  <ref class="NetworkConnection" id="timing_cmds"/>
+ </rel>
+ <rel name="outputs">
+  <ref class="NetworkConnection" id="MST_FMC_info"/>
+ </rel>
+</obj>
+
+</oks-data>

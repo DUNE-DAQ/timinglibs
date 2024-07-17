@@ -58,9 +58,22 @@ TimingHardwareManager::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
   m_params = mcfg->module<timinglibs::dal::TimingHardwareManager>(get_name());
   // set up queues
-  m_hw_command_receiver = iomanager::IOManager::get()->get_receiver<timingcmd::TimingHwCmd>(m_hw_cmd_connection);
+  for (auto con : m_params->get_inputs())
+  {
+    if (con->get_data_type() == datatype_to_string<timingcmd::TimingHwCmd>()) {
+      m_hw_cmd_connection = con->UID();
+      TLOG() << "m_hw_cmd_connection: " << m_hw_cmd_connection;
+    }
+  }
+
+  try
+  {
+    m_hw_command_receiver = iomanager::IOManager::get()->get_receiver<timingcmd::TimingHwCmd>(m_hw_cmd_connection);
+  } catch (const ers::Issue& excpt) {
+    throw InvalidQueueFatalError(ERS_HERE, get_name(), "input", excpt);
+  }
+
   m_endpoint_scan_threads_clean_up_thread = std::make_unique<dunedaq::utilities::ReusableThread>(0);
-  
 }
 
 void
@@ -71,7 +84,7 @@ TimingHardwareManager::conf(const nlohmann::json&)
   m_rejected_hw_commands_counter = 0;
   m_failed_hw_commands_counter = 0;
 
-  configure_uhal(m_params->get_uhal_config()); // configure hw ipbus connection
+  configure_uhal(m_params); // configure hw ipbus connection
 
   m_hw_command_receiver->add_callback(std::bind(&TimingHardwareManager::process_hardware_command, this, std::placeholders::_1));
 
@@ -376,7 +389,7 @@ void TimingHardwareManager::perform_endpoint_scan(const timingcmd::TimingHwCmd& 
 
     std::unique_lock<std::mutex> master_sfp_lock(master_sfp_mutex);
 
-    TLOG_DEBUG(1) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan starting: ept adr: " << endpoint_address << ", ept sfp: " << sfp_slot;
+    TLOG_DEBUG(1) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan starting: ept adr: " << endpoint_address << ", ept sfp: " << sfp_slot << ", fanout slot: " << fanout_slot;
 
     auto master_design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
 

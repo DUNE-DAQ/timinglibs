@@ -8,6 +8,7 @@
  */
 
 #include "TimingMasterController.hpp"
+#include "timinglibs/dal/EndpointLocation.hpp"
 #include "timinglibs/dal/TimingMasterController.hpp"
 
 #include "timinglibs/timingmastercontroller/Nljs.hpp"
@@ -55,17 +56,22 @@ TimingMasterController::TimingMasterController(const std::string& name)
 void
 TimingMasterController::do_configure(const nlohmann::json& data)
 {
-  // auto conf = data.get<timingmastercontroller::ConfParams>();
   auto mdal = m_params->cast<dal::TimingMasterController>(); 
 
-  if (mdal->get_device_str().empty())
+  if (mdal->get_device().empty())
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
-  m_timing_device = mdal->get_device_str();
-  m_hardware_state_recovery_enabled = mdal->get_hardware_state_recovery_enabled();
-  m_timing_session_name = mdal->get_timing_session_name();
-  // m_monitored_endpoint_locations = mdal->get_monitored_endpoints();
+
+  auto monitored_endpoints = mdal->get_monitored_endpoints();
+
+   for (auto endpoint : monitored_endpoints) {
+    timingcmd::EndpointLocation endpoint_location;
+    endpoint_location.address = endpoint->get_address();
+    endpoint_location.fanout_slot = endpoint->get_fanout_slot();
+    endpoint_location.sfp_slot = endpoint->get_sfp_slot();
+    m_monitored_endpoint_locations.push_back(endpoint_location);
+   }
 
   TimingController::do_configure(data); // configure hw command connection
 
@@ -227,7 +233,10 @@ TimingMasterController::endpoint_scan(std::atomic<bool>& running_flag)
 
     timingcmd::TimingMasterEndpointScanPayload cmd_payload;
     cmd_payload.endpoints = m_monitored_endpoint_locations;
-    
+
+    // dal::TimingMasterController::TimingMasterEndpointScanPayload cmd_payload;
+    // cmd_payload.endpoints = m_monitored_endpoint_locations;
+
     hw_cmd.payload = cmd_payload;
     send_hw_cmd(std::move(hw_cmd));
 
