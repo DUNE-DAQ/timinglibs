@@ -141,7 +141,7 @@
   <attribute name="endpoint_scan_period" description="Period between endpoint scans. 0 for disabled." type="u32" init-value="0"/>
   <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
   <attribute name="soft" description="Soft reset" type="bool" init-value="false"/>
-  <attribute name="fanout_mode" description="Fanout mode. -1: none, 0: fanout, 1: standalone" type="string" init-value="Unknown"/>
+  <attribute name="fanout_mode" description="Fanout mode. -1: none, 0: fanout, 1: standalone" type="s32" init-value="Unknown"/>
   <relationship name="monitored_endpoints" description="List of monitored endpoint locations" class-type="EndpointLocation"  low-cc="zero" high-cc="many" is-composite="yes" is-exclusive="no" is-dependent="yes"/>
  </class>
 

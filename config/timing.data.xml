@@ -221,7 +221,7 @@
     <attr name="endpoint_scan_period" type="u32" val="1000"/>
     <attr name="clock_config" type="string" val="https://github.com/DUNE-DAQ/timing/blob/develop/config/etc/clock/nocdr/Si5395-RevA-069a_ep-Registers.txt"/>
     <attr name="soft" type="bool" val="0"/>
-    <attr name="fanout_mode" type="string" val="-1"/>
+    <attr name="fanout_mode" type="s32" val="-1"/>
     <rel name="monitored_endpoints">
      <ref class="EndpointLocation" id="dummy_endpoint1"/>
      <ref class="EndpointLocation" id="dummy_endpoint2"/>
