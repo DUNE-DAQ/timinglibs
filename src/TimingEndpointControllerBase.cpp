@@ -8,6 +8,7 @@
  */
 
 #include "TimingEndpointControllerBase.hpp"
+#include "timinglibs/dal/TimingEndpointController.hpp"
 #include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
@@ -17,7 +18,6 @@
 #include "timing/timingendpointinfo/InfoNljs.hpp"
 #include "timing/timingendpointinfo/InfoStructs.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
@@ -44,18 +44,12 @@ TimingEndpointControllerBase::TimingEndpointControllerBase(const std::string& na
 void
 TimingEndpointControllerBase::do_configure(const nlohmann::json& data)
 {
-  auto conf = data.get<timingendpointcontroller::ConfParams>();
-  if (conf.device.empty()) {
-    throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
-  }
-  m_timing_device = conf.device;
-  m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
-  m_timing_session_name = conf.timing_session_name;
-
-  // endpoint per device in config for now...
-  m_managed_endpoint_ids = {conf.endpoint_id};
+  auto mdal = m_params->cast<dal::TimingEndpointController>(); 
 
   TimingController::do_configure(data); // configure hw command connection
+
+  // endpoint per device in config for now...
+  m_managed_endpoint_ids = {mdal->get_endpoint_id()};
 
   configure_hardware_or_recover_state<TimingEndpointNotReady>(data, "Timing endpoint", m_endpoint_state);
 

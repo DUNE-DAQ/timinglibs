@@ -53,7 +53,7 @@ TimingHardwareManagerBase::TimingHardwareManagerBase(const std::string& name)
 {
   //  register_command("start", &TimingHardwareManagerBase::do_start);
   //  register_command("stop", &TimingHardwareManagerBase::do_stop);
-  //  register_command("scrap", &TimingHardwareManagerBase::do_scrap);
+   register_command("scrap", &TimingHardwareManagerBase::do_scrap);
 }
 
 void
@@ -95,7 +95,7 @@ TimingHardwareManagerBase::conf(const nlohmann::json& data)
   m_endpoint_scan_threads_clean_up_thread->set_work(&TimingHardwareManagerBase::clean_endpoint_scan_threads, this);
 }
 
-void TimingHardwareManagerBase::scrap(const nlohmann::json& data)
+void TimingHardwareManagerBase::do_scrap(const nlohmann::json& data)
 {
   m_hw_command_receiver->remove_callback();
 

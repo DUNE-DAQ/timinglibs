@@ -8,6 +8,7 @@
  */
 
 #include "TimingMasterControllerBase.hpp"
+#include "timinglibs/dal/EndpointLocation.hpp"
 #include "timinglibs/timingmastercontroller/Nljs.hpp"
 #include "timinglibs/timingmastercontroller/Structs.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
@@ -52,11 +53,6 @@ void
 TimingMasterControllerBase::do_configure(const nlohmann::json& data)
 {
   auto mdal = m_params->cast<dal::TimingMasterController>(); 
-
-  if (mdal->get_device().empty())
-  {
-    throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
-  }
 
   auto monitored_endpoints = mdal->get_monitored_endpoints();
 

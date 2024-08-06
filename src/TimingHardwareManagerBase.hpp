@@ -69,14 +69,14 @@ public:
   
   void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
   virtual void conf(const nlohmann::json& data);
-  virtual void scrap();
 
 protected:
   // Commands
   //  virtual void do_configure(const nlohmann::json&);
   //  virtual void do_start(const nlohmann::json&);
   //  virtual void do_stop(const nlohmann::json&);
-  //  virtual void do_scrap(const nlohmann::json&);
+  virtual void do_scrap(const nlohmann::json&);
+
 
   virtual void process_hardware_command(timingcmd::TimingHwCmd& timing_hw_cmd);
 

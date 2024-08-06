@@ -62,7 +62,7 @@ TimingController::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 }
 
 void
-TimingController::do_configure(const nlohmann::json&)
+TimingController::do_configure(const nlohmann::json& data)
 {
   auto mdal = m_params->cast<dal::TimingController>(); 
 
