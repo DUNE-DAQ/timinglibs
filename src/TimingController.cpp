@@ -14,10 +14,10 @@
 #include "timinglibs/TimingIssues.hpp"
 
 #include "appfwk/cmd/Nljs.hpp"
-#include "appfwk/DAQModuleHelper.hpp"
 #include "ers/Issue.hpp"
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
+#include "confmodel/Connection.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -56,13 +56,25 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
 }
 
 void
-TimingController::init(const nlohmann::json& /*init_data*/)
+TimingController::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
+  m_params = mcfg->module<dal::TimingController>(get_name());
 }
 
 void
 TimingController::do_configure(const nlohmann::json&)
 {
+  auto mdal = m_params->cast<dal::TimingController>(); 
+
+  m_timing_device = mdal->get_device();
+  m_hardware_state_recovery_enabled = mdal->get_hardware_state_recovery_enabled();
+  m_timing_session_name = mdal->get_timing_session_name();
+
+  if (m_timing_device.empty())
+  {
+    throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
+  }
+
   if (m_timing_session_name.empty())
   {
     m_hw_command_sender = iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(m_hw_command_out_connection);

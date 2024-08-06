@@ -10,8 +10,8 @@
 #include "timinglibs/TimingHardwareInterface.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
+#include "confmodel/Connection.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/app/Nljs.hpp"
 #include "logging/Logging.hpp"
 #include "rcif/cmd/Nljs.hpp"
@@ -46,27 +46,9 @@ TimingHardwareInterface::TimingHardwareInterface()
 }
 
 void
-TimingHardwareInterface::configure_uhal(const nlohmann::json& obj)
+TimingHardwareInterface::configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareInterface* mdal)
 {
-  if (obj.contains("connections_file")) {
-    m_connections_file =  obj["connections_file"];
-  }
-  else
-  {
-    // throw error
-  }
-
-  TLOG_DEBUG(0) << "conf: con. file before env var expansion: " << m_connections_file;
-  resolve_environment_variables(m_connections_file);
-  TLOG_DEBUG(0) << "conf: con. file after env var expansion:  " << m_connections_file;
-
-  if (obj.contains("uhal_log_level")) {
-    m_uhal_log_level =  obj["uhal_log_level"];
-  }
-  else
-  {
-    // throw error
-  }
+  m_uhal_log_level = mdal->get_uhal_log_level();
 
   if (!m_uhal_log_level.compare("debug")) {
     uhal::setLogLevelTo(uhal::Debug());
@@ -84,6 +66,7 @@ TimingHardwareInterface::configure_uhal(const nlohmann::json& obj)
     throw InvalidUHALLogLevel(ERS_HERE, m_uhal_log_level);
   }
 
+  m_connections_file = mdal->get_connections_file();
   try {
     m_connection_manager = std::make_unique<uhal::ConnectionManager>("file://" + m_connections_file);
   } catch (const uhal::exception::FileNotFound& excpt) {
@@ -94,7 +77,7 @@ TimingHardwareInterface::configure_uhal(const nlohmann::json& obj)
 }
 
 void
-TimingHardwareInterface::scrap_uhal(const nlohmann::json& data)
+TimingHardwareInterface::scrap_uhal()
 {
   m_connection_manager.reset(nullptr);
   m_connections_file="";

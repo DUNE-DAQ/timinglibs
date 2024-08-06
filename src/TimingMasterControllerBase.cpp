@@ -16,9 +16,10 @@
 #include "timing/timingfirmwareinfo/InfoNljs.hpp"
 #include "timing/timingfirmwareinfo/InfoStructs.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
+#include "appfwk/ModuleConfiguration.hpp"
+#include "appfwk/DAQModule.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -50,23 +51,30 @@ TimingMasterControllerBase::TimingMasterControllerBase(const std::string& name)
 void
 TimingMasterControllerBase::do_configure(const nlohmann::json& data)
 {
-  auto conf = data.get<timingmastercontroller::ConfParams>();
-  if (conf.device.empty())
+  auto mdal = m_params->cast<dal::TimingMasterController>(); 
+
+  if (mdal->get_device().empty())
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
-  m_timing_device = conf.device;
-  m_hardware_state_recovery_enabled = conf.hardware_state_recovery_enabled;
-  m_timing_session_name = conf.timing_session_name;
-  m_monitored_endpoint_locations = conf.monitored_endpoints;
+
+  auto monitored_endpoints = mdal->get_monitored_endpoints();
+
+   for (auto endpoint : monitored_endpoints) {
+    timingcmd::EndpointLocation endpoint_location;
+    endpoint_location.address = endpoint->get_address();
+    endpoint_location.fanout_slot = endpoint->get_fanout_slot();
+    endpoint_location.sfp_slot = endpoint->get_sfp_slot();
+    m_monitored_endpoint_locations.push_back(endpoint_location);
+   }
 
   TimingController::do_configure(data); // configure hw command connection
 
   configure_hardware_or_recover_state<TimingMasterNotReady>(data, "Timing master");
 
   TLOG() << get_name() << " conf done on master, device: " << m_timing_device;
-
-  m_endpoint_scan_period = conf.endpoint_scan_period;
+  
+  m_endpoint_scan_period = mdal->get_endpoint_scan_period();
   if (m_endpoint_scan_period)
   {
     TLOG() << get_name() << " conf: master, will send delays with period [ms] " << m_endpoint_scan_period;    
@@ -187,7 +195,10 @@ TimingMasterControllerBase::endpoint_scan(std::atomic<bool>& running_flag)
 
     timingcmd::TimingMasterEndpointScanPayload cmd_payload;
     cmd_payload.endpoints = m_monitored_endpoint_locations;
-    
+
+    // dal::TimingMasterController::TimingMasterEndpointScanPayload cmd_payload;
+    // cmd_payload.endpoints = m_monitored_endpoint_locations;
+
     hw_cmd.payload = cmd_payload;
     send_hw_cmd(std::move(hw_cmd));
 

@@ -8,6 +8,7 @@
 #define TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGHARDWAREINTERFACE_HPP_
 
 #include "nlohmann/json.hpp"
+#include "timinglibs/dal/TimingHardwareInterface.hpp"
 
 #include "uhal/ConnectionManager.hpp"
 #include "uhal/ProtocolUDP.hpp"
@@ -40,9 +41,9 @@ public:
   TimingHardwareInterface& operator=(TimingHardwareInterface&&) = delete;      ///< TimingHardwareInterface is not move-assignable
 
 protected:
-  void configure_uhal(const nlohmann::json& obj);
+  void configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareInterface* mdal);
 
-  void scrap_uhal (const nlohmann::json& obj);
+  void scrap_uhal ();
   std::string m_connections_file;
   std::string m_uhal_log_level;
   std::unique_ptr<uhal::ConnectionManager> m_connection_manager;

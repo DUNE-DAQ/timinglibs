@@ -13,7 +13,6 @@
 #define TIMINGLIBS_PLUGINS_TIMINGENDPOINTCONTROLLER_HPP_
 
 #include "TimingEndpointControllerBase.hpp"
-
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingendpointcontroller/Nljs.hpp"
@@ -25,6 +24,9 @@
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 #include "utilities/WorkerThread.hpp"
+
+#include "iomanager/Receiver.hpp"
+#include "iomanager/Sender.hpp"
 
 #include <memory>
 #include <string>

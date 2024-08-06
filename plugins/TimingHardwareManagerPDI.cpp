@@ -8,6 +8,8 @@
  */
 
 #include "TimingHardwareManagerPDI.hpp"
+#include "timinglibs/dal/TimingHardwareManagerPDI.hpp"
+
 #include "timinglibs/timinghardwaremanagerpdi/Nljs.hpp"
 #include "timinglibs/timinghardwaremanagerpdi/Structs.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
@@ -16,7 +18,6 @@
 
 #include "timing/PDIMasterNode.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 
@@ -36,7 +37,6 @@ TimingHardwareManagerPDI::TimingHardwareManagerPDI(const std::string& name)
   register_command("conf", &TimingHardwareManagerPDI::conf);
   register_command("start", &TimingHardwareManagerPDI::start);
   register_command("stop", &TimingHardwareManagerPDI::stop);
-  register_command("scrap", &TimingHardwareManagerPDI::scrap);
 
 }
 
@@ -48,15 +48,8 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
   register_endpoint_hw_commands_for_design();
   register_hsi_hw_commands_for_design();
 
-  auto conf_params = conf_data.get<timinghardwaremanagerpdi::ConfParams>();
-
-  m_gather_interval = conf_params.gather_interval;
-  m_gather_interval_debug = conf_params.gather_interval_debug;
-
-  m_monitored_device_name_master = conf_params.monitored_device_name_master;
-  m_monitored_device_names_fanout = conf_params.monitored_device_names_fanout;
-  m_monitored_device_name_endpoint = conf_params.monitored_device_name_endpoint;
-  m_monitored_device_name_hsi = conf_params.monitored_device_name_hsi;
+  m_gather_interval = m_params->get_gather_interval();
+  m_gather_interval_debug = m_params->get_gather_interval_debug();
 
   TimingHardwareManagerBase::conf(conf_data);
 
@@ -83,7 +76,7 @@ TimingHardwareManagerPDI::conf(const nlohmann::json& conf_data)
     register_info_gatherer(m_gather_interval, m_monitored_device_name_hsi, 1);
     //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_hsi, 2);
   }
-
+  
   start_hw_mon_gathering();
 } // NOLINT
 

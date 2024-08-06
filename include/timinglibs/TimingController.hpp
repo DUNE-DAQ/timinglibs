@@ -14,6 +14,7 @@
 
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/TimingIssues.hpp"
+#include "timinglibs/dal/TimingController.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/app/Nljs.hpp"
@@ -23,6 +24,9 @@
 #include "iomanager/Sender.hpp"
 #include "iomanager/Receiver.hpp"
 #include "utilities/WorkerThread.hpp"
+
+#include "appfwk/ModuleConfiguration.hpp"
+#include "confmodel/Connection.hpp"
 
 #include <memory>
 #include <string>
@@ -88,7 +92,7 @@ public:
   TimingController(TimingController&&) = delete;                 ///< TimingController is not move-constructible
   TimingController& operator=(TimingController&&) = delete;      ///< TimingController is not move-assignable
 
-  void init(const nlohmann::json& init_data) override;
+  void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
 
 protected:
   // DAQModule commands
@@ -129,6 +133,8 @@ protected:
   timingcmd::TimingHwCmd construct_hw_cmd( const std::string& cmd_id, const nlohmann::json& payload);
   void do_io_reset(const nlohmann::json& data);
   void do_print_status(const nlohmann::json& data);
+  const dal::TimingController* m_params;
+
 };
 } // namespace timinglibs
 } // namespace dunedaq

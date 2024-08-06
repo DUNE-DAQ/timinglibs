@@ -63,7 +63,7 @@ def generate(
                         app.QueueInfo(name="output", inst="time_sync_from_netq", dir="output")
                     ]),
 
-                    mspec("fhsig", "FakeHSIEventGenerator", [
+                    mspec("fhsig", "FakeHSIEventGeneratorModule", [
                         app.QueueInfo(name="time_sync_source", inst="time_sync_from_netq", dir="input"),
                     ]),
                 ]

@@ -7,7 +7,10 @@
  * received with this code.
  */
 
+// #include "timinglibs/dal/TimingEndpointController.hpp"
 #include "TimingEndpointController.hpp"
+#include "timinglibs/dal/TimingEndpointController.hpp"
+
 #include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
@@ -17,7 +20,6 @@
 #include "timing/timingendpointinfo/InfoNljs.hpp"
 #include "timing/timingendpointinfo/InfoStructs.hpp"
 
-#include "appfwk/DAQModuleHelper.hpp"
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
@@ -33,8 +35,7 @@ namespace timinglibs {
 
 TimingEndpointController::TimingEndpointController(const std::string& name)
   : dunedaq::timinglibs::TimingEndpointControllerBase(name, 6) // 2nd arg: how many hw commands can this module send?
-{
-}
+  {}
 
 } // namespace timinglibs
 } // namespace dunedaq

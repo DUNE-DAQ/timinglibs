@@ -92,7 +92,7 @@ A module for controlling the `HD timing` implementation of an HSI. The HSI may o
 
 A DUNE DAQ module for reading `HSIEvent` from `HSI` hardware. The module periodically polls the `HSI` firmware, and checks if there are complete events in the buffer. If there is at least one such event, the event is read out, a `dfmessages::HSIEvent` is constructed and sent out on the `HSIEvent` output queue. The interval between polls is configurable via the parameter `readout_period`.
 
-#### FakeHSIEventGenerator
+#### FakeHSIEventGeneratorModule
 
 In the absence of real `HSI` hardware, this module can be used to emululate an `HSI`, and act as a source of `HSIEvent`s. The timestamp of the emulated `HSIEvent`s is obtained from timestamp estimates provided by `TimestampEstimator`. The distribution of signals in the `HSIEvent` bitmap along with their rate are configurable via the following parameters.
 
