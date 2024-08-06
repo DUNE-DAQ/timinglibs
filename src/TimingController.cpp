@@ -157,6 +157,10 @@ TimingController::do_io_reset(const nlohmann::json& data)
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "io_reset", data);
 
+  auto mdal = m_params->cast<dal::TimingController>(); 
+
+  hw_cmd.payload["clock_source"] = mdal->get_clock_source();
+
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(0).atomic);
 }
