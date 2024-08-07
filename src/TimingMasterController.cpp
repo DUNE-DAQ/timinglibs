@@ -16,9 +16,6 @@
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
-#include "timing/timingfirmwareinfo/InfoNljs.hpp"
-#include "timing/timingfirmwareinfo/InfoStructs.hpp"
-
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 #include "appfwk/ModuleConfiguration.hpp"
@@ -200,22 +197,22 @@ TimingMasterController::do_master_endpoint_scan(const nlohmann::json& data)
   ++(m_sent_hw_command_counters.at(6).atomic);
 }
 
-void
-TimingMasterController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
-{
-  // send counters internal to the module
-  timingmastercontrollerinfo::Info module_info;
-  module_info.sent_master_io_reset_cmds = m_sent_hw_command_counters.at(0).atomic.load();
-  module_info.sent_master_set_timestamp_cmds = m_sent_hw_command_counters.at(1).atomic.load();
-  module_info.sent_master_print_status_cmds = m_sent_hw_command_counters.at(2).atomic.load();
-  module_info.sent_master_set_endpoint_delay_cmds = m_sent_hw_command_counters.at(3).atomic.load();
-  module_info.sent_master_send_fl_command_cmds = m_sent_hw_command_counters.at(4).atomic.load();
+// void
+// TimingMasterController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
+// {
+//   // send counters internal to the module
+//   timingmastercontrollerinfo::Info module_info;
+//   module_info.sent_master_io_reset_cmds = m_sent_hw_command_counters.at(0).atomic.load();
+//   module_info.sent_master_set_timestamp_cmds = m_sent_hw_command_counters.at(1).atomic.load();
+//   module_info.sent_master_print_status_cmds = m_sent_hw_command_counters.at(2).atomic.load();
+//   module_info.sent_master_set_endpoint_delay_cmds = m_sent_hw_command_counters.at(3).atomic.load();
+//   module_info.sent_master_send_fl_command_cmds = m_sent_hw_command_counters.at(4).atomic.load();
 
-  // for (uint i = 0; i < m_number_hw_commands; ++i) {
-  //  module_info.sent_hw_command_counters.push_back(m_sent_hw_command_counters.at(i).atomic.load());
-  //}
-  ci.add(module_info);
-}
+//   // for (uint i = 0; i < m_number_hw_commands; ++i) {
+//   //  module_info.sent_hw_command_counters.push_back(m_sent_hw_command_counters.at(i).atomic.load());
+//   //}
+//   ci.add(module_info);
+// }
 
 // cmd stuff
 void

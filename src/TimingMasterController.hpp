@@ -19,8 +19,6 @@
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingmastercontroller/Nljs.hpp"
 #include "timinglibs/timingmastercontroller/Structs.hpp"
-#include "timinglibs/timingmastercontrollerinfo/InfoNljs.hpp"
-#include "timinglibs/timingmastercontrollerinfo/InfoStructs.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "ers/Issue.hpp"
@@ -82,7 +80,7 @@ protected:
   void do_master_endpoint_scan(const nlohmann::json& data);
 
   // pass op mon info
-  void get_info(opmonlib::InfoCollector& ci, int level) override;
+  //  void get_info(opmonlib::InfoCollector& ci, int level) override;
   
   timingcmd::TimingEndpointLocations m_monitored_endpoint_locations;
   uint m_endpoint_scan_period; // NOLINT(build/unsigned)

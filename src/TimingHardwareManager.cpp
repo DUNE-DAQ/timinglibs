@@ -160,7 +160,7 @@ TimingHardwareManager::gather_monitor_data(InfoGatherer& gatherer)
     // collect the data from the hardware
     try {
       auto design = get_timing_device_plain(device_name);
-      gatherer.collect_info_from_device(*design);
+      //      gatherer.collect_info_from_device(*design);
     } catch (const std::exception& excpt) {
       ers::warning(FailedToCollectOpMonInfo(ERS_HERE, device_name, excpt));
     }
@@ -194,7 +194,7 @@ TimingHardwareManager::register_info_gatherer(uint gather_interval, const std::s
   std::string gatherer_name = device_name + "_level_" + std::to_string(op_mon_level);
   if (m_info_gatherers.find(gatherer_name) == m_info_gatherers.end()) {
     std::unique_ptr<InfoGatherer> gatherer = std::make_unique<InfoGatherer>(
-      std::bind(&TimingHardwareManager::gather_monitor_data, this, std::placeholders::_1),
+									    //      std::bind(&TimingHardwareManager::gather_monitor_data, this, std::placeholders::_1),
       gather_interval,
       device_name,
       op_mon_level);

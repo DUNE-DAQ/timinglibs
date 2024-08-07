@@ -16,9 +16,6 @@
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/TimingIssues.hpp"
 
-#include "timing/timingfirmwareinfo/InfoNljs.hpp"
-#include "timing/timingfirmwareinfo/InfoStructs.hpp"
-
 #include "ers/Issue.hpp"
 
 #include <chrono>
@@ -207,64 +204,64 @@ TimingPartitionController::do_partition_print_status(const nlohmann::json&)
   ++(m_sent_hw_command_counters.at(7).atomic);
 }
 
-void
-TimingPartitionController::process_device_info(nlohmann::json info)
-{
-  ++m_device_infos_received_count;
+// void
+// TimingPartitionController::process_device_info(nlohmann::json info)
+// {
+//   ++m_device_infos_received_count;
   
-  timing::timingfirmwareinfo::TimingPartitionMonitorData partition_info;
+//   timing::timingfirmwareinfo::TimingPartitionMonitorData partition_info;
 
-  std::string partition_label = "partition"+std::to_string(m_managed_partition_id);
+//   std::string partition_label = "partition"+std::to_string(m_managed_partition_id);
   
-  auto partition_data = info[opmonlib::JSONTags::children]["master"]
-                            [opmonlib::JSONTags::children][partition_label]
-                            [opmonlib::JSONTags::properties][partition_info.info_type][opmonlib::JSONTags::data];
+//   auto partition_data = info[opmonlib::JSONTags::children]["master"]
+//                             [opmonlib::JSONTags::children][partition_label]
+//                             [opmonlib::JSONTags::properties][partition_info.info_type][opmonlib::JSONTags::data];
 
-  from_json(partition_data, partition_info);
+//   from_json(partition_data, partition_info);
 
-  bool partition_enabled = partition_info.enabled;
-  bool partition_rate_control_enabled = partition_info.rate_ctrl_enabled;
-  uint16_t partition_trigger_mask = partition_info.trig_mask;
+//   bool partition_enabled = partition_info.enabled;
+//   bool partition_rate_control_enabled = partition_info.rate_ctrl_enabled;
+//   uint16_t partition_trigger_mask = partition_info.trig_mask;
 
-  TLOG_DEBUG(3) << "Partition enabled: " << partition_enabled << ", rate control enabled: " << partition_enabled << ", trigger mask: 0x" << std::hex << partition_trigger_mask << std::dec << ", received infos: " << m_device_infos_received_count;
+//   TLOG_DEBUG(3) << "Partition enabled: " << partition_enabled << ", rate control enabled: " << partition_enabled << ", trigger mask: 0x" << std::hex << partition_trigger_mask << std::dec << ", received infos: " << m_device_infos_received_count;
 
-  if (partition_enabled && partition_rate_control_enabled == m_partition_control_rate_enabled && partition_trigger_mask == m_partition_trigger_mask)
-  {
-    if (!m_device_ready)
-    {
-      m_device_ready = true;
-      TLOG_DEBUG(2) << "Timing partition became ready";
-    }
-  }
-  else
-  {
-    if (m_device_ready)
-    {
-      m_device_ready = false;
-      TLOG_DEBUG(2) << "Timing partition no longer ready";
-    }
-  }
-}
+//   if (partition_enabled && partition_rate_control_enabled == m_partition_control_rate_enabled && partition_trigger_mask == m_partition_trigger_mask)
+//   {
+//     if (!m_device_ready)
+//     {
+//       m_device_ready = true;
+//       TLOG_DEBUG(2) << "Timing partition became ready";
+//     }
+//   }
+//   else
+//   {
+//     if (m_device_ready)
+//     {
+//       m_device_ready = false;
+//       TLOG_DEBUG(2) << "Timing partition no longer ready";
+//     }
+//   }
+// }
 
-void
-TimingPartitionController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
-{
-  // send counters internal to the module
-  timingpartitioncontrollerinfo::Info module_info;
-  module_info.sent_partition_configure_cmds = m_sent_hw_command_counters.at(0).atomic.load();
-  module_info.sent_partition_enable_cmds = m_sent_hw_command_counters.at(1).atomic.load();
-  module_info.sent_partition_disable_cmds = m_sent_hw_command_counters.at(2).atomic.load();
-  module_info.sent_partition_start_cmds = m_sent_hw_command_counters.at(3).atomic.load();
-  module_info.sent_partition_stop_cmds = m_sent_hw_command_counters.at(4).atomic.load();
-  module_info.sent_partition_enable_triggers_cmds = m_sent_hw_command_counters.at(5).atomic.load();
-  module_info.sent_partition_disable_triggers_cmds = m_sent_hw_command_counters.at(6).atomic.load();
-  module_info.sent_partition_print_status_cmds = m_sent_hw_command_counters.at(7).atomic.load();
+// void
+// TimingPartitionController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
+// {
+//   // send counters internal to the module
+//   timingpartitioncontrollerinfo::Info module_info;
+//   module_info.sent_partition_configure_cmds = m_sent_hw_command_counters.at(0).atomic.load();
+//   module_info.sent_partition_enable_cmds = m_sent_hw_command_counters.at(1).atomic.load();
+//   module_info.sent_partition_disable_cmds = m_sent_hw_command_counters.at(2).atomic.load();
+//   module_info.sent_partition_start_cmds = m_sent_hw_command_counters.at(3).atomic.load();
+//   module_info.sent_partition_stop_cmds = m_sent_hw_command_counters.at(4).atomic.load();
+//   module_info.sent_partition_enable_triggers_cmds = m_sent_hw_command_counters.at(5).atomic.load();
+//   module_info.sent_partition_disable_triggers_cmds = m_sent_hw_command_counters.at(6).atomic.load();
+//   module_info.sent_partition_print_status_cmds = m_sent_hw_command_counters.at(7).atomic.load();
 
-  // for (uint i = 0; i < m_number_hw_commands; ++i) {
-  //  module_info.sent_hw_command_counters.push_back(m_sent_hw_command_counters.at(i).atomic.load());
-  //}
-  ci.add(module_info);
-}
+//   // for (uint i = 0; i < m_number_hw_commands; ++i) {
+//   //  module_info.sent_hw_command_counters.push_back(m_sent_hw_command_counters.at(i).atomic.load());
+//   //}
+//   ci.add(module_info);
+// }
 } // namespace timinglibs
 } // namespace dunedaq
 

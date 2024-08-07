@@ -18,8 +18,6 @@
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingfanoutcontroller/Nljs.hpp"
 #include "timinglibs/timingfanoutcontroller/Structs.hpp"
-#include "timinglibs/timingfanoutcontrollerinfo/InfoNljs.hpp"
-#include "timinglibs/timingfanoutcontrollerinfo/InfoStructs.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "ers/Issue.hpp"
@@ -71,8 +69,8 @@ private:
   void do_fanout_endpoint_reset(const nlohmann::json&);
 
   // pass op mon info
-  void get_info(opmonlib::InfoCollector& ci, int level) override;
-  void process_device_info(nlohmann::json info) override;
+  //  void get_info(opmonlib::InfoCollector& ci, int level) override;
+  //  void process_device_info(nlohmann::json info) override;
 };
 } // namespace timinglibs
 } // namespace dunedaq

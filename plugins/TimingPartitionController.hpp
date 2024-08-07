@@ -19,8 +19,6 @@
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingpartitioncontroller/Nljs.hpp"
 #include "timinglibs/timingpartitioncontroller/Structs.hpp"
-#include "timinglibs/timingpartitioncontrollerinfo/InfoNljs.hpp"
-#include "timinglibs/timingpartitioncontrollerinfo/InfoStructs.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "ers/Issue.hpp"
@@ -90,9 +88,9 @@ private:
   void do_partition_disable_triggers(const nlohmann::json&);
   void do_partition_print_status(const nlohmann::json&);
 
-  // pass op mon info
-  void get_info(opmonlib::InfoCollector& ci, int level) override;
-  void process_device_info(nlohmann::json info) override;
+  // // pass op mon info
+  // void get_info(opmonlib::InfoCollector& ci, int level) override;
+  // void process_device_info(nlohmann::json info) override;
 };
 } // namespace timinglibs
 } // namespace dunedaq
