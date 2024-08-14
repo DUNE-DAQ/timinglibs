@@ -17,8 +17,6 @@
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingendpointcontroller/Nljs.hpp"
 #include "timinglibs/timingendpointcontroller/Structs.hpp"
-#include "timinglibs/timingendpointcontrollerinfo/InfoNljs.hpp"
-#include "timinglibs/timingendpointcontrollerinfo/InfoStructs.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "ers/Issue.hpp"
@@ -74,8 +72,8 @@ private:
   void do_endpoint_print_timestamp(const nlohmann::json&);
 
   // pass op mon info
-  void get_info(opmonlib::InfoCollector& ci, int level) override;
-  void process_device_info(nlohmann::json info) override;
+  //void get_info(opmonlib::InfoCollector& ci, int level) override;
+  //  void process_device_info(nlohmann::json info) override;
   uint32_t m_endpoint_state;
 
 };

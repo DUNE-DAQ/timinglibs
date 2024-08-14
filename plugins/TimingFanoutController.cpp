@@ -15,9 +15,6 @@
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
-#include "timing/timingendpointinfo/InfoNljs.hpp"
-#include "timing/timingendpointinfo/InfoStructs.hpp"
-
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 
@@ -142,53 +139,53 @@ TimingFanoutController::do_fanout_endpoint_reset(const nlohmann::json&)
   ++(m_sent_hw_command_counters.at(3).atomic);
 }
 
-void
-TimingFanoutController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
-{
-  // send counters internal to the module
-  timingfanoutcontrollerinfo::Info module_info;
+// void
+// TimingFanoutController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
+// {
+//   // send counters internal to the module
+//   timingfanoutcontrollerinfo::Info module_info;
 
-  module_info.sent_io_reset_cmds = m_sent_hw_command_counters.at(0).atomic.load();
-  module_info.sent_print_status_cmds = m_sent_hw_command_counters.at(1).atomic.load();
-  module_info.sent_fanout_endpoint_enable_cmds = m_sent_hw_command_counters.at(2).atomic.load();
-  module_info.sent_fanout_endpoint_reset_cmds = m_sent_hw_command_counters.at(3).atomic.load();
+//   module_info.sent_io_reset_cmds = m_sent_hw_command_counters.at(0).atomic.load();
+//   module_info.sent_print_status_cmds = m_sent_hw_command_counters.at(1).atomic.load();
+//   module_info.sent_fanout_endpoint_enable_cmds = m_sent_hw_command_counters.at(2).atomic.load();
+//   module_info.sent_fanout_endpoint_reset_cmds = m_sent_hw_command_counters.at(3).atomic.load();
 
-  ci.add(module_info);
-}
+//   ci.add(module_info);
+// }
 
-void
-TimingFanoutController::process_device_info(nlohmann::json info)
-{
-  ++m_device_infos_received_count;
+// void
+// TimingFanoutController::process_device_info(nlohmann::json info)
+// {
+//   ++m_device_infos_received_count;
 
-  timing::timingendpointinfo::TimingEndpointInfo ept_info;
+//   timing::timingendpointinfo::TimingEndpointInfo ept_info;
 
-  auto ept_data = info[opmonlib::JSONTags::children]["endpoint"][opmonlib::JSONTags::properties][ept_info.info_type][opmonlib::JSONTags::data];
+//   auto ept_data = info[opmonlib::JSONTags::children]["endpoint"][opmonlib::JSONTags::properties][ept_info.info_type][opmonlib::JSONTags::data];
 
-  from_json(ept_data, ept_info);
+//   from_json(ept_data, ept_info);
 
-  uint32_t endpoint_state = ept_info.state;
-  bool ready = ept_info.ready;
+//   uint32_t endpoint_state = ept_info.state;
+//   bool ready = ept_info.ready;
 
-  TLOG_DEBUG(3) << "state: 0x" << std::hex << endpoint_state << ", ready: " << ready << std::dec << ", infos received: " << m_device_infos_received_count;;
+//   TLOG_DEBUG(3) << "state: 0x" << std::hex << endpoint_state << ", ready: " << ready << std::dec << ", infos received: " << m_device_infos_received_count;;
 
-  if (endpoint_state > 0x5 && endpoint_state < 0x9)
-  {
-    if (!m_device_ready)
-    {
-      m_device_ready = true;
-      TLOG_DEBUG(2) << "Timing fanout became ready";
-    }
-  }
-  else
-  {
-    if (m_device_ready)
-    {
-      m_device_ready = false;
-      TLOG_DEBUG(2) << "Timing fanout no longer ready";
-    }
-  }
-}
+//   if (endpoint_state > 0x5 && endpoint_state < 0x9)
+//   {
+//     if (!m_device_ready)
+//     {
+//       m_device_ready = true;
+//       TLOG_DEBUG(2) << "Timing fanout became ready";
+//     }
+//   }
+//   else
+//   {
+//     if (m_device_ready)
+//     {
+//       m_device_ready = false;
+//       TLOG_DEBUG(2) << "Timing fanout no longer ready";
+//     }
+//   }
+// }
 } // namespace timinglibs
 } // namespace dunedaq
 
