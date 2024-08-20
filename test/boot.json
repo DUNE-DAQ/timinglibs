@@ -9,6 +9,11 @@
       "exec": "daq_application_ssh",
       "host": "tmc",
       "port": 3334
+    },
+    "tfc": {
+      "exec": "daq_application_ssh",
+      "host": "tfc",
+      "port": 3335
     }
   },
   "env": {
@@ -59,8 +64,9 @@
         "DUNEDAQ_SHARE_PATH": "getenv",
         "DUNEDAQ_DB_PATH": "getenv",
         "INFO_SVC": "file://info_{APP_NAME}_{APP_PORT}.json",
-        "TIMING_SHARE": "disabled",
-	"LD_LIBRARY_PATH": "getenv",
+        "TIMING_SHARE": "getenv",
+        "TIMINGLIBS_SHARE": "getenv",
+        "LD_LIBRARY_PATH": "getenv",
         "PATH": "getenv",
         "TRACE_FILE": "getenv:/tmp/trace_buffer_{APP_HOST}_{DUNEDAQ_PARTITION}"
       }
@@ -69,11 +75,14 @@
   "external_connections": [],
   "hosts-ctrl": {
     "connectionservice": "localhost",
-    "local": "localhost"
+    "thi": "localhost",
+    "tmc": "localhost",
+    "tfc": "localhost"
   },
   "hosts-data": {
     "thi": "localhost",
-    "tmc": "localhost"
+    "tmc": "localhost",
+    "tfc": "localhost"
   },
   "response_listener": {
     "port": 56789

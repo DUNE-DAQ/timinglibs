@@ -43,10 +43,6 @@ void
 TimingFanoutController::do_configure(const nlohmann::json& data)
 {
   auto mdal = m_params->cast<dal::TimingFanoutController>(); 
-  if (mdal->get_device().empty())
-  {
-    throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
-  }
   
   m_device_ready_timeout = std::chrono::milliseconds(mdal->get_device_ready_timeout());
 

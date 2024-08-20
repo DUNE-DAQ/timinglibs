@@ -103,7 +103,6 @@
 
  <class name="TimingFanoutController" description="TimingFanoutController configuration">
   <superclass name="TimingController"/>
-  <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
   <attribute name="device_ready_timeout" type="u32" init-value="20000"/>
  </class>
 

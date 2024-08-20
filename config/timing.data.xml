@@ -70,6 +70,14 @@
     <file path="schema/timinglibs/timing.schema.xml"/>
 </include>
 
+<obj class="DaqApplication" id="tfc">
+    <attr name="application_name" type="string" val="daq_application"/>
+    <rel name="runs_on" class="VirtualHost" id="vlocalhost"/>
+    <rel name="modules">
+     <ref class="TimingFanoutController" id="tfc"/>
+    </rel>
+</obj>
+
 <obj class="DaqApplication" id="tmc">
     <attr name="application_name" type="string" val="daq_application"/>
     <rel name="runs_on" class="VirtualHost" id="vlocalhost"/>
@@ -137,7 +145,15 @@
  <attr name="port" type="u16" val="0"/>
 </obj>
 
-<obj class="NetworkConnection" id="MST_FMC_info">
+<obj class="NetworkConnection" id="MASTER_info">
+ <attr name="data_type" type="string" val="JSON"/>
+ <attr name="send_timeout_ms" type="u32" val="100"/>
+ <attr name="recv_timeout_ms" type="u32" val="100"/>
+ <attr name="connection_type" type="enum" val="kPubSub"/>
+ <rel name="associated_service" class="Service" id="device_op_mon"/>
+</obj>
+
+<obj class="NetworkConnection" id="FANOUT_2_info">
  <attr name="data_type" type="string" val="JSON"/>
  <attr name="send_timeout_ms" type="u32" val="100"/>
  <attr name="recv_timeout_ms" type="u32" val="100"/>
@@ -214,14 +230,27 @@
     <attr name="address" type="u32" val="4"/>
  </obj>
 
+ <obj class="TimingFanoutController" id="tfc">
+    <attr name="device" type="string" val="FANOUT_2"/>
+    <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
+    <attr name="timing_session_name" type="string" val=""/>
+    <attr name="clock_source" type="u32" val="1" />
+     <attr name="device_ready_timeout" type="u32" val="20000"/>
+     <rel name="outputs">
+        <ref class="NetworkConnection" id="timing_cmds"/>
+    </rel>
+    <rel name="inputs">
+        <ref class="NetworkConnection" id="FANOUT_2_info"/>
+    </rel>
+</obj>
+
 <obj class="TimingMasterControllerPDII" id="tmc">
-    <attr name="device" type="string" val="MST_FMC"/>
+    <attr name="device" type="string" val="MASTER"/>
     <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
     <attr name="timing_session_name" type="string" val=""/>
     <attr name="endpoint_scan_period" type="u32" val="1000"/>
-    <attr name="clock_config" type="string" val="https://github.com/DUNE-DAQ/timing/blob/develop/config/etc/clock/nocdr/Si5395-RevA-069a_ep-Registers.txt"/>
+    <attr name="clock_config" type="string" val=""/>
     <attr name="soft" type="bool" val="0"/>
-    <attr name="fanout_mode" type="s32" val="-1"/>
     <rel name="monitored_endpoints">
      <ref class="EndpointLocation" id="dummy_endpoint1"/>
      <ref class="EndpointLocation" id="dummy_endpoint2"/>
@@ -232,19 +261,21 @@
      <ref class="NetworkConnection" id="timing_cmds"/>
     </rel>
     <rel name="inputs">
-     <ref class="NetworkConnection" id="MST_FMC_info"/>
+     <ref class="NetworkConnection" id="MASTER_info"/>
     </rel>
 </obj>
 
 <obj class="TimingHardwareManagerPDII" id="thi">
  <attr name="uhal_log_level" type="enum" val="notice"/>
  <attr name="connections_file" type="string" val="connections.xml"/>
- <attr name="monitored_device_name_master" type="string" val="MST_FMC"/>
+ <attr name="monitored_device_name_master" type="string" val="MASTER"/>
+ <attr name="monitored_device_names_fanout" type="string" val="FANOUT_2"/>
  <rel name="inputs">
   <ref class="NetworkConnection" id="timing_cmds"/>
  </rel>
  <rel name="outputs">
-  <ref class="NetworkConnection" id="MST_FMC_info"/>
+  <ref class="NetworkConnection" id="MASTER_info"/>
+  <ref class="NetworkConnection" id="FANOUT_2_info"/>
  </rel>
 </obj>
 
