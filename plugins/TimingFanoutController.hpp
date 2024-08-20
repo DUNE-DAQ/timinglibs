@@ -18,8 +18,6 @@
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingfanoutcontroller/Nljs.hpp"
 #include "timinglibs/timingfanoutcontroller/Structs.hpp"
-#include "timinglibs/timingfanoutcontrollerinfo/InfoNljs.hpp"
-#include "timinglibs/timingfanoutcontrollerinfo/InfoStructs.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "ers/Issue.hpp"
@@ -65,8 +63,8 @@ protected:
   timingcmd::TimingHwCmd construct_fanout_hw_cmd(const std::string& cmd_id);
 
   // pass op mon info
-  void get_info(opmonlib::InfoCollector& ci, int level) override;
-  void process_device_info(nlohmann::json info) override;
+  //  void get_info(opmonlib::InfoCollector& ci, int level) override;
+  //  void process_device_info(nlohmann::json info) override;
 };
 } // namespace timinglibs
 } // namespace dunedaq

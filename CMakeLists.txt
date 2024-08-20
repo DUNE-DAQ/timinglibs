@@ -37,13 +37,6 @@ daq_codegen(
 
 daq_codegen( timingcmd.jsonnet TEMPLATES msgp.hpp.j2 )
 
-daq_codegen(
-			 timingendpointcontrollerinfo.jsonnet 
-			 timinghardwaremanagerpdiinfo.jsonnet  
-			 timingmastercontrollerinfo.jsonnet
-			 timingpartitioncontrollerinfo.jsonnet
-			 timingfanoutcontrollerinfo.jsonnet
-			 DEP_PKGS opmonlib TEMPLATES opmonlib/InfoStructs.hpp.j2 opmonlib/InfoNljs.hpp.j2 )
 
 ##############################################################################
 # Dependency sets

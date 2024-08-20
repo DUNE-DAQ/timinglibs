@@ -240,50 +240,50 @@ TimingHardwareManagerPDI::partition_print_status(const timingcmd::TimingHwCmd& h
   TLOG() << std::endl << partition.get_status();
 }
 
-void
-TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
-{
+// void
+// TimingHardwareManagerPDI::get_info(opmonlib::InfoCollector& ci, int level)
+// {
 
-  // send counters internal to the module
-  timinghardwaremanagerpdiinfo::Info module_info;
-  module_info.received_hw_commands_counter = m_received_hw_commands_counter.load();
-  module_info.accepted_hw_commands_counter = m_accepted_hw_commands_counter.load();
-  module_info.rejected_hw_commands_counter = m_rejected_hw_commands_counter.load();
-  module_info.failed_hw_commands_counter = m_failed_hw_commands_counter.load();
+//   // send counters internal to the module
+//   timinghardwaremanagerpdiinfo::Info module_info;
+//   module_info.received_hw_commands_counter = m_received_hw_commands_counter.load();
+//   module_info.accepted_hw_commands_counter = m_accepted_hw_commands_counter.load();
+//   module_info.rejected_hw_commands_counter = m_rejected_hw_commands_counter.load();
+//   module_info.failed_hw_commands_counter = m_failed_hw_commands_counter.load();
 
-  ci.add(module_info);
+//   ci.add(module_info);
 
-  // the hardware device data
-  for (auto it = m_info_gatherers.begin(); it != m_info_gatherers.end(); ++it) {
-    // master info
-    if (m_monitored_device_name_master.find(it->second.get()->get_device_name()) != std::string::npos) {
-      if (it->second.get()->get_op_mon_level() <= level) {
-        it->second.get()->add_info_to_collector("master", ci);
-      }
-    }
+//   // the hardware device data
+//   for (auto it = m_info_gatherers.begin(); it != m_info_gatherers.end(); ++it) {
+//     // master info
+//     if (m_monitored_device_name_master.find(it->second.get()->get_device_name()) != std::string::npos) {
+//       if (it->second.get()->get_op_mon_level() <= level) {
+//         it->second.get()->add_info_to_collector("master", ci);
+//       }
+//     }
 
-    for (uint i = 0; i < m_monitored_device_names_fanout.size(); ++i) {
-      std::string fanout_device_name = m_monitored_device_names_fanout.at(i);
-      if (fanout_device_name.find(it->second.get()->get_device_name()) != std::string::npos) {
-        if (it->second.get()->get_op_mon_level() <= level) {
-          it->second.get()->add_info_to_collector("fanout_" + std::to_string(i), ci);
-        }
-      }
-    }
+//     for (uint i = 0; i < m_monitored_device_names_fanout.size(); ++i) {
+//       std::string fanout_device_name = m_monitored_device_names_fanout.at(i);
+//       if (fanout_device_name.find(it->second.get()->get_device_name()) != std::string::npos) {
+//         if (it->second.get()->get_op_mon_level() <= level) {
+//           it->second.get()->add_info_to_collector("fanout_" + std::to_string(i), ci);
+//         }
+//       }
+//     }
 
-    if (m_monitored_device_name_endpoint.find(it->second.get()->get_device_name()) != std::string::npos) {
-      if (it->second.get()->get_op_mon_level() <= level) {
-        it->second.get()->add_info_to_collector("endpoint", ci);
-      }
-    }
+//     if (m_monitored_device_name_endpoint.find(it->second.get()->get_device_name()) != std::string::npos) {
+//       if (it->second.get()->get_op_mon_level() <= level) {
+//         it->second.get()->add_info_to_collector("endpoint", ci);
+//       }
+//     }
 
-    if (m_monitored_device_name_hsi.find(it->second.get()->get_device_name()) != std::string::npos) {
-      if (it->second.get()->get_op_mon_level() <= level) {
-        it->second.get()->add_info_to_collector("hsi", ci);
-      }
-    }
-  }
-}
+//     if (m_monitored_device_name_hsi.find(it->second.get()->get_device_name()) != std::string::npos) {
+//       if (it->second.get()->get_op_mon_level() <= level) {
+//         it->second.get()->add_info_to_collector("hsi", ci);
+//       }
+//     }
+//   }
+// }
 } // namespace timinglibs
 } // namespace dunedaq
 

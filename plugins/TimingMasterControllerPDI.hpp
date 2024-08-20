@@ -18,8 +18,6 @@
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingmastercontroller/Nljs.hpp"
 #include "timinglibs/timingmastercontroller/Structs.hpp"
-#include "timinglibs/timingmastercontrollerinfo/InfoNljs.hpp"
-#include "timinglibs/timingmastercontrollerinfo/InfoStructs.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "ers/Issue.hpp"
@@ -55,7 +53,7 @@ public:
     delete; ///< TimingMasterControllerPDI is not move-assignable
 
 protected:
-  void process_device_info(nlohmann::json info) override;
+  //  void process_device_info(nlohmann::json info) override;
 };
 } // namespace timinglibs
 } // namespace dunedaq

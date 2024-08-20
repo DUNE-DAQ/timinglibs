@@ -17,8 +17,6 @@
 #include "timinglibs/timingendpointcontroller/Nljs.hpp"
 #include "timinglibs/timingendpointcontroller/Structs.hpp"
 
-#include "timing/timingendpointinfo/InfoNljs.hpp"
-#include "timing/timingendpointinfo/InfoStructs.hpp"
 
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"

@@ -20,8 +20,6 @@
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timinghardwaremanagerpdi/Nljs.hpp"
 #include "timinglibs/timinghardwaremanagerpdi/Structs.hpp"
-#include "timinglibs/timinghardwaremanagerpdiinfo/InfoNljs.hpp"
-#include "timinglibs/timinghardwaremanagerpdiinfo/InfoStructs.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "ers/Issue.hpp"
@@ -34,8 +32,6 @@
 #include "timing/OuroborosDesign.hpp"
 #include "timing/OuroborosMuxDesign.hpp"
 #include "timing/OverlordDesign.hpp"
-#include "timing/timingfirmwareinfo/InfoNljs.hpp"
-#include "timing/timingfirmwareinfo/InfoStructs.hpp"
 #include "uhal/ConnectionManager.hpp"
 #include "uhal/utilities/files.hpp"
 #include "utilities/WorkerThread.hpp"
@@ -74,7 +70,7 @@ public:
   void start(const nlohmann::json& data);
   void stop(const nlohmann::json& data);
 
-  void get_info(opmonlib::InfoCollector& ci, int level) override;
+  //  void get_info(opmonlib::InfoCollector& ci, int level) override;
 
   void partition_configure(const timingcmd::TimingHwCmd& /*hw_cmd*/) override {}
 

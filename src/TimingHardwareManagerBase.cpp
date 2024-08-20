@@ -162,7 +162,7 @@ TimingHardwareManagerBase::gather_monitor_data(InfoGatherer& gatherer)
     // collect the data from the hardware
     try {
       auto design = get_timing_device_plain(device_name);
-      gatherer.collect_info_from_device(*design);
+      //      gatherer.collect_info_from_device(*design);
     } catch (const std::exception& excpt) {
       ers::warning(FailedToCollectOpMonInfo(ERS_HERE, device_name, excpt));
     }
