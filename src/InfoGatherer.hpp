@@ -12,6 +12,9 @@
 #ifndef TIMINGLIBS_SRC_INFOGATHERER_HPP_
 #define TIMINGLIBS_SRC_INFOGATHERER_HPP_
 
+#include "timing/timingfirmwareinfo/Nljs.hpp"
+#include "timing/timingfirmwareinfo/Structs.hpp"
+
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 
@@ -55,7 +58,7 @@ public:
    * @param gather_data function for data gathering
    * @param gather_interval interval for data gathering in us
    */
-  explicit InfoGatherer( //std::function<void(InfoGatherer&)> gather_data,
+  explicit InfoGatherer(std::function<void(InfoGatherer&)> gather_data,
                         uint gather_interval,
                         const std::string& device_name,
                         int op_mon_level)
@@ -65,7 +68,7 @@ public:
     , m_device_name(device_name)
     , m_last_gathered_time(0)
     , m_op_mon_level(op_mon_level)
-      //  , m_gather_data(gather_data)
+    , m_gather_data(gather_data)
     , m_device_info_connection_id(device_name+"_info")
     , m_hw_info_sender(nullptr)
     , m_sent_counter(0)
@@ -151,14 +154,15 @@ public:
 
   int get_op_mon_level() const { return m_op_mon_level; }
 
-  // template<class DSGN>
-  // void collect_info_from_device(const DSGN& device)
-  // {
-  //   std::unique_lock info_collector_lock(m_info_collector_mutex);
-  //   device.get_info(*m_info_collector, get_op_mon_level());
-  //   update_last_gathered_time(std::time(nullptr));
-  //   send_device_info();
-  // }
+  template<class DSGN>
+  void collect_info_from_device(const DSGN& device)
+  {
+    std::unique_lock info_collector_lock(m_info_collector_mutex);
+    m_device_info.reset( new timing::timingfirmwareinfo::TimingDeviceInfo() );
+    device.get_info(*m_device_info);
+    update_last_gathered_time(std::time(nullptr));
+    send_device_info();
+  }
 
   // void add_info_to_collector(std::string label, opmonlib::InfoCollector& ic)
   // {
@@ -176,35 +180,36 @@ public:
 private:
   void send_device_info()
   {
-    // if (m_info_collector->is_empty())
-    // {
-    //   TLOG_DEBUG(3) << "skipping sending info for gatherer: " << get_device_name() << ", collector empty.";
-    //   return;
-    // }
+    //if (m_info_collector->is_empty())
+    //{
+    //  TLOG_DEBUG(3) << "skipping sending info for gatherer: " << get_device_name() << ", collector empty.";
+    //  return;
+    //}
 
-    // if (!m_hw_info_sender)
-    // {
-    //   TLOG_DEBUG(3) << "skipping sending info for gatherer: " << get_device_name();
-    //   return;
-    // }
+    if (!m_hw_info_sender)
+    {
+      TLOG_DEBUG(3) << "skipping sending info for gatherer: " << get_device_name();
+      return;
+    }
     
-    // nlohmann::json info = m_info_collector->get_collected_infos();
-    // bool was_successfully_sent = false;
-    // while (!was_successfully_sent)
-    // {
-    //   try
-    //   {
-    //     m_hw_info_sender->send(std::move(info), m_queue_timeout);
-    //     TLOG_DEBUG(4) << "sent " << get_device_name() <<  " info";
-    //     ++m_sent_counter;
-    //     was_successfully_sent = true;
-    //   }
-    //   catch (const dunedaq::iomanager::TimeoutExpired& excpt)
-    //   {
-    //     ers::error(DeviceInfoSendFailed(ERS_HERE, m_device_name, m_device_info_connection_id));
-    //     ++m_failed_to_send_counter;
-    //   }
-    // }
+    nlohmann::json info;
+    to_json(info, *m_device_info);
+    bool was_successfully_sent = false;
+    while (!was_successfully_sent)
+    {
+      try
+      {
+        m_hw_info_sender->send(std::move(info), m_queue_timeout);
+        TLOG_DEBUG(4) << "sent " << get_device_name() <<  " info";
+        ++m_sent_counter;
+        was_successfully_sent = true;
+      }
+      catch (const dunedaq::iomanager::TimeoutExpired& excpt)
+      {
+        ers::error(DeviceInfoSendFailed(ERS_HERE, m_device_name, m_device_info_connection_id));
+        ++m_failed_to_send_counter;
+      }
+    }
   }
 
 protected:
@@ -216,6 +221,7 @@ protected:
   std::atomic<time_t> m_last_gathered_time;
   int m_op_mon_level;
   //  std::unique_ptr<opmonlib::InfoCollector> m_info_collector;
+  std::unique_ptr<timing::timingfirmwareinfo::TimingDeviceInfo> m_device_info;
   mutable std::mutex m_info_collector_mutex;
   std::function<void(InfoGatherer&)> m_gather_data;
   std::string m_device_info_connection_id;

@@ -12,7 +12,7 @@
 #ifndef TIMINGLIBS_PLUGINS_TIMINGENDPOINTCONTROLLER_HPP_
 #define TIMINGLIBS_PLUGINS_TIMINGENDPOINTCONTROLLER_HPP_
 
-#include "timinglibs/TimingController.hpp"
+#include "TimingEndpointControllerBase.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/timingendpointcontroller/Nljs.hpp"
@@ -37,7 +37,7 @@ namespace timinglibs {
  * @brief TimingEndpointController is a DAQModule implementation that
  * provides that provides a control interface for a timing endpoint.
  */
-class TimingEndpointController : public dunedaq::timinglibs::TimingController
+class TimingEndpointController : public dunedaq::timinglibs::TimingEndpointControllerBase
 {
 public:
   /**
@@ -53,29 +53,6 @@ public:
   TimingEndpointController(TimingEndpointController&&) = delete; ///< TimingEndpointController is not move-constructible
   TimingEndpointController& operator=(TimingEndpointController&&) =
     delete; ///< TimingEndpointController is not move-assignable
-
-private:
-  uint m_managed_endpoint_id;
-
-  // Commands
-  void do_configure(const nlohmann::json&) override;
-  void send_configure_hardware_commands(const nlohmann::json& data) override;
-
-  timingcmd::TimingHwCmd construct_endpoint_hw_cmd(const std::string& cmd_id);
-
-  // timinglibs endpoint commands
-  void do_endpoint_io_reset(const nlohmann::json& data);
-  void do_endpoint_enable(const nlohmann::json& data);
-  void do_endpoint_disable(const nlohmann::json&);
-  void do_endpoint_reset(const nlohmann::json& data);
-  void do_endpoint_print_status(const nlohmann::json&);
-  void do_endpoint_print_timestamp(const nlohmann::json&);
-
-  // pass op mon info
-  //void get_info(opmonlib::InfoCollector& ci, int level) override;
-  //  void process_device_info(nlohmann::json info) override;
-  uint32_t m_endpoint_state;
-
 };
 } // namespace timinglibs
 } // namespace dunedaq

@@ -1,7 +1,7 @@
 /**
- * @file TimingMasterController.hpp
+ * @file TimingMasterControllerBase.hpp
  *
- * TimingMasterController is a DAQModule implementation that
+ * TimingMasterControllerBase is a DAQModule implementation that
  * provides a control interface for timing master hardware.
  *
  * This is part of the DUNE DAQ Software Suite, copyright 2020.
@@ -37,25 +37,25 @@ ERS_DECLARE_ISSUE(timinglibs,                                                   
 namespace timinglibs {
 
 /**
- * @brief TimingMasterController is a DAQModule implementation that
+ * @brief TimingMasterControllerBase is a DAQModule implementation that
  * provides a control interface for timing master hardware.
  */
-class TimingMasterController : public dunedaq::timinglibs::TimingController
+class TimingMasterControllerBase : public dunedaq::timinglibs::TimingController
 {
 public:
   /**
-   * @brief TimingMasterController Constructor
-   * @param name Instance name for this TimingMasterController instance
+   * @brief TimingMasterControllerBase Constructor
+   * @param name Instance name for this TimingMasterControllerBase instance
    */
-  explicit TimingMasterController(const std::string& name);
+  explicit TimingMasterControllerBase(const std::string& name);
 
-  TimingMasterController(const TimingMasterController&) = delete; ///< TimingMasterController is not copy-constructible
-  TimingMasterController& operator=(const TimingMasterController&) =
-    delete;                                                  ///< TimingMasterController is not copy-assignable
-  TimingMasterController(TimingMasterController&&) = delete; ///< TimingMasterController is not move-constructible
-  TimingMasterController& operator=(TimingMasterController&&) =
-    delete; ///< TimingMasterController is not move-assignable
-  virtual ~TimingMasterController()
+  TimingMasterControllerBase(const TimingMasterControllerBase&) = delete; ///< TimingMasterControllerBase is not copy-constructible
+  TimingMasterControllerBase& operator=(const TimingMasterControllerBase&) =
+    delete;                                                  ///< TimingMasterControllerBase is not copy-assignable
+  TimingMasterControllerBase(TimingMasterControllerBase&&) = delete; ///< TimingMasterControllerBase is not move-constructible
+  TimingMasterControllerBase& operator=(TimingMasterControllerBase&&) =
+    delete; ///< TimingMasterControllerBase is not move-assignable
+  virtual ~TimingMasterControllerBase()
   {
     if (endpoint_scan_thread.thread_running())
       endpoint_scan_thread.stop_working_thread();
@@ -68,12 +68,8 @@ protected:
   void do_stop(const nlohmann::json& data) override;
   void send_configure_hardware_commands(const nlohmann::json& data) override;
 
-  timingcmd::TimingHwCmd construct_master_hw_cmd( const std::string& cmd_id);
-
   // timing master commands
-  void do_master_io_reset(const nlohmann::json& data);
   void do_master_set_timestamp(const nlohmann::json&);
-  void do_master_print_status(const nlohmann::json&);
   void do_master_set_endpoint_delay(const nlohmann::json& data);
   void do_master_send_fl_command(const nlohmann::json& data);
   void do_master_measure_endpoint_rtt(const nlohmann::json& data);

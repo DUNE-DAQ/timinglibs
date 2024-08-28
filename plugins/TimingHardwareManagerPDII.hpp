@@ -13,7 +13,7 @@
 #define TIMINGLIBS_PLUGINS_TIMINGHARDWAREMANAGERPDII_HPP_
 
 #include "InfoGatherer.hpp"
-#include "TimingHardwareManager.hpp"
+#include "TimingHardwareManagerBase.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
@@ -49,7 +49,7 @@ namespace timinglibs {
  * @brief Hardware manager for PD-II hardware.
  */
 
-class TimingHardwareManagerPDII : public TimingHardwareManager
+class TimingHardwareManagerPDII : public TimingHardwareManagerBase
 {
 public:
   /**

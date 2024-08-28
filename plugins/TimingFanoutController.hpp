@@ -12,7 +12,7 @@
 #ifndef TIMINGLIBS_PLUGINS_TIMINGFANOUTCONTROLLER_HPP_
 #define TIMINGLIBS_PLUGINS_TIMINGFANOUTCONTROLLER_HPP_
 
-#include "timinglibs/TimingController.hpp"
+#include "TimingEndpointControllerBase.hpp"
 
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
@@ -39,7 +39,7 @@ namespace timinglibs {
  * @brief TimingFanoutController is a DAQModule implementation that
  * provides a control interface for timing master hardware.
  */
-class TimingFanoutController : public dunedaq::timinglibs::TimingController
+class TimingFanoutController : public dunedaq::timinglibs::TimingEndpointControllerBase
 {
 public:
   /**
@@ -55,22 +55,15 @@ public:
   TimingFanoutController& operator=(TimingFanoutController&&) =
     delete; ///< TimingFanoutController is not move-assignable
 
-private:
+protected:
   // Commands
   void do_configure(const nlohmann::json&) override;
   void send_configure_hardware_commands(const nlohmann::json& data) override;
 
   timingcmd::TimingHwCmd construct_fanout_hw_cmd(const std::string& cmd_id);
 
-  // timing master commands
-  void do_fanout_io_reset(const nlohmann::json& data);
-  void do_fanout_print_status(const nlohmann::json&);
-  void do_fanout_endpoint_enable(const nlohmann::json&);
-  void do_fanout_endpoint_reset(const nlohmann::json&);
-
   // pass op mon info
-  //  void get_info(opmonlib::InfoCollector& ci, int level) override;
-  //  void process_device_info(nlohmann::json info) override;
+  void process_device_info(nlohmann::json info) override;
 };
 } // namespace timinglibs
 } // namespace dunedaq

@@ -12,7 +12,7 @@
 #ifndef TIMINGLIBS_PLUGINS_TIMINGMASTERCONTROLLERPDI_HPP_
 #define TIMINGLIBS_PLUGINS_TIMINGMASTERCONTROLLERPDI_HPP_
 
-#include "TimingMasterController.hpp"
+#include "TimingMasterControllerBase.hpp"
 
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
@@ -35,7 +35,7 @@ namespace timinglibs {
  * @brief TimingMasterControllerPDI is a DAQModule implementation that
  * provides a control interface for timing master hardware.
  */
-class TimingMasterControllerPDI : public dunedaq::timinglibs::TimingMasterController
+class TimingMasterControllerPDI : public dunedaq::timinglibs::TimingMasterControllerBase
 {
 public:
   /**
@@ -43,7 +43,7 @@ public:
    * @param name Instance name for this TimingMasterControllerPDI instance
    */
   explicit TimingMasterControllerPDI(const std::string& name)
-    : dunedaq::timinglibs::TimingMasterController(name) {}
+    : dunedaq::timinglibs::TimingMasterControllerBase(name) {}
 
   TimingMasterControllerPDI(const TimingMasterControllerPDI&) = delete; ///< TimingMasterControllerPDI is not copy-constructible
   TimingMasterControllerPDI& operator=(const TimingMasterControllerPDI&) =
@@ -53,7 +53,7 @@ public:
     delete; ///< TimingMasterControllerPDI is not move-assignable
 
 protected:
-  //  void process_device_info(nlohmann::json info) override;
+   void process_device_info(nlohmann::json info) override;
 };
 } // namespace timinglibs
 } // namespace dunedaq

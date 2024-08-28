@@ -204,9 +204,9 @@ TimingPartitionController::do_partition_print_status(const nlohmann::json&)
   ++(m_sent_hw_command_counters.at(7).atomic);
 }
 
-// void
-// TimingPartitionController::process_device_info(nlohmann::json info)
-// {
+void
+TimingPartitionController::process_device_info(nlohmann::json info)
+{
 //   ++m_device_infos_received_count;
   
 //   timing::timingfirmwareinfo::TimingPartitionMonitorData partition_info;
@@ -261,7 +261,7 @@ TimingPartitionController::do_partition_print_status(const nlohmann::json&)
 //   //  module_info.sent_hw_command_counters.push_back(m_sent_hw_command_counters.at(i).atomic.load());
 //   //}
 //   ci.add(module_info);
-// }
+}
 } // namespace timinglibs
 } // namespace dunedaq
 
