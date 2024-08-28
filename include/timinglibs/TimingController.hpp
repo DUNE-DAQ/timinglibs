@@ -122,7 +122,7 @@ protected:
   std::vector<AtomicUInt64> m_sent_hw_command_counters;
 
   // Interpert device opmon info
-  //virtual void process_device_info(nlohmann::json /*message*/) = 0;
+  virtual void process_device_info(nlohmann::json /*message*/) = 0;
   std::chrono::milliseconds m_device_ready_timeout;
   std::atomic<bool> m_device_ready;
   std::atomic<uint> m_device_infos_received_count;

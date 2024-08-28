@@ -15,8 +15,8 @@
 #include "timinglibs/timingendpointcontroller/Nljs.hpp"
 #include "timinglibs/timingendpointcontroller/Structs.hpp"
 
-#include "timing/timingendpointinfo/InfoNljs.hpp"
-#include "timing/timingendpointinfo/InfoStructs.hpp"
+#include "timing/timingfirmwareinfo/Nljs.hpp"
+#include "timing/timingfirmwareinfo/Structs.hpp"
 
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
@@ -121,32 +121,31 @@ TimingEndpointControllerBase::do_endpoint_print_timestamp(const nlohmann::json& 
   ++(m_sent_hw_command_counters.at(5).atomic);
 }
 
-void
-TimingEndpointControllerBase::get_info(opmonlib::InfoCollector& ci, int /*level*/)
-{
+//void
+//TimingEndpointControllerBase::get_info(opmonlib::InfoCollector& ci, int /*level*/)
+//{
 
   // send counters internal to the module
-  timingendpointcontrollerinfo::Info module_info;
-  module_info.sent_endpoint_io_reset_cmds = m_sent_hw_command_counters.at(0).atomic.load();
-  module_info.sent_endpoint_print_status_cmds = m_sent_hw_command_counters.at(1).atomic.load();
+//  timingendpointcontrollerinfo::Info module_info;
+//  module_info.sent_endpoint_io_reset_cmds = m_sent_hw_command_counters.at(0).atomic.load();
+//  module_info.sent_endpoint_print_status_cmds = m_sent_hw_command_counters.at(1).atomic.load();
 
-  module_info.sent_endpoint_enable_cmds = m_sent_hw_command_counters.at(2).atomic.load();
-  module_info.sent_endpoint_disable_cmds = m_sent_hw_command_counters.at(3).atomic.load();
-  module_info.sent_endpoint_reset_cmds = m_sent_hw_command_counters.at(4).atomic.load();
-  module_info.sent_endpoint_print_timestamp_cmds = m_sent_hw_command_counters.at(5).atomic.load();
-  ci.add(module_info);
-}
+//  module_info.sent_endpoint_enable_cmds = m_sent_hw_command_counters.at(2).atomic.load();
+//  module_info.sent_endpoint_disable_cmds = m_sent_hw_command_counters.at(3).atomic.load();
+//  module_info.sent_endpoint_reset_cmds = m_sent_hw_command_counters.at(4).atomic.load();
+//  module_info.sent_endpoint_print_timestamp_cmds = m_sent_hw_command_counters.at(5).atomic.load();
+//  ci.add(module_info);
+//}
 
 void
 TimingEndpointControllerBase::process_device_info(nlohmann::json info)
 {
   ++m_device_infos_received_count;
   
-  timing::timingendpointinfo::TimingEndpointInfo ept_info;
+  timing::timingfirmwareinfo::TimingDeviceInfo device_info;
+  from_json(info, device_info);
 
-  auto ept_data = info[opmonlib::JSONTags::children]["endpoint"][opmonlib::JSONTags::properties][ept_info.info_type][opmonlib::JSONTags::data];
-
-  from_json(ept_data, ept_info);
+  auto ept_info = device_info.endpoint_info;
 
   m_endpoint_state = ept_info.state;
   bool ready = ept_info.ready;
@@ -162,7 +161,7 @@ TimingEndpointControllerBase::process_device_info(nlohmann::json info)
     }
   }
   else
-  {
+ {
     if (m_device_ready)
     {
       m_device_ready = false;

@@ -63,8 +63,7 @@ protected:
   timingcmd::TimingHwCmd construct_fanout_hw_cmd(const std::string& cmd_id);
 
   // pass op mon info
-  //  void get_info(opmonlib::InfoCollector& ci, int level) override;
-  //  void process_device_info(nlohmann::json info) override;
+  void process_device_info(nlohmann::json info) override;
 };
 } // namespace timinglibs
 } // namespace dunedaq

@@ -88,9 +88,8 @@ private:
   void do_partition_disable_triggers(const nlohmann::json&);
   void do_partition_print_status(const nlohmann::json&);
 
-  // // pass op mon info
-  // void get_info(opmonlib::InfoCollector& ci, int level) override;
-  // void process_device_info(nlohmann::json info) override;
+  // pass op mon info
+  void process_device_info(nlohmann::json info) override;
 };
 } // namespace timinglibs
 } // namespace dunedaq

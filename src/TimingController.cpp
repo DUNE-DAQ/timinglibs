@@ -94,7 +94,7 @@ TimingController::do_configure(const nlohmann::json& data)
       iomanager::connection::ConnectionId{m_timing_device+"_info", datatype_to_string<nlohmann::json>(), m_timing_session_name});
   }
   
-  //  m_device_info_receiver->add_callback(std::bind(&TimingController::process_device_info, this, std::placeholders::_1));
+  m_device_info_receiver->add_callback(std::bind(&TimingController::process_device_info, this, std::placeholders::_1));
 }
 
 void

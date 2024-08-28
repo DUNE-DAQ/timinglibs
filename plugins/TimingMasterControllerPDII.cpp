@@ -14,6 +14,9 @@
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
+#include "timing/timingfirmwareinfo/Nljs.hpp"
+#include "timing/timingfirmwareinfo/Structs.hpp"
+
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 
@@ -26,42 +29,41 @@
 namespace dunedaq {
 namespace timinglibs {
 
-// void
-// TimingMasterControllerPDII::process_device_info(nlohmann::json info)
-// {
-//   ++m_device_infos_received_count;
+void
+TimingMasterControllerPDII::process_device_info(nlohmann::json info)
+{
+  ++m_device_infos_received_count;
 
-//   timing::timingfirmwareinfo::MasterMonitorData master_info;
+  timing::timingfirmwareinfo::TimingDeviceInfo device_info;
+  from_json(info, device_info);
 
-//   auto master_data = info[opmonlib::JSONTags::children]["master"][opmonlib::JSONTags::properties][master_info.info_type][opmonlib::JSONTags::data];
+  auto master_info = device_info.master_info;
 
-//   from_json(master_data, master_info);
+  uint64_t master_timestamp = master_info.timestamp;
+  bool timestamp_broadcast_enabled = master_info.ts_en;
+  bool timestamp_error = master_info.ts_err;
+  bool transmit_error = master_info.tx_err;
+  bool counters_error = master_info.ctrs_rdy;
 
-//   uint64_t master_timestamp = master_info.timestamp;
-//   bool timestamp_broadcast_enabled = master_info.ts_en;
-//   bool timestamp_error = master_info.ts_err;
-//   bool transmit_error = master_info.tx_err;
-//   bool counters_error = master_info.ctrs_rdy;
+  TLOG_DEBUG(3) << "Master timestamp: 0x" << std::hex << master_timestamp << ", ts_err: " << timestamp_error << ", tx_err: " << transmit_error << ", ctrs_rdy: " << counters_error << std::dec << ", infos received: " << m_device_infos_received_count;
 
-//   TLOG_DEBUG(3) << "Master timestamp: 0x" << std::hex << master_timestamp << ", ts_err: " << timestamp_error << ", tx_err: " << transmit_error << ", ctrs_rdy: " << counters_error << std::dec << ", infos received: " << m_device_infos_received_count;
-
-//   if (master_timestamp && timestamp_broadcast_enabled && !timestamp_error && !transmit_error && counters_error)
-//   {
-//     if (!m_device_ready)
-//     {
-//       m_device_ready = true;
-//       TLOG_DEBUG(2) << "Timing master became ready";
-//     }
-//   }
-//   else
-//   {
-//     if (m_device_ready)
-//     {
-//       m_device_ready = false;
-//       TLOG_DEBUG(2) << "Timing master no longer ready";
-//     }
-//   }
-// }
+  if (master_timestamp && timestamp_broadcast_enabled && !timestamp_error && !transmit_error && counters_error)
+  {
+    if (!m_device_ready)
+    {
+      m_device_ready = true;
+      TLOG_DEBUG(2) << "Timing master became ready";
+    }
+  }
+  else
+  {
+    if (m_device_ready)
+    {
+      m_device_ready = false;
+      TLOG_DEBUG(2) << "Timing master no longer ready";
+    }
+  }
+}
 
 } // namespace timinglibs
 } // namespace dunedaq

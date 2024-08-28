@@ -27,9 +27,9 @@
 namespace dunedaq {
 namespace timinglibs {
 
-// void
-// TimingMasterControllerPDI::process_device_info(nlohmann::json info)
-// {
+void
+TimingMasterControllerPDI::process_device_info(nlohmann::json info)
+{
 //   ++m_device_infos_received_count;
 
 //   timing::timingfirmwareinfo::PDIMasterMonitorData master_info;
@@ -58,7 +58,7 @@ namespace timinglibs {
 //       TLOG_DEBUG(2) << "Timing master no longer ready";
 //     }
 //   }
-// }
+}
 } // namespace timinglibs
 } // namespace dunedaq
 

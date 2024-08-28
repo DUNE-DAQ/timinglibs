@@ -248,6 +248,7 @@
     <attr name="device" type="string" val="MASTER"/>
     <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
     <attr name="timing_session_name" type="string" val=""/>
+    <attr name="clock_source" type="u32" val="2" />
     <attr name="endpoint_scan_period" type="u32" val="1000"/>
     <attr name="clock_config" type="string" val=""/>
     <attr name="soft" type="bool" val="0"/>

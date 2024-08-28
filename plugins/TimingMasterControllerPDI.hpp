@@ -53,7 +53,7 @@ public:
     delete; ///< TimingMasterControllerPDI is not move-assignable
 
 protected:
-  //  void process_device_info(nlohmann::json info) override;
+   void process_device_info(nlohmann::json info) override;
 };
 } // namespace timinglibs
 } // namespace dunedaq

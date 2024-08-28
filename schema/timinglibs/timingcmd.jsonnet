@@ -136,7 +136,6 @@ local timingcmd = {
             doc="List of target endpoint"),
     ], doc="Structure for payloads of endpoint scan configure commands"),
 
-
 };
 
 // Output a topologically sorted array.

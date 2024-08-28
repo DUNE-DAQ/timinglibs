@@ -15,6 +15,12 @@
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
+#include "timing/timingfirmwareinfo/Nljs.hpp"
+#include "timing/timingfirmwareinfo/Structs.hpp"
+
+#include "timing/timingendpointinfo/Nljs.hpp"
+#include "timing/timingendpointinfo/Structs.hpp"
+
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
 
@@ -74,39 +80,38 @@ TimingFanoutController::send_configure_hardware_commands(const nlohmann::json& d
 //   ci.add(module_info);
 // }
 
-// void
-// TimingFanoutController::process_device_info(nlohmann::json info)
-// {
-//   ++m_device_infos_received_count;
+void
+TimingFanoutController::process_device_info(nlohmann::json info)
+{
+  ++m_device_infos_received_count;
 
-//   timing::timingendpointinfo::TimingEndpointInfo ept_info;
+  timing::timingfirmwareinfo::TimingDeviceInfo device_info;
+  from_json(info, device_info);
 
-//   auto ept_data = info[opmonlib::JSONTags::children]["endpoint"][opmonlib::JSONTags::properties][ept_info.info_type][opmonlib::JSONTags::data];
+  auto ept_info = device_info.endpoint_info;
 
-//   from_json(ept_data, ept_info);
+  uint32_t endpoint_state = ept_info.state;
+  bool ready = ept_info.ready;
 
-//   uint32_t endpoint_state = ept_info.state;
-//   bool ready = ept_info.ready;
+  TLOG_DEBUG(3) << "state: 0x" << std::hex << endpoint_state << ", ready: " << ready << std::dec << ", infos received: " << m_device_infos_received_count;;
 
-//   TLOG_DEBUG(3) << "state: 0x" << std::hex << endpoint_state << ", ready: " << ready << std::dec << ", infos received: " << m_device_infos_received_count;;
-
-//   if (endpoint_state > 0x5 && endpoint_state < 0x9)
-//   {
-//     if (!m_device_ready)
-//     {
-//       m_device_ready = true;
-//       TLOG_DEBUG(2) << "Timing fanout became ready";
-//     }
-//   }
-//   else
-//   {
-//     if (m_device_ready)
-//     {
-//       m_device_ready = false;
-//       TLOG_DEBUG(2) << "Timing fanout no longer ready";
-//     }
-//   }
-// }
+  if (endpoint_state > 0x5 && endpoint_state < 0x9)
+  {
+    if (!m_device_ready)
+    {
+      m_device_ready = true;
+      TLOG_DEBUG(2) << "Timing fanout became ready";
+    }
+  }
+  else
+  {
+    if (m_device_ready)
+    {
+      m_device_ready = false;
+      TLOG_DEBUG(2) << "Timing fanout no longer ready";
+    }
+  }
+}
 } // namespace timinglibs
 } // namespace dunedaq
 
