@@ -25,17 +25,7 @@ find_package(conffwk REQUIRED)
 
 daq_oks_codegen(timing.schema.xml NAMESPACE dunedaq::timinglibs::dal DALDIR dal DEP_PKGS confmodel)
 
-
-daq_codegen( 
-			 timingcmd.jsonnet
-			 timingendpointcontroller.jsonnet
-			 timinghardwaremanagerpdi.jsonnet
-			 timingmastercontroller.jsonnet
-			 timingpartitioncontroller.jsonnet
-			 timingfanoutcontroller.jsonnet 
-			 DEP_PKGS appfwk rcif cmdlib iomanager TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
-
-daq_codegen( timingcmd.jsonnet TEMPLATES msgp.hpp.j2 )
+daq_codegen( timingcmd.jsonnet TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 msgp.hpp.j2 )
 
 
 ##############################################################################
@@ -59,12 +49,9 @@ logging::logging confmodel::confmodel oks::oks ers::ers appfwk::appfwk)
 
 ##############################################################################
 daq_add_plugin(TimingHardwareManagerPDII duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)
-daq_add_plugin(TimingHardwareManagerPDI duneDAQModule LINK_LIBRARIES timing::timing timinglibs uhal::uhal pugixml::pugixml)
 daq_add_plugin(TimingMasterControllerPDII duneDAQModule LINK_LIBRARIES timinglibs)
-daq_add_plugin(TimingMasterControllerPDI duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(TimingEndpointController duneDAQModule LINK_LIBRARIES timinglibs)
 daq_add_plugin(TimingFanoutController duneDAQModule LINK_LIBRARIES timinglibs)
-daq_add_plugin(TimingPartitionController duneDAQModule LINK_LIBRARIES timinglibs)
 
 ##############################################################################
 

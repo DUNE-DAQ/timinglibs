@@ -122,10 +122,6 @@
   <attribute name="monitored_device_name_hsi" description="Name of hsi device to be monitored" type="string" init-value=""/>
 </class>
 
- <class name="TimingHardwareManagerPDI">
-  <superclass name="TimingHardwareManager"/>
- </class>
-
  <class name="TimingHardwareManagerPDII">
   <superclass name="TimingHardwareManager"/>
  </class>
@@ -149,20 +145,8 @@
     <attribute name="endpoints" type="class" init-value="EndpointLocation" />
 </class>
 
-<class name="TimingMasterControllerPDI">
-    <superclass name="TimingMasterController"/>
-</class>
-  
 <class name="TimingMasterControllerPDII">
     <superclass name="TimingMasterController"/>
 </class>
-  
- <class name="TimingPartitionController" description="TimingPartitionController configuration">
-  <superclass name="TimingController"/>
-  <attribute name="partition_id" description="Part id number" type="u32" init-value="0"/>
-  <attribute name="trigger_mask" description="Trigger mask for fixed length cmd distribution" type="u32" init-value="Unknown"/>
-  <attribute name="spill_gate_enabled" description="Spill interface on" type="bool" init-value="false"/>
-  <attribute name="rate_control_enabled" description="Rate control on" type="bool" init-value="false"/>
- </class>
 
 </oks-schema>

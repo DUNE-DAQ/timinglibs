@@ -10,8 +10,6 @@
 #include "TimingFanoutController.hpp"
 #include "timinglibs/dal/TimingFanoutController.hpp"
 
-#include "timinglibs/timingfanoutcontroller/Nljs.hpp"
-#include "timinglibs/timingfanoutcontroller/Structs.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 

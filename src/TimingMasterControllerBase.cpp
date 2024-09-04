@@ -9,8 +9,6 @@
 
 #include "TimingMasterControllerBase.hpp"
 #include "timinglibs/dal/EndpointLocation.hpp"
-#include "timinglibs/timingmastercontroller/Nljs.hpp"
-#include "timinglibs/timingmastercontroller/Structs.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 

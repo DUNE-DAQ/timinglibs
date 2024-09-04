@@ -18,8 +18,6 @@
 #include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
-#include "timinglibs/timinghardwaremanagerpdi/Nljs.hpp"
-#include "timinglibs/timinghardwaremanagerpdi/Structs.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "ers/Issue.hpp"
@@ -31,7 +29,7 @@
 #include "timing/HSINode.hpp"
 #include "timing/OuroborosDesign.hpp"
 #include "timing/OuroborosMuxDesign.hpp"
-#include "timing/OverlordDesign.hpp"
+
 #include "uhal/ConnectionManager.hpp"
 #include "uhal/utilities/files.hpp"
 #include "utilities/WorkerThread.hpp"
