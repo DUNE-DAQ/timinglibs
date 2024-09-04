@@ -354,10 +354,14 @@ TimingHardwareManagerBase::print_status(const timingcmd::TimingHwCmd& hw_cmd)
 void
 TimingHardwareManagerBase::set_timestamp(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " set timestamp";
+  timingcmd::SyncTimestampPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device
+                              << " set timestamp, with supplied ts source: " << cmd_payload.timestamp_source;
 
   auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
-  design->sync_timestamp();
+  design->sync_timestamp(static_cast<timing::TimestampSource>(cmd_payload.timestamp_source));
 }
 
 void

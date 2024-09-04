@@ -159,6 +159,7 @@ TimingController::do_io_reset(const nlohmann::json& data)
   auto mdal = m_params->cast<dal::TimingController>(); 
 
   hw_cmd.payload["clock_source"] = mdal->get_clock_source();
+  hw_cmd.payload["soft"] = mdal->get_soft();
 
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(0).atomic);
