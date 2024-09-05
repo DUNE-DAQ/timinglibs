@@ -88,10 +88,12 @@
 
  <class name="TimingController">
   <superclass name="DaqModule"/>
-  <attribute name="device" description="String of managed device name" type="string" init-value="Unknown" is-not-null="yes"/>
+  <attribute name="device" description="String of managed device name" type="string" init-value="" is-not-null="yes"/>
   <attribute name="hardware_state_recovery_enabled" description="Control flag for hardware state recovery" type="bool" init-value="true"/>
-  <attribute name="timing_session_name" description="Name of managed device timing session" type="string" init-value="Unknown"/>
+  <attribute name="timing_session_name" description="Name of managed device timing session" type="string" init-value=""/>
   <attribute name="clock_source" type="u32" description="Clock source, 0 for PLL input 0, 1 for in 1, etc.. 255 for free run mode" />
+  <attribute name="clock_config" description="Path of clock config file" type="string" init-value=""/>
+  <attribute name="soft" description="Soft reset" type="bool" init-value="false"/>
  </class>
 
  <class name="TimingEndpointController" description="Structure for payload of endpoint configure commands">
@@ -122,10 +124,6 @@
   <attribute name="monitored_device_name_hsi" description="Name of hsi device to be monitored" type="string" init-value=""/>
 </class>
 
- <class name="TimingHardwareManagerPDI">
-  <superclass name="TimingHardwareManager"/>
- </class>
-
  <class name="TimingHardwareManagerPDII">
   <superclass name="TimingHardwareManager"/>
  </class>
@@ -138,9 +136,8 @@
 
  <class name="TimingMasterController" description="TimingMasterController configuration">
   <superclass name="TimingController"/>
+  <attribute name="timestamp_source" description="TS source, 0 for upstream, 1 for software, 2 for mixed" type="u32"/>
   <attribute name="endpoint_scan_period" description="Period between endpoint scans. 0 for disabled." type="u32" init-value="0"/>
-  <attribute name="clock_config" description="Path of clock config file" type="string" init-value="Unknown"/>
-  <attribute name="soft" description="Soft reset" type="bool" init-value="false"/>
   <relationship name="monitored_endpoints" description="List of monitored endpoint locations" class-type="EndpointLocation"  low-cc="zero" high-cc="many" is-composite="yes" is-exclusive="no" is-dependent="yes"/>
  </class>
 
@@ -149,20 +146,8 @@
     <attribute name="endpoints" type="class" init-value="EndpointLocation" />
 </class>
 
-<class name="TimingMasterControllerPDI">
-    <superclass name="TimingMasterController"/>
-</class>
-  
 <class name="TimingMasterControllerPDII">
     <superclass name="TimingMasterController"/>
 </class>
-  
- <class name="TimingPartitionController" description="TimingPartitionController configuration">
-  <superclass name="TimingController"/>
-  <attribute name="partition_id" description="Part id number" type="u32" init-value="0"/>
-  <attribute name="trigger_mask" description="Trigger mask for fixed length cmd distribution" type="u32" init-value="Unknown"/>
-  <attribute name="spill_gate_enabled" description="Spill interface on" type="bool" init-value="false"/>
-  <attribute name="rate_control_enabled" description="Rate control on" type="bool" init-value="false"/>
- </class>
 
 </oks-schema>

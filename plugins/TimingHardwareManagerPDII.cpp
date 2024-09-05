@@ -10,13 +10,10 @@
 #include "TimingHardwareManagerPDII.hpp"
 #include "timinglibs/dal/TimingHardwareManagerPDII.hpp"
 
-#include "timinglibs/timinghardwaremanagerpdi/Nljs.hpp"
-#include "timinglibs/timinghardwaremanagerpdi/Structs.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/TimingIssues.hpp"
 
-#include "timing/PDIMasterNode.hpp"
 #include "timing/MasterNode.hpp"
 
 #include "ers/Issue.hpp"

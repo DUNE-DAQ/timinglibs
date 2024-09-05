@@ -46,6 +46,11 @@ local timingcmd = {
             doc="Clock source, 0 for PLL input 0, 1 for in 1, etc.. 255 for free run mode"),
     ], doc="Structure for io reset commands"),
 
+    ts_sync_cmd_payload: s.record("SyncTimestampPayload",[
+        s.field("timestamp_source", self.uint_data,
+            doc="Timestamp source, 0 for upstream, 1 for software, 2 for mixed"),
+    ], doc="Structure for io reset commands"),
+
     timing_partition_cmd_payload: s.record("TimingPartitionCmdPayload",[
         s.field("partition_id", self.uint_data,
             doc="ID of target partition"),

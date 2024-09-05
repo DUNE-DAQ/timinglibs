@@ -9,8 +9,6 @@
 
 #include "TimingMasterControllerBase.hpp"
 #include "timinglibs/dal/EndpointLocation.hpp"
-#include "timinglibs/timingmastercontroller/Nljs.hpp"
-#include "timinglibs/timingmastercontroller/Structs.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 
@@ -103,6 +101,10 @@ TimingMasterControllerBase::do_master_set_timestamp(const nlohmann::json&)
 {
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "set_timestamp");
+
+  auto mdal = m_params->cast<dal::TimingMasterController>();
+  hw_cmd.payload["timestamp_source"] = mdal->get_timestamp_source();
+
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(1).atomic);
 }

@@ -14,9 +14,6 @@
 #include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
-#include "timinglibs/timingendpointcontroller/Nljs.hpp"
-#include "timinglibs/timingendpointcontroller/Structs.hpp"
-
 
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
