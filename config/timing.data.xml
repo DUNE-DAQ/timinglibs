@@ -342,6 +342,7 @@
 
 <obj class="TimingHardwareManagerPDII" id="thi">
  <attr name="uhal_log_level" type="enum" val="notice"/>
+ <attr name="gather_interval" type="u32" val="500000"/>
  <attr name="connections_file" type="string" val="connections.xml"/>
  <attr name="monitored_device_name_master" type="string" val="MASTER"/>
  <attr name="monitored_device_names_fanout" type="string" val="FANOUT_2"/>
