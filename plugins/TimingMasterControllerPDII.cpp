@@ -38,14 +38,19 @@ TimingMasterControllerPDII::process_device_info(nlohmann::json info)
   auto master_info = device_info.master_info;
 
   uint64_t master_timestamp = master_info.timestamp;
-  bool timestamp_broadcast_enabled = master_info.ts_en;
-  bool timestamp_error = master_info.ts_err;
+  bool timestamp_valid = master_info.ts_valid;
+  bool timestamp_tx_error = master_info.ts_tx_err;
   bool transmit_error = master_info.tx_err;
-  bool counters_error = master_info.ctrs_rdy;
+  bool counters_ready = master_info.ctrs_rdy;
 
-  TLOG_DEBUG(3) << "Master timestamp: 0x" << std::hex << master_timestamp << ", ts_err: " << timestamp_error << ", tx_err: " << transmit_error << ", ctrs_rdy: " << counters_error << std::dec << ", infos received: " << m_device_infos_received_count;
+  TLOG() << "Master timestamp: 0x" << std::hex << master_timestamp
+  << ", ts_valid: " << timestamp_valid
+  << ", ts_tx_err: " << timestamp_tx_error
+  << ", tx_err: " << transmit_error
+  << ", ctrs_rdy: " << counters_ready << std::dec
+  << ", infos received: " << m_device_infos_received_count;
 
-  if (master_timestamp && timestamp_broadcast_enabled && !timestamp_error && !transmit_error && counters_error)
+  if (master_timestamp && timestamp_valid && !timestamp_tx_error && !transmit_error && counters_ready)
   {
     if (!m_device_ready)
     {
