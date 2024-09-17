@@ -87,6 +87,14 @@ TimingHardwareManagerBase::conf(const nlohmann::json& data)
   m_rejected_hw_commands_counter = 0;
   m_failed_hw_commands_counter = 0;
 
+  m_gather_interval = m_params->get_gather_interval();
+  m_gather_interval_debug = m_params->get_gather_interval_debug();
+
+  m_monitored_device_name_master = m_params->get_monitored_device_name_master();
+  m_monitored_device_names_fanout = m_params->get_monitored_device_names_fanout();
+  m_monitored_device_name_endpoint = m_params->get_monitored_device_name_endpoint();
+  m_monitored_device_name_hsi = m_params->get_monitored_device_name_hsi();
+
   configure_uhal(m_params); // configure hw ipbus connection
 
   m_hw_command_receiver->add_callback(std::bind(&TimingHardwareManagerBase::process_hardware_command, this, std::placeholders::_1));

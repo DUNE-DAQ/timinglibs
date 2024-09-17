@@ -86,6 +86,7 @@ protected:
   std::shared_ptr<source_t> m_hw_command_receiver;
 
   // hardware polling intervals [us]
+  // TODO change to duration::milliseconds
   uint m_gather_interval;
   uint m_gather_interval_debug;
 
