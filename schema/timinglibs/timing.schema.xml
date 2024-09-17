@@ -98,9 +98,9 @@
 
  <class name="TimingEndpointController" description="Structure for payload of endpoint configure commands">
   <superclass name="TimingController"/>
-  <attribute name="endpoint_id" description="ID of target endpoint" type="u32" init-value="true"/>
-  <attribute name="address" description="Endpoint address" type="u32" init-value="Unknown"/>
-  <attribute name="partition" description="Endpoint partition" type="u32" init-value="Unknown"/>
+  <attribute name="endpoint_id" description="ID of target endpoint" type="u32"/>
+  <attribute name="address" description="Endpoint address" type="u32"/>
+  <attribute name="partition" description="Endpoint partition" type="u32"/>
  </class>
 
  <class name="TimingFanoutController" description="TimingFanoutController configuration">
