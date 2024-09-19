@@ -67,7 +67,7 @@
 
 <include>
     <file path="schema/confmodel/dunedaq.schema.xml"/>
-    <file path="config/appmodel/fsm.data.xml"/>
+    <file path="fsm-timing.data.xml"/>
     <file path="schema/timinglibs/timing.schema.xml"/>
 </include>
 
@@ -146,7 +146,7 @@
     <rel name="exposes_service">
         <ref class="Service" id="timing-controller_control"/>
     </rel>
-    <rel name="fsm" class="FSMconfiguration" id="fsmConf-test"/>
+    <rel name="fsm" class="FSMconfiguration" id="fsm_timing"/>
 </obj>
 
 <obj class="Segment" id="generated-segment">
