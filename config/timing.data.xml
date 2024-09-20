@@ -68,6 +68,7 @@
 <include>
     <file path="schema/confmodel/dunedaq.schema.xml"/>
     <file path="fsm-timing.data.xml"/>
+    <!-- <file path="config/appmodel/fsm.data.xml"/> -->
     <file path="schema/timinglibs/timing.schema.xml"/>
 </include>
 
@@ -146,6 +147,7 @@
     <rel name="exposes_service">
         <ref class="Service" id="timing-controller_control"/>
     </rel>
+    <!-- <rel name="fsm" class="FSMconfiguration" id="fsmConf-test"/> -->
     <rel name="fsm" class="FSMconfiguration" id="fsm_timing"/>
 </obj>
 
@@ -170,7 +172,7 @@
 
 <obj class="Service" id="tfc_control">
  <attr name="protocol" type="string" val="rest"/>
- <attr name="port" type="u16" val="5802"/>
+ <attr name="port" type="u16" val="5803"/>
 </obj>
 
 <obj class="Service" id="thi_control">

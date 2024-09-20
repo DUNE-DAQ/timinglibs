@@ -32,9 +32,10 @@ TimingMasterControllerBase::TimingMasterControllerBase(const std::string& name)
   , endpoint_scan_thread(std::bind(&TimingMasterControllerBase::endpoint_scan, this, std::placeholders::_1))
 {
   register_command("conf", &TimingMasterControllerBase::do_configure);
-  register_command("start", &TimingMasterControllerBase::do_start);
-  register_command("stop", &TimingMasterControllerBase::do_stop);
   register_command("scrap", &TimingMasterControllerBase::do_scrap);
+
+  register_command("start_scanning_endpoints", &TimingMasterControllerBase::do_start);
+  register_command("stop_scanning_endpoints", &TimingMasterControllerBase::do_stop);
 
   // timing master hardware commands
   register_command("master_set_timestamp", &TimingMasterControllerBase::do_master_set_timestamp);
@@ -81,12 +82,14 @@ TimingMasterControllerBase::do_start(const nlohmann::json& data)
 {
   TimingController::do_start(data); // set sent cmd counters to 0
   if (m_endpoint_scan_period) endpoint_scan_thread.start_working_thread();
+  TLOG() << "Endpoint monitoring started";
 }
 
 void
 TimingMasterControllerBase::do_stop(const nlohmann::json& /*data*/)
 {
   if (endpoint_scan_thread.thread_running()) endpoint_scan_thread.stop_working_thread();
+  TLOG() << "Endpoint monitoring stopped";
 }
 
 void

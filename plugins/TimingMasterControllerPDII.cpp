@@ -43,7 +43,7 @@ TimingMasterControllerPDII::process_device_info(nlohmann::json info)
   bool transmit_error = master_info.tx_err;
   bool counters_ready = master_info.ctrs_rdy;
 
-  TLOG() << "Master timestamp: 0x" << std::hex << master_timestamp
+  TLOG_DEBUG(3) << "Master timestamp: 0x" << std::hex << master_timestamp
   << ", ts_valid: " << timestamp_valid
   << ", ts_tx_err: " << timestamp_tx_error
   << ", tx_err: " << transmit_error

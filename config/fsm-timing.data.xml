@@ -73,47 +73,6 @@
  <comment creation-time="20240208T094131" created-by="eflumerf" created-on="ironvirt9.mshome.net" author="eflumerf" text="reformat"/>
 </comments>
 
-
-<obj class="FSMCommand" id="conf">
- <attr name="cmd" type="string" val="conf"/>
- <attr name="optional" type="bool" val="1"/>
-</obj>
-
-<obj class="FSMCommand" id="disable_triggers">
- <attr name="cmd" type="string" val="disable_triggers"/>
- <attr name="optional" type="bool" val="1"/>
-</obj>
-
-<obj class="FSMCommand" id="drain_dataflow">
- <attr name="cmd" type="string" val="drain_dataflow"/>
- <attr name="optional" type="bool" val="0"/>
-</obj>
-
-<obj class="FSMCommand" id="enable_triggers">
- <attr name="cmd" type="string" val="enable_triggers"/>
- <attr name="optional" type="bool" val="0"/>
-</obj>
-
-<obj class="FSMCommand" id="scrap">
- <attr name="cmd" type="string" val="scrap"/>
- <attr name="optional" type="bool" val="1"/>
-</obj>
-
-<obj class="FSMCommand" id="start">
- <attr name="cmd" type="string" val="start"/>
- <attr name="optional" type="bool" val="0"/>
-</obj>
-
-<obj class="FSMCommand" id="stop">
- <attr name="cmd" type="string" val="stop"/>
- <attr name="optional" type="bool" val="0"/>
-</obj>
-
-<obj class="FSMCommand" id="stop_trigger_sources">
- <attr name="cmd" type="string" val="stop_trigger_sources"/>
- <attr name="optional" type="bool" val="0"/>
-</obj>
-
 <obj class="FSMconfiguration" id="fsm_timing">
  <attr name="states" type="string">
   <data val="initial"/>
