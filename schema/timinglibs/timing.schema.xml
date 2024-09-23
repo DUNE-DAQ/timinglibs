@@ -98,9 +98,9 @@
 
  <class name="TimingEndpointController" description="Structure for payload of endpoint configure commands">
   <superclass name="TimingController"/>
-  <attribute name="endpoint_id" description="ID of target endpoint" type="u32" init-value="true"/>
-  <attribute name="address" description="Endpoint address" type="u32" init-value="Unknown"/>
-  <attribute name="partition" description="Endpoint partition" type="u32" init-value="Unknown"/>
+  <attribute name="endpoint_id" description="ID of target endpoint" type="u32"/>
+  <attribute name="address" description="Endpoint address" type="u32"/>
+  <attribute name="partition" description="Endpoint partition" type="u32"/>
  </class>
 
  <class name="TimingFanoutController" description="TimingFanoutController configuration">
@@ -116,8 +116,8 @@
  <class name="TimingHardwareManager" description="TimingHardwareManager configuration">
   <superclass name="TimingHardwareInterface"/>  
   <superclass name="DaqModule" />
-  <attribute name="gather_interval" description="Hardware device data gather interval [us]" type="u64" init-value="1e6"/>
-  <attribute name="gather_interval_debug" description="Hardware device data gather debug interval [us]" type="u64" init-value="10e6"/>
+  <attribute name="gather_interval" description="Hardware device data gather interval [us]" type="u32" init-value="1000000"/>
+  <attribute name="gather_interval_debug" description="Hardware device data gather debug interval [us]" type="u32" init-value="10000000"/>
   <attribute name="monitored_device_name_master" description="Name of timing master device to be monitored" type="string" init-value=""/>
   <attribute name="monitored_device_names_fanout" description="Names of timing fanout devices to be monitored" type="string" is-multi-value="yes" init-value=""/>
   <attribute name="monitored_device_name_endpoint" description="Name of timing endpoint device to be monitored" type="string" init-value=""/>

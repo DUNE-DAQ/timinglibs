@@ -46,14 +46,6 @@ TimingHardwareManagerPDII::conf(const nlohmann::json& conf_data)
   register_endpoint_hw_commands_for_design();
   register_hsi_hw_commands_for_design();
 
-  m_gather_interval = m_params->get_gather_interval();
-  m_gather_interval_debug = m_params->get_gather_interval_debug();
-
-  m_monitored_device_name_master = m_params->get_monitored_device_name_master();
-  m_monitored_device_names_fanout = m_params->get_monitored_device_names_fanout();
-  m_monitored_device_name_endpoint = m_params->get_monitored_device_name_endpoint();
-  m_monitored_device_name_hsi = m_params->get_monitored_device_name_hsi();
-
   TimingHardwareManagerBase::conf(conf_data);
 
   // monitoring
