@@ -284,7 +284,7 @@ TimingHardwareManagerBase::process_hardware_command(timingcmd::TimingHwCmd& timi
   ++m_received_hw_commands_counter;
 
   TLOG_DEBUG(0) << get_name() << ": Received hardware command #" << m_received_hw_commands_counter.load()
-                  << ", it is of type: " << timing_hw_cmd.id << ", targeting device: " << timing_hw_cmd.device;
+                  << ", it is of type: " << timing_hw_cmd.id << ", targeting device: " << timing_hw_cmd.device << ", with payload: " << timing_hw_cmd.payload.dump();
 
   std::string hw_cmd_name = timing_hw_cmd.id;
   if (auto cmd = m_timing_hw_cmd_map_.find(hw_cmd_name); cmd != m_timing_hw_cmd_map_.end()) {
@@ -501,7 +501,11 @@ TimingHardwareManagerBase::set_endpoint_delay(const timingcmd::TimingHwCmd& hw_c
 void
 TimingHardwareManagerBase::send_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " send fl cmd";
+  TLOG() << get_name() << ": " << hw_cmd.device << " send fl cmd: " << hw_cmd.payload.dump()
+         << ", parsed data: " << cmd_payload.fl_cmd_id
+         << ", " << cmd_payload.channel
+         << ", " << cmd_payload.number_of_commands_to_send;
+
   timingcmd::TimingMasterSendFLCmdCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 

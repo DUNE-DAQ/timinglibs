@@ -128,7 +128,7 @@ void
 TimingMasterControllerBase::do_master_send_fl_command(const nlohmann::json& data)
 {
   timingcmd::TimingHwCmd hw_cmd =
-  construct_hw_cmd( "send_fl_command");
+  construct_hw_cmd( "send_fl_command", data);
   
   TLOG_DEBUG(2) << "send fl cmd data: " << data.dump();
 
