@@ -501,13 +501,13 @@ TimingHardwareManagerBase::set_endpoint_delay(const timingcmd::TimingHwCmd& hw_c
 void
 TimingHardwareManagerBase::send_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd)
 {
-  TLOG() << get_name() << ": " << hw_cmd.device << " send fl cmd: " << hw_cmd.payload.dump()
+  timingcmd::TimingMasterSendFLCmdCmdPayload cmd_payload;
+  timingcmd::from_json(hw_cmd.payload, cmd_payload);
+
+  TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " send fl cmd. Payload: " << hw_cmd.payload.dump()
          << ", parsed data: " << cmd_payload.fl_cmd_id
          << ", " << cmd_payload.channel
          << ", " << cmd_payload.number_of_commands_to_send;
-
-  timingcmd::TimingMasterSendFLCmdCmdPayload cmd_payload;
-  timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
   auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
   design->get_master_node_plain()->send_fl_cmd(cmd_payload.fl_cmd_id, cmd_payload.channel, cmd_payload.number_of_commands_to_send);
