@@ -46,7 +46,7 @@ TimingHardwareInterface::TimingHardwareInterface()
 }
 
 void
-TimingHardwareInterface::configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareInterface* mdal)
+TimingHardwareInterface::configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareInterfaceConf* mdal)
 {
   m_uhal_log_level = mdal->get_uhal_log_level();
 

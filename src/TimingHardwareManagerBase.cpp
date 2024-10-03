@@ -8,6 +8,8 @@
 
 #include "TimingHardwareManagerBase.hpp"
 
+#include "timinglibs/dal/TimingHardwareManagerBase.hpp"
+
 #include "iomanager/IOManager.hpp"
 #include "iomanager/connection/Structs.hpp"
 #include "logging/Logging.hpp"
@@ -59,9 +61,11 @@ TimingHardwareManagerBase::TimingHardwareManagerBase(const std::string& name)
 void
 TimingHardwareManagerBase::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
-  m_params = mcfg->module<timinglibs::dal::TimingHardwareManager>(get_name());
+  auto mod_config = mcfg->module<timinglibs::dal::TimingHardwareManagerBase>(get_name());
+  m_params = mod_config->get_configuration();
+
   // set up queues
-  for (auto con : m_params->get_inputs())
+  for (auto con : mod_config->get_inputs())
   {
     if (con->get_data_type() == datatype_to_string<timingcmd::TimingHwCmd>()) {
       m_hw_cmd_connection = con->UID();

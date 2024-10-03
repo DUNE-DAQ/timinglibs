@@ -51,7 +51,7 @@ public:
     delete; ///< TimingEndpointControllerBase is not move-assignable
 
 protected:
-  std::vector<uint> m_managed_endpoint_ids;
+  uint m_managed_endpoint_id;
 
   // Commands
   void do_configure(const nlohmann::json& data) override;
@@ -60,10 +60,9 @@ protected:
   timingcmd::TimingHwCmd construct_endpoint_hw_cmd(const std::string& cmd_id, uint endpoint_id);
 
   // timinglibs endpoint commands
-  void do_endpoint_enable(const nlohmann::json& data);
-  void do_endpoint_disable(const nlohmann::json& data);
-  void do_endpoint_reset(const nlohmann::json& data);
-  void do_endpoint_print_timestamp(const nlohmann::json& data);
+  virtual void do_endpoint_enable(const nlohmann::json& data);
+  virtual void do_endpoint_disable(const nlohmann::json& data);
+  virtual void do_endpoint_reset(const nlohmann::json& data);
 
   // pass op mon info
   void process_device_info(nlohmann::json info) override;

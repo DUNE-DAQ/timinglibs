@@ -48,7 +48,7 @@ TimingMasterControllerBase::TimingMasterControllerBase(const std::string& name)
 void
 TimingMasterControllerBase::do_configure(const nlohmann::json& data)
 {
-  auto mdal = m_params->cast<dal::TimingMasterController>(); 
+  auto mdal = m_params->cast<dal::TimingMasterControllerConf>();
 
   auto monitored_endpoints = mdal->get_monitored_endpoints();
 
@@ -105,7 +105,7 @@ TimingMasterControllerBase::do_master_set_timestamp(const nlohmann::json&)
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "set_timestamp");
 
-  auto mdal = m_params->cast<dal::TimingMasterController>();
+  auto mdal = m_params->cast<dal::TimingMasterControllerConf>();
   hw_cmd.payload["timestamp_source"] = mdal->get_timestamp_source();
 
   send_hw_cmd(std::move(hw_cmd));

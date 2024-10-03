@@ -58,13 +58,13 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
 void
 TimingController::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
 {
-  m_params = mcfg->module<dal::TimingController>(get_name());
+  auto mod_config = mcfg->module<dal::TimingController>(get_name());
+  m_params = mod_config->get_configuration();
 }
 
 void
 TimingController::do_configure(const nlohmann::json& data)
 {
-
   m_timing_device = m_params->get_device();
   m_hardware_state_recovery_enabled = m_params->get_hardware_state_recovery_enabled();
   m_timing_session_name = m_params->get_timing_session_name();
@@ -74,27 +74,29 @@ TimingController::do_configure(const nlohmann::json& data)
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
 
-  if (m_timing_session_name.empty())
+  if (!m_hw_command_out_connection.empty())
   {
-    m_hw_command_sender = iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(m_hw_command_out_connection);
-  }
-  else
-  {
-    m_hw_command_sender = iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(
-      iomanager::connection::ConnectionId{m_hw_command_out_connection, datatype_to_string<timingcmd::TimingHwCmd>(), m_timing_session_name} );
-  }
-
-  if (m_timing_session_name.empty())
-  {
-     m_device_info_receiver = iomanager::IOManager::get()->get_receiver<nlohmann::json>(m_timing_device+"_info");
-  }
-  else
-  {
-    m_device_info_receiver = iomanager::IOManager::get()->get_receiver<nlohmann::json>(
-      iomanager::connection::ConnectionId{m_timing_device+"_info", datatype_to_string<nlohmann::json>(), m_timing_session_name});
-  }
+    if (m_timing_session_name.empty())
+    {
+      m_hw_command_sender = iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(m_hw_command_out_connection);
+    }
+    else
+    {
+      m_hw_command_sender = iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(
+        iomanager::connection::ConnectionId{m_hw_command_out_connection, datatype_to_string<timingcmd::TimingHwCmd>(), m_timing_session_name} );
+    }
   
-  m_device_info_receiver->add_callback(std::bind(&TimingController::process_device_info, this, std::placeholders::_1));
+    if (m_timing_session_name.empty())
+    {
+       m_device_info_receiver = iomanager::IOManager::get()->get_receiver<nlohmann::json>(m_timing_device+"_info");
+    }
+    else
+    {
+      m_device_info_receiver = iomanager::IOManager::get()->get_receiver<nlohmann::json>(
+        iomanager::connection::ConnectionId{m_timing_device+"_info", datatype_to_string<nlohmann::json>(), m_timing_session_name});
+    }
+    m_device_info_receiver->add_callback(std::bind(&TimingController::process_device_info, this, std::placeholders::_1));
+  }
 }
 
 void
@@ -156,10 +158,8 @@ TimingController::do_io_reset(const nlohmann::json& data)
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "io_reset", data);
 
-  auto mdal = m_params->cast<dal::TimingController>(); 
-
-  hw_cmd.payload["clock_source"] = mdal->get_clock_source();
-  hw_cmd.payload["soft"] = mdal->get_soft();
+  hw_cmd.payload["clock_source"] = m_params->get_clock_source();
+  hw_cmd.payload["soft"] = m_params->get_soft();
 
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(0).atomic);

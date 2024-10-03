@@ -26,7 +26,7 @@
 #include "iomanager/Receiver.hpp"
 #include "logging/Logging.hpp"
 
-#include "timinglibs/dal/TimingHardwareManager.hpp"
+#include "timinglibs/dal/TimingHardwareManagerConf.hpp"
 #include "confmodel/Connection.hpp"
 
 #include "timing/TimingNode.hpp"
@@ -164,7 +164,7 @@ protected:
   virtual void clean_endpoint_scan_threads();
   std::unique_ptr<dunedaq::utilities::ReusableThread> m_endpoint_scan_threads_clean_up_thread;
   std::atomic<bool> m_run_endpoint_scan_cleanup_thread;
-  const timinglibs::dal::TimingHardwareManager* m_params;
+  const timinglibs::dal::TimingHardwareManagerConf* m_params;
 
 };
 

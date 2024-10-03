@@ -14,6 +14,8 @@
 
 #include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/TimingIssues.hpp"
+
+#include "timinglibs/dal/TimingControllerConf.hpp"
 #include "timinglibs/dal/TimingController.hpp"
 
 #include "appfwk/DAQModule.hpp"
@@ -131,9 +133,9 @@ protected:
   //common commands
   timingcmd::TimingHwCmd construct_hw_cmd( const std::string& cmd_id);
   timingcmd::TimingHwCmd construct_hw_cmd( const std::string& cmd_id, const nlohmann::json& payload);
-  void do_io_reset(const nlohmann::json& data);
-  void do_print_status(const nlohmann::json& data);
-  const dal::TimingController* m_params;
+  virtual void do_io_reset(const nlohmann::json& data);
+  virtual void do_print_status(const nlohmann::json& data);
+  const dal::TimingControllerConf* m_params;
 
 };
 } // namespace timinglibs

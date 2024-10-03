@@ -67,9 +67,8 @@
 
 <include>
     <file path="schema/confmodel/dunedaq.schema.xml"/>
-    <file path="fsm-timing.data.xml"/>
-    <!-- <file path="config/appmodel/fsm.data.xml"/> -->
     <file path="schema/timinglibs/timing.schema.xml"/>
+    <file path="ccm.data.xml"/>
 </include>
 
 <obj class="DaqApplication" id="tfc">
@@ -81,6 +80,7 @@
     <rel name="modules">
      <ref class="TimingFanoutController" id="tfc"/>
     </rel>
+    <rel name="opmon_conf" class="OpMonConf" id="slow-all-monitoring"/>
 </obj>
 
 <obj class="DaqApplication" id="tmc">
@@ -92,6 +92,7 @@
     <rel name="modules">
      <ref class="TimingMasterControllerPDII" id="tmc"/>
     </rel>
+    <rel name="opmon_conf" class="OpMonConf" id="slow-all-monitoring"/>
 </obj>
 
 <obj class="DaqApplication" id="thi">
@@ -103,6 +104,7 @@
     <rel name="modules">
      <ref class="TimingHardwareManagerPDII" id="thi"/>
     </rel>
+    <rel name="opmon_conf" class="OpMonConf" id="slow-all-monitoring"/>
 </obj>
 
 <obj class="Variable" id="session-env-session-name-0">
@@ -115,24 +117,30 @@
  <attr name="value" type="string" val="test-session"/>
 </obj>
 
+<obj class="Variable" id="daqapp-cli-configuration">
+ <attr name="name" type="string" val="DAQAPP_CLI_CONFIG_SVC"/>
+ <attr name="value" type="string" val="oksconflibs:config/oks_configs/example-configs.data.xml"/>
+</obj>
+
 <obj class="Session" id="test-session">
     <attr name="use_connectivity_server" type="bool" val="1"/>
     <attr name="connectivity_service_interval_ms" type="u32" val="2000"/>
     <attr name="data_request_timeout_ms" type="u32" val="1000"/>
     <attr name="data_rate_slowdown_factor" type="u32" val="1"/>
     <rel name="environment">
-     <ref class="VariableSet" id="common-env"/>
-     <ref class="Variable" id="session-env-session-name-0"/>
-     <ref class="Variable" id="session-env-session-name-1"/>
+      <ref class="VariableSet" id="local-variables"/>
+      <ref class="Variable" id="session-env-session-name-0"/>
+      <ref class="Variable" id="session-env-session-name-1"/>
+      <ref class="Variable" id="daqapp-cli-configuration"/>
     </rel>
     <rel name="segment" class="Segment" id="generated-segment"/>  
     <rel name="disabled">
     </rel>
     <rel name="infrastructure_applications">
     <ref class="ConnectionService" id="local-connection-server"/>
-    <ref class="OpMonService" id="local-opmon-application-service"/>
     </rel>
     <rel name="detector_configuration" class="DetectorConfig" id="dummy-detector"/>
+    <rel name="opmon_uri" class="OpMonURI" id="local-opmon-uri"/>
 </obj>
 
 <obj class="DetectorConfig" id="dummy-detector">
@@ -141,28 +149,13 @@
  <attr name="op_env" type="string" val="test"/>
 </obj>
 
-<obj class="RCApplication" id="timing-controller">
-    <attr name="application_name" type="string" val="drunc-controller"/>
-    <rel name="runs_on" class="VirtualHost" id="vlocalhost"/>
-    <rel name="exposes_service">
-        <ref class="Service" id="timing-controller_control"/>
-    </rel>
-    <!-- <rel name="fsm" class="FSMconfiguration" id="fsmConf-test"/> -->
-    <rel name="fsm" class="FSMconfiguration" id="fsm_timing"/>
-</obj>
-
 <obj class="Segment" id="generated-segment">
     <rel name="applications">
      <ref class="DaqApplication" id="tfc"/>
      <ref class="DaqApplication" id="tmc"/>
      <ref class="DaqApplication" id="thi"/>
     </rel>
-    <rel name="controller" class="RCApplication" id="timing-controller"/>
-</obj>
-
-<obj class="Service" id="timing-controller_control">
- <attr name="protocol" type="string" val="grpc"/>
- <attr name="port" type="u16" val="5800"/>
+    <rel name="controller" class="RCApplication" id="root-controller"/>
 </obj>
 
 <obj class="Service" id="tmc_control">
@@ -183,11 +176,6 @@
 <obj class="Service" id="timing_commands">
  <attr name="protocol" type="string" val="tcp"/>
  <attr name="port" type="u16" val="0"/>
-</obj>
-
-<obj class="Service" id="local-connectivity-service">
- <attr name="protocol" type="string" val="http"/>
- <attr name="port" type="u16" val="5000"/>
 </obj>
 
 <obj class="NetworkConnection" id="timing_cmds">
@@ -219,68 +207,6 @@
  <rel name="associated_service" class="Service" id="device_op_mon"/>
 </obj>
 
-<obj class="Service" id="local-opmon-service">
- <attr name="protocol" type="string" val="file"/>
- <attr name="port" type="u16" val="0"/>
- <attr name="path" type="string" val="info.json"/>
-</obj>
-
-<obj class="OpMonService" id="local-opmon-application-service">
- <rel name="runs_on" class="VirtualHost" id="vlocalhost"/>
- <rel name="exposes_service">
-  <ref class="Service" id="local-opmon-service"/>
- </rel>
-</obj>
-
-<obj class="ConnectionService" id="local-connection-server">
- <attr name="application_name" type="string" val="echo"/>
- <attr name="commandline_parameters" type="string">
-  <data val="Process PID $$;"/>
-  <data val="trap &apos;pkill -INT -P $$&apos; EXIT;"/>
-  <data val="gunicorn -b 0.0.0.0:5000 --workers=1 --worker-class=gthread --threads=2 --timeout 5000000000 --log-level=debug connection-service.connection-flask:app"/>
- </attr>
- <attr name="threads" type="u16" val="1"/>
- <rel name="runs_on" class="VirtualHost" id="vlocalhost"/>
- <rel name="exposes_service">
-  <ref class="Service" id="local-connectivity-service"/>
- </rel>
-</obj>
-
-   <obj class="VariableSet" id="common-env">
-    <rel name="contains">
-     <ref class="Variable" id="DUNEDAQ_ERS_ERROR"/>
-     <ref class="Variable" id="DUNEDAQ_ERS_FATAL"/>
-     <ref class="Variable" id="DUNEDAQ_ERS_INFO"/>
-     <ref class="Variable" id="DUNEDAQ_ERS_VERBOSITY_LEVEL"/>
-     <ref class="Variable" id="DUNEDAQ_ERS_WARNING"/>
-     <ref class="Variable" id="DUNEDAQ_PARTITION"/>
-    </rel>
-   </obj>
-
-<obj class="VariableSet" id="daq_application_ssh">
-    <rel name="contains">
-     <ref class="Variable" id="CMD_FAC"/>
-     <ref class="Variable" id="CONNECTION_SERVER"/>
-     <ref class="Variable" id="DETCHANNELMAPS_SHARE"/>
-     <ref class="Variable" id="INFO_SVC"/>
-     <ref class="Variable" id="TIMING_SHARE"/>
-     <ref class="Variable" id="TRACE_FILE"/>
-    </rel>
-</obj>
-
-<obj class="PhysicalHost" id="localhost">
- <rel name="contains">
-  <ref class="ProcessingResource" id="cpus"/>
- </rel>
-</obj>
-
-<obj class="VirtualHost" id="vlocalhost">
- <rel name="uses">
-  <ref class="ProcessingResource" id="cpus"/>
- </rel>
- <rel name="runs_on" class="PhysicalHost" id="localhost"/>
-</obj>
-
  <obj class="EndpointLocation" id="dummy_endpoint1">
     <attr name="fanout_slot" type="s32" val="-1"/>
     <attr name="sfp_slot" type="s32" val="-1"/>
@@ -305,12 +231,16 @@
     <attr name="address" type="u32" val="4"/>
  </obj>
 
- <obj class="TimingFanoutController" id="tfc">
+ <obj class="TimingFanoutControllerConf" id="tfc-conf">
     <attr name="device" type="string" val="FANOUT_2"/>
     <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
     <attr name="timing_session_name" type="string" val=""/>
     <attr name="clock_source" type="u32" val="1" />
-     <attr name="device_ready_timeout" type="u32" val="20000"/>
+    <attr name="device_ready_timeout" type="u32" val="20000"/>
+</obj>
+
+ <obj class="TimingFanoutController" id="tfc">
+     <rel name="configuration" class="TimingFanoutControllerConf" id="tfc-conf"/>
      <rel name="outputs">
         <ref class="NetworkConnection" id="timing_cmds"/>
     </rel>
@@ -319,7 +249,7 @@
     </rel>
 </obj>
 
-<obj class="TimingMasterControllerPDII" id="tmc">
+<obj class="TimingMasterControllerConf" id="tmc-conf">
     <attr name="device" type="string" val="MASTER"/>
     <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
     <attr name="timing_session_name" type="string" val=""/>
@@ -334,6 +264,10 @@
      <ref class="EndpointLocation" id="dummy_endpoint3"/>
      <ref class="EndpointLocation" id="dummy_endpoint4"/>
     </rel>
+</obj>
+
+<obj class="TimingMasterControllerPDII" id="tmc">
+    <rel name="configuration" class="TimingMasterControllerConf" id="tmc-conf"/>
     <rel name="outputs">
      <ref class="NetworkConnection" id="timing_cmds"/>
     </rel>
@@ -342,12 +276,16 @@
     </rel>
 </obj>
 
-<obj class="TimingHardwareManagerPDII" id="thi">
+<obj class="TimingHardwareManagerConf" id="thi-conf">
  <attr name="uhal_log_level" type="enum" val="notice"/>
  <attr name="gather_interval" type="u32" val="500000"/>
  <attr name="connections_file" type="string" val="connections.xml"/>
  <attr name="monitored_device_name_master" type="string" val="MASTER"/>
  <attr name="monitored_device_names_fanout" type="string" val="FANOUT_2"/>
+</obj>
+
+<obj class="TimingHardwareManagerPDII" id="thi">
+ <rel name="configuration" class="TimingHardwareManagerConf" id="thi-conf"/>
  <rel name="inputs">
   <ref class="NetworkConnection" id="timing_cmds"/>
  </rel>
