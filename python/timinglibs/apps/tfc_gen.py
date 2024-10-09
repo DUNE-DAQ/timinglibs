@@ -32,7 +32,7 @@ from daqconf.core.conf_utils import Direction
 def get_tfc_app(FANOUT_DEVICE_NAME="",
                 FANOUT_CLOCK_FILE="",
                 FANOUT_CLOCK_SOURCE=1,
-                TIMING_SESSION="",
+                TIMING_SYSTEM="",
                 HARDWARE_STATE_RECOVERY_ENABLED=True,
                 HOST="localhost",
                 DEBUG=False):
@@ -45,7 +45,7 @@ def get_tfc_app(FANOUT_DEVICE_NAME="",
                         conf = tfc.ConfParams(
                                             device=FANOUT_DEVICE_NAME,
                                             hardware_state_recovery_enabled=HARDWARE_STATE_RECOVERY_ENABLED,
-                                            timing_session_name=TIMING_SESSION,
+                                            timing_system_name=TIMING_SYSTEM,
                                             clock_config=FANOUT_CLOCK_FILE,
                                             clock_source=FANOUT_CLOCK_SOURCE,
                                             ))]
