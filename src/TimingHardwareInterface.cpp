@@ -12,7 +12,6 @@
 #include "timinglibs/TimingIssues.hpp"
 #include "confmodel/Connection.hpp"
 
-#include "appfwk/app/Nljs.hpp"
 #include "logging/Logging.hpp"
 #include "rcif/cmd/Nljs.hpp"
 

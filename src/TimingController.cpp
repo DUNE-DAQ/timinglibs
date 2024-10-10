@@ -81,7 +81,7 @@ TimingController::do_configure(const nlohmann::json& data)
   else
   {
     m_hw_command_sender = iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(
-      iomanager::connection::ConnectionId{m_hw_command_out_connection, datatype_to_string<timingcmd::TimingHwCmd>(), m_timing_session_name} );
+      iomanager::ConnectionId{m_hw_command_out_connection, datatype_to_string<timingcmd::TimingHwCmd>(), m_timing_session_name} );
   }
 
   if (m_timing_session_name.empty())
@@ -91,7 +91,7 @@ TimingController::do_configure(const nlohmann::json& data)
   else
   {
     m_device_info_receiver = iomanager::IOManager::get()->get_receiver<nlohmann::json>(
-      iomanager::connection::ConnectionId{m_timing_device+"_info", datatype_to_string<nlohmann::json>(), m_timing_session_name});
+      iomanager::ConnectionId{m_timing_device+"_info", datatype_to_string<nlohmann::json>(), m_timing_session_name});
   }
   
   m_device_info_receiver->add_callback(std::bind(&TimingController::process_device_info, this, std::placeholders::_1));
