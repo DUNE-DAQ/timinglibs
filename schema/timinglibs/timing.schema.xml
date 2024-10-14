@@ -90,7 +90,7 @@
   <superclass name="DaqModule"/>
   <attribute name="device" description="String of managed device name" type="string" init-value="" is-not-null="yes"/>
   <attribute name="hardware_state_recovery_enabled" description="Control flag for hardware state recovery" type="bool" init-value="true"/>
-  <attribute name="timing_session_name" description="Name of managed device timing session" type="string" init-value=""/>
+  <attribute name="timing_system_name" description="Name of managed device timing system" type="string" init-value=""/>
   <attribute name="clock_source" type="u32" description="Clock source, 0 for PLL input 0, 1 for in 1, etc.. 255 for free run mode" />
   <attribute name="clock_config" description="Path of clock config file" type="string" init-value=""/>
   <attribute name="soft" description="Soft reset" type="bool" init-value="false"/>

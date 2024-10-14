@@ -105,25 +105,25 @@
     </rel>
 </obj>
 
-<obj class="Variable" id="session-env-session-name-0">
+<obj class="Variable" id="system-env-system-name-0">
  <attr name="name" type="string" val="DUNEDAQ_PARTITION"/>
- <attr name="value" type="string" val="test-session"/>
+ <attr name="value" type="string" val="test-system"/>
 </obj>
 
-<obj class="Variable" id="session-env-session-name-1">
- <attr name="name" type="string" val="DUNEDAQ_SESSION"/>
- <attr name="value" type="string" val="test-session"/>
+<obj class="Variable" id="system-env-system-name-1">
+ <attr name="name" type="string" val="DUNEDAQ_SYSTEM"/>
+ <attr name="value" type="string" val="test-system"/>
 </obj>
 
-<obj class="Session" id="test-session">
+<obj class="System" id="test-system">
     <attr name="use_connectivity_server" type="bool" val="1"/>
     <attr name="connectivity_service_interval_ms" type="u32" val="2000"/>
     <attr name="data_request_timeout_ms" type="u32" val="1000"/>
     <attr name="data_rate_slowdown_factor" type="u32" val="1"/>
     <rel name="environment">
      <ref class="VariableSet" id="common-env"/>
-     <ref class="Variable" id="session-env-session-name-0"/>
-     <ref class="Variable" id="session-env-session-name-1"/>
+     <ref class="Variable" id="system-env-system-name-0"/>
+     <ref class="Variable" id="system-env-system-name-1"/>
     </rel>
     <rel name="segment" class="Segment" id="generated-segment"/>  
     <rel name="disabled">
@@ -308,7 +308,7 @@
  <obj class="TimingFanoutController" id="tfc">
     <attr name="device" type="string" val="FANOUT_2"/>
     <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
-    <attr name="timing_session_name" type="string" val=""/>
+    <attr name="timing_system_name" type="string" val=""/>
     <attr name="clock_source" type="u32" val="1" />
      <attr name="device_ready_timeout" type="u32" val="20000"/>
      <rel name="outputs">
@@ -322,7 +322,7 @@
 <obj class="TimingMasterControllerPDII" id="tmc">
     <attr name="device" type="string" val="MASTER"/>
     <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
-    <attr name="timing_session_name" type="string" val=""/>
+    <attr name="timing_system_name" type="string" val=""/>
     <attr name="clock_source" type="u32" val="0" />
     <attr name="timestamp_source" type="u32" val="1" />
     <attr name="endpoint_scan_period" type="u32" val="1000"/>

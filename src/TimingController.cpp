@@ -38,7 +38,7 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
   , m_hw_cmd_out_timeout(100)
   , m_hw_command_sender(nullptr)
   , m_timing_device("")
-  , m_timing_session_name("")
+  , m_timing_system_name("")
   , m_device_info_receiver(nullptr)
   , m_number_hw_commands(number_hw_commands)
   , m_sent_hw_command_counters(m_number_hw_commands)
@@ -67,31 +67,31 @@ TimingController::do_configure(const nlohmann::json& data)
 
   m_timing_device = m_params->get_device();
   m_hardware_state_recovery_enabled = m_params->get_hardware_state_recovery_enabled();
-  m_timing_session_name = m_params->get_timing_session_name();
+  m_timing_system_name = m_params->get_timing_system_name();
 
   if (m_timing_device.empty())
   {
     throw UHALDeviceNameIssue(ERS_HERE, "Device name should not be empty");
   }
 
-  if (m_timing_session_name.empty())
+  if (m_timing_system_name.empty())
   {
     m_hw_command_sender = iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(m_hw_command_out_connection);
   }
   else
   {
     m_hw_command_sender = iomanager::IOManager::get()->get_sender<timingcmd::TimingHwCmd>(
-      iomanager::connection::ConnectionId{m_hw_command_out_connection, datatype_to_string<timingcmd::TimingHwCmd>(), m_timing_session_name} );
+      iomanager::connection::ConnectionId{m_hw_command_out_connection, datatype_to_string<timingcmd::TimingHwCmd>(), m_timing_system_name} );
   }
 
-  if (m_timing_session_name.empty())
+  if (m_timing_system_name.empty())
   {
      m_device_info_receiver = iomanager::IOManager::get()->get_receiver<nlohmann::json>(m_timing_device+"_info");
   }
   else
   {
     m_device_info_receiver = iomanager::IOManager::get()->get_receiver<nlohmann::json>(
-      iomanager::connection::ConnectionId{m_timing_device+"_info", datatype_to_string<nlohmann::json>(), m_timing_session_name});
+      iomanager::connection::ConnectionId{m_timing_device+"_info", datatype_to_string<nlohmann::json>(), m_timing_system_name});
   }
   
   m_device_info_receiver->add_callback(std::bind(&TimingController::process_device_info, this, std::placeholders::_1));
