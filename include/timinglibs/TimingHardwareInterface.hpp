@@ -43,6 +43,7 @@ public:
 
 protected:
   void configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareInterfaceConf* mdal);
+  void configure_uhal(const std::string& uhal_log_level, const std::string& connections_file);
 
   void scrap_uhal ();
   std::string m_connections_file;
