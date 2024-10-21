@@ -11,7 +11,6 @@
 #include "timinglibs/dal/TimingHardwareManagerBase.hpp"
 
 #include "iomanager/IOManager.hpp"
-#include "iomanager/connection/Structs.hpp"
 #include "logging/Logging.hpp"
 #include "timing/definitions.hpp"
 

@@ -20,8 +20,6 @@
 #include "timinglibs/timingcmd/msgp.hpp"
 
 #include "appfwk/DAQModule.hpp"
-#include "appfwk/app/Nljs.hpp"
-#include "appfwk/app/Structs.hpp"
 #include "ers/Issue.hpp"
 #include "iomanager/Receiver.hpp"
 #include "logging/Logging.hpp"

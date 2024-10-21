@@ -19,8 +19,6 @@
 #include "timinglibs/dal/TimingController.hpp"
 
 #include "appfwk/DAQModule.hpp"
-#include "appfwk/app/Nljs.hpp"
-#include "appfwk/app/Structs.hpp"
 #include "ers/Issue.hpp"
 #include "logging/Logging.hpp"
 #include "iomanager/Sender.hpp"
