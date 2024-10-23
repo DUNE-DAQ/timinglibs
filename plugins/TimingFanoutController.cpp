@@ -8,7 +8,7 @@
  */
 
 #include "TimingFanoutController.hpp"
-#include "timinglibs/dal/TimingFanoutController.hpp"
+#include "timinglibs/dal/TimingFanoutControllerConf.hpp"
 
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
@@ -43,7 +43,7 @@ TimingFanoutController::TimingFanoutController(const std::string& name)
 void
 TimingFanoutController::do_configure(const nlohmann::json& data)
 {
-  auto mdal = m_params->cast<dal::TimingFanoutController>(); 
+  auto mdal = m_params->cast<dal::TimingFanoutControllerConf>();
   
   m_device_ready_timeout = std::chrono::milliseconds(mdal->get_device_ready_timeout());
 

@@ -9,11 +9,11 @@
  * received with this code.
  */
 
-#ifndef TIMINGLIBS_PLUGINS_TIMINGMASTERCONTROLLER_HPP_
-#define TIMINGLIBS_PLUGINS_TIMINGMASTERCONTROLLER_HPP_
+#ifndef TIMINGLIBS_PLUGINS_TIMINGMASTERCONTROLLERBASE_HPP_
+#define TIMINGLIBS_PLUGINS_TIMINGMASTERCONTROLLERBASE_HPP_
 
 #include "timinglibs/TimingController.hpp"
-#include "timinglibs/dal/TimingMasterController.hpp"
+#include "timinglibs/dal/TimingMasterControllerConf.hpp"
 
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
@@ -84,7 +84,7 @@ protected:
 } // namespace timinglibs
 } // namespace dunedaq
 
-#endif // TIMINGLIBS_PLUGINS_TIMINGMASTERCONTROLLER_HPP_
+#endif // TIMINGLIBS_PLUGINS_TIMINGMASTERCONTROLLERBASE_HPP_
 
 // Local Variables:
 // c-basic-offset: 2

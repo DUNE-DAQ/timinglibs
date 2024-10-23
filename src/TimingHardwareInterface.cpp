@@ -45,9 +45,9 @@ TimingHardwareInterface::TimingHardwareInterface()
 }
 
 void
-TimingHardwareInterface::configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareInterface* mdal)
+TimingHardwareInterface::configure_uhal(const std::string& uhal_log_level, const std::string& connections_file)
 {
-  m_uhal_log_level = mdal->get_uhal_log_level();
+  m_uhal_log_level = uhal_log_level;
 
   if (!m_uhal_log_level.compare("debug")) {
     uhal::setLogLevelTo(uhal::Debug());
@@ -65,7 +65,7 @@ TimingHardwareInterface::configure_uhal(const dunedaq::timinglibs::dal::TimingHa
     throw InvalidUHALLogLevel(ERS_HERE, m_uhal_log_level);
   }
 
-  m_connections_file = mdal->get_connections_file();
+  m_connections_file = connections_file;
   try {
     m_connection_manager = std::make_unique<uhal::ConnectionManager>("file://" + m_connections_file);
   } catch (const uhal::exception::FileNotFound& excpt) {
@@ -73,6 +73,12 @@ TimingHardwareInterface::configure_uhal(const dunedaq::timinglibs::dal::TimingHa
     message << m_connections_file << " not found. Has TIMING_SHARE been set?";
     throw UHALConnectionsFileIssue(ERS_HERE, message.str(), excpt);
   }
+}
+
+void
+TimingHardwareInterface::configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareInterfaceConf* mdal)
+{
+  TimingHardwareInterface::configure_uhal(mdal->get_uhal_log_level(), mdal->get_connections_file());
 }
 
 void

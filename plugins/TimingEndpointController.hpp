@@ -12,7 +12,7 @@
 #ifndef TIMINGLIBS_PLUGINS_TIMINGENDPOINTCONTROLLER_HPP_
 #define TIMINGLIBS_PLUGINS_TIMINGENDPOINTCONTROLLER_HPP_
 
-#include "TimingEndpointControllerBase.hpp"
+#include "timinglibs/TimingEndpointControllerBase.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
 

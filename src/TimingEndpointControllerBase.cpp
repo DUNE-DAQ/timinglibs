@@ -7,8 +7,10 @@
  * received with this code.
  */
 
-#include "TimingEndpointControllerBase.hpp"
-#include "timinglibs/dal/TimingEndpointController.hpp"
+#include "timinglibs/TimingEndpointControllerBase.hpp"
+#include "timinglibs/dal/TimingEndpointControllerConf.hpp"
+#include "timinglibs/dal/TimingEndpointControllerBase.hpp"
+
 #include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
 #include "timinglibs/timingcmd/Structs.hpp"
@@ -36,18 +38,17 @@ TimingEndpointControllerBase::TimingEndpointControllerBase(const std::string& na
   register_command("endpoint_enable", &TimingEndpointControllerBase::do_endpoint_enable);
   register_command("endpoint_disable", &TimingEndpointControllerBase::do_endpoint_disable);
   register_command("endpoint_reset", &TimingEndpointControllerBase::do_endpoint_reset);
-  register_command("endpoint_print_timestamp", &TimingEndpointControllerBase::do_endpoint_print_timestamp);
 }
 
 void
 TimingEndpointControllerBase::do_configure(const nlohmann::json& data)
 {
-  auto mdal = m_params->cast<dal::TimingEndpointController>(); 
+  auto mdal = m_params->cast<dal::TimingEndpointControllerConf>();
 
   TimingController::do_configure(data); // configure hw command connection
 
   // endpoint per device in config for now...
-  m_managed_endpoint_ids = {mdal->get_endpoint_id()};
+  m_managed_endpoint_id = {mdal->get_endpoint_id()};
 
   configure_hardware_or_recover_state<TimingEndpointNotReady>(data, "Timing endpoint", m_endpoint_state);
 
@@ -108,15 +109,6 @@ TimingEndpointControllerBase::do_endpoint_reset(const nlohmann::json& data)
 
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(4).atomic);
-}
-
-void
-TimingEndpointControllerBase::do_endpoint_print_timestamp(const nlohmann::json& data)
-{
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_hw_cmd( "endpoint_print_timestamp", data);
-  send_hw_cmd(std::move(hw_cmd));
-  ++(m_sent_hw_command_counters.at(5).atomic);
 }
 
 //void
