@@ -63,7 +63,7 @@
 
 <oks-data>
 
-<info name="" type="" num-of-items="22" oks-format="data" oks-version="oks-08-03-04-11-g3f5bde7 built &quot;Feb 21 2023&quot;" created-by="gjc" created-on="thinkpad" creation-time="20231207T110859" last-modified-by="glehmann" last-modified-on="np04-srv-024.cern.ch" last-modification-time="20240218T155644"/>
+<info name="" type="" num-of-items="8" oks-format="data" oks-version="862f2957270" created-by="gjc" created-on="thinkpad" creation-time="20231207T110859" last-modified-by="eflumerf" last-modified-on="ironvirt9.IRONDOMAIN.local" last-modification-time="20241023T204135"/>
 
 <include>
  <file path="schema/confmodel/dunedaq.schema.xml"/>
@@ -72,6 +72,11 @@
 <comments>
  <comment creation-time="20240208T094131" created-by="eflumerf" created-on="ironvirt9.mshome.net" author="eflumerf" text="reformat"/>
 </comments>
+
+
+<obj class="FSMaction" id="master-send-fl-command">
+ <attr name="name" type="string" val="master-send-fl-command"/>
+</obj>
 
 <obj class="FSMconfiguration" id="fsm_timing">
  <attr name="states" type="string">
@@ -87,31 +92,21 @@
   <ref class="FSMtransition" id="stop_scanning_endpoints"/>
   <ref class="FSMtransition" id="master_send_fl_command"/>
  </rel>
- <rel name="actions">
-  <ref class="FSMaction" id="master-send-fl-command">
- </rel>
  <rel name="pre_transitions">
   <ref class="FSMxTransition" id="pre_master_send_fl_command"/>
  </rel>
-</obj>
-
-<obj class="FSMaction" id="master-send-fl-command">
- <attr name="name" type="string" val="master-send-fl-command"/>
-</obj>
-
-<obj class="FSMxTransition" id="pre_master_send_fl_command">
- <attr name="transition" type="string" val="master_send_fl_command"/>
- <attr name="order" type="string">
-  <data val="master-send-fl-command"/>
- </attr>
- <attr name="mandatory" type="string">
-  <data val="master-send-fl-command"/>
- </attr>
+ <rel name="actions">
+  <ref class="FSMaction" id="master-send-fl-command"/>
+ </rel>
 </obj>
 
 <obj class="FSMtransition" id="conf">
  <attr name="source" type="string" val="initial"/>
  <attr name="dest" type="string" val="configured"/>
+</obj>
+
+<obj class="FSMtransition" id="master_send_fl_command">
+ <attr name="source" type="string" val="configured|scanning_endpoints"/>
 </obj>
 
 <obj class="FSMtransition" id="scrap">
@@ -129,9 +124,14 @@
  <attr name="dest" type="string" val="configured"/>
 </obj>
 
-<obj class="FSMtransition" id="master_send_fl_command">
- <attr name="source" type="string" val="configured|scanning_endpoints"/>
- <attr name="dest" type="string" val=""/>
+<obj class="FSMxTransition" id="pre_master_send_fl_command">
+ <attr name="transition" type="string" val="master_send_fl_command"/>
+ <attr name="order" type="string">
+  <data val="master-send-fl-command"/>
+ </attr>
+ <attr name="mandatory" type="string">
+  <data val="master-send-fl-command"/>
+ </attr>
 </obj>
 
 </oks-data>
