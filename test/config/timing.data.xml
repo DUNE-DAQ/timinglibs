@@ -165,7 +165,7 @@
 
 <obj class="Segment" id="generated-segment">
  <rel name="applications">
-  <ref class="DaqApplication" id="tfc"/>
+  <!--<ref class="DaqApplication" id="tfc"/>-->
   <ref class="DaqApplication" id="tmc"/>
   <ref class="DaqApplication" id="thi"/>
  </rel>
@@ -179,12 +179,12 @@
 
 <obj class="Service" id="tfc_control">
  <attr name="protocol" type="string" val="rest"/>
- <attr name="port" type="u16" val="5803"/>
+ <attr name="port" type="u16" val="0"/>
 </obj>
 
 <obj class="Service" id="thi_control">
  <attr name="protocol" type="string" val="rest"/>
- <attr name="port" type="u16" val="5802"/>
+ <attr name="port" type="u16" val="0"/>
 </obj>
 
 <obj class="Service" id="timing_commands">
@@ -194,18 +194,20 @@
 
 <obj class="Service" id="tmc_control">
  <attr name="protocol" type="string" val="rest"/>
- <attr name="port" type="u16" val="5801"/>
+ <attr name="port" type="u16" val="0"/>
 </obj>
 
 <obj class="Session" id="test-session">
  <attr name="data_request_timeout_ms" type="u32" val="1000"/>
  <attr name="data_rate_slowdown_factor" type="u32" val="1"/>
  <attr name="controller_log_level" type="enum" val="INFO"/>
+ <rel name="connectivity_service" class="ConnectivityService" id="local-connectivity-service-config"/>
  <rel name="environment">
-  <ref class="VariableSet" id="local-variables"/>
-  <ref class="Variable" id="session-env-session-name-0"/>
-  <ref class="Variable" id="session-env-session-name-1"/>
-  <ref class="Variable" id="daqapp-cli-configuration"/>
+  <ref class="Variable" id="local-env-ers-verb"/>
+  <ref class="Variable" id="local-env-ers-info"/>
+  <ref class="Variable" id="local-env-ers-warning"/>
+  <ref class="Variable" id="local-env-ers-error"/>
+  <ref class="Variable" id="local-env-ers-fatal"/>
  </rel>
  <rel name="segment" class="Segment" id="generated-segment"/>
  <rel name="infrastructure_applications">
@@ -260,6 +262,7 @@
  <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
  <attr name="soft" type="bool" val="0"/>
  <attr name="timestamp_source" type="u32" val="1"/>
+ <attr name="clock_source" type="u32" val="255"/>
  <attr name="endpoint_scan_period" type="u32" val="1000"/>
  <rel name="monitored_endpoints">
   <ref class="EndpointLocation" id="dummy_endpoint1"/>

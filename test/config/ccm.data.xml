@@ -93,6 +93,12 @@
  <rel name="opmon_conf" class="OpMonConf" id="slow-all-monitoring"/>
 </obj>
 
+<obj class="ConnectivityService" id="local-connectivity-service-config">
+ <attr name="interval_ms" type="u32" val="2000"/>
+ <attr name="host" type="string" val="localhost"/>
+ <rel name="service" class="Service" id="local-connectivity-service"/>
+</obj>
+
 <obj class="OpMonConf" id="fast-all-monitoring">
  <attr name="level" type="u32" val="4294967295"/>
  <attr name="interval_s" type="u32" val="2"/>
@@ -130,7 +136,7 @@
 
 <obj class="Service" id="root-controller_control">
  <attr name="protocol" type="string" val="grpc"/>
- <attr name="port" type="u16" val="3333"/>
+ <attr name="port" type="u16" val="0"/>
 </obj>
 
 <obj class="Variable" id="ehn1-env-connectivity-port">
