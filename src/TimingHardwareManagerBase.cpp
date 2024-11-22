@@ -16,8 +16,7 @@
 #include "timing/definitions.hpp"
 
 #include "timing/FanoutDesign.hpp"
-#include "timing/CDRMuxDesignInterface.hpp"
-#include "timing/MasterMuxDesign.hpp"
+#include "timing/MuxDesignInterface.hpp"
 
 #include "timing/timingfirmware/Nljs.hpp"
 #include "timing/timingfirmware/Structs.hpp"
@@ -423,25 +422,25 @@ void TimingHardwareManagerBase::perform_endpoint_scan(const timingcmd::TimingHwC
     auto master_design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
     try
     {
-      master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, true);
+      //master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, true);
 
       if (sfp_slot >= 0)
       {
         if (fanout_slot >= 0)
         {
           // configure fanout/FIB
-          get_timing_device<const timing::CDRMuxDesignInterface*>(m_monitored_device_names_fanout.at(fanout_slot))->switch_mux(sfp_slot);
+          get_timing_device<const timing::MuxDesignInterface*>(m_monitored_device_names_fanout.at(fanout_slot))->switch_mux(sfp_slot);
 
-          // configure MIB
-          dynamic_cast<const timing::CDRMuxDesignInterface*>(master_design)->switch_mux(fanout_slot);
+          // configure GIB/MIB
+          dynamic_cast<const timing::MuxDesignInterface*>(master_design)->switch_mux(fanout_slot);
         }
         else
         {
-          dynamic_cast<const timing::MasterMuxDesign*>(master_design)->switch_mux(sfp_slot);
+          dynamic_cast<const timing::MuxDesignInterface*>(master_design)->switch_mux(sfp_slot);
         }
       }
 
-      auto scan_result = master_design->get_master_node_plain()->scan_endpoint(endpoint_address, false);
+      auto scan_result = master_design->get_master_node_plain()->scan_endpoint(endpoint_address, true);
       if (scan_result.alive)
       {
         auto current_rtt = scan_result.round_trip_time;
@@ -463,7 +462,7 @@ void TimingHardwareManagerBase::perform_endpoint_scan(const timingcmd::TimingHwC
       {
         TLOG() << endpoint_address << " endpoint was not alive...";
       }
-      master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, false);
+      //master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, false);
     }
     catch(std::exception& e)
     {
