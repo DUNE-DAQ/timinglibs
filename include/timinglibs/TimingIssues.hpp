@@ -129,6 +129,21 @@ ERS_DECLARE_ISSUE(timinglibs,
                   ((uint64_t)n_threads)) // NOLINT(build/unsigned)
 
 ERS_DECLARE_ISSUE(timinglibs, EndpointScanFailure, " Endpoint scan failed!!", ERS_EMPTY)
+
+ERS_DECLARE_ISSUE(timinglibs,
+                  EndpointRTTMeasurement,
+                  " RTT for endpoint " << address << " is " << rtt << ", via fanout: " << fanout << ", sfp: " << sfp,
+                  ((int)fanout)((int)sfp)((uint32_t)address)((uint32_t)rtt)) // NOLINT(build/unsigned)
+
+ERS_DECLARE_ISSUE(timinglibs,
+                  ChangedEndpointRTTMeasurement,
+                   " Changed RTT for endpoint " << address << ", old: " << rtt_old << ", new: " << rtt_new <<  ", via fanout: " << fanout << ", sfp: " << sfp,
+                  ((int)fanout)((int)sfp)((uint32_t)address)((uint32_t)rtt_old)((uint32_t)rtt_new)) // NOLINT(build/unsigned)
+
+ERS_DECLARE_ISSUE(timinglibs,
+                  EndpointUnresponsive,
+                  " Endpoint unresponsive, address: " << address <<  ", via fanout: " << fanout << ", sfp: " << sfp,
+                  ((int)fanout)((int)sfp)((uint32_t)address)) // NOLINT(build/unsigned)
 } // namespace dunedaq
 
 #endif // TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGISSUES_HPP_

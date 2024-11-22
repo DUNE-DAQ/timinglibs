@@ -444,23 +444,27 @@ void TimingHardwareManagerBase::perform_endpoint_scan(const timingcmd::TimingHwC
       if (scan_result.alive)
       {
         auto current_rtt = scan_result.round_trip_time;
+        ers::info(EndpointRTTMeasurement(ERS_HERE,fanout_slot,sfp_slot,endpoint_address,current_rtt));
         if (m_monitored_endpoints_round_trip_times.count(endpoint_address))
         {
-          if (m_monitored_endpoints_round_trip_times[endpoint_address] != current_rtt)
+          auto previous_rtt = m_monitored_endpoints_round_trip_times[endpoint_address];
+          if (previous_rtt != current_rtt)
           {
-            TLOG() << "New round trip time for endpoint " << endpoint_address << " measured. Previous: "
-              << m_monitored_endpoints_round_trip_times[endpoint_address] << ", current: " << current_rtt;
+            //TLOG() << "New round trip time for endpoint " << endpoint_address << " measured. Previous: "
+            //  << m_monitored_endpoints_round_trip_times[endpoint_address] << ", current: " << current_rtt;
+            ers::warning(ChangedEndpointRTTMeasurement(ERS_HERE,fanout_slot,sfp_slot,endpoint_address,current_rtt,previous_rtt));
           }
         }
         else
         {
-           TLOG() << "First measured round trip time for endpoint " << endpoint_address << " is: " << current_rtt;
+           //TLOG() << "First measured round trip time for endpoint " << endpoint_address << " is: " << current_rtt;
         }
         m_monitored_endpoints_round_trip_times[endpoint_address]=current_rtt;
       }
       else
       {
-        TLOG() << endpoint_address << " endpoint was not alive...";
+        ers::error(EndpointUnresponsive(ERS_HERE,fanout_slot,sfp_slot,endpoint_address));
+        //TLOG() << endpoint_address << " endpoint was not alive...";
       }
       //master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, false);
     }
