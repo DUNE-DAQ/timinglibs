@@ -94,7 +94,7 @@ protected:
 
   // managed timing devices
   std::string m_monitored_device_name_master;
-  std::vector<std::string> m_monitored_device_names_fanout;
+  std::map<uint, std::string> m_monitored_device_names_fanout;
   std::string m_monitored_device_name_endpoint;
   std::string m_monitored_device_name_hsi;
 
@@ -163,7 +163,7 @@ protected:
   std::unique_ptr<dunedaq::utilities::ReusableThread> m_endpoint_scan_threads_clean_up_thread;
   std::atomic<bool> m_run_endpoint_scan_cleanup_thread;
   const timinglibs::dal::TimingHardwareManagerConf* m_params;
-
+  std::map<uint,int> m_monitored_endpoints_round_trip_times;
 };
 
 } // namespace timinglibs
