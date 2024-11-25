@@ -55,11 +55,9 @@ TimingHardwareManagerPDII::conf(const nlohmann::json& conf_data)
     //register_info_gatherer(m_gather_interval_debug, m_monitored_device_name_master, 2);
   }
 
-  for (auto it = m_monitored_device_names_fanout.begin(); it != m_monitored_device_names_fanout.end(); ++it) {
-    if (it->compare("")) {
-      register_info_gatherer(m_gather_interval, *it, 1);
+  for (auto fanout : m_monitored_device_names_fanout) {
+      register_info_gatherer(m_gather_interval, fanout.second, 1);
       //register_info_gatherer(m_gather_interval_debug, *it, 2);
-    }
   }
 
   if (m_monitored_device_name_endpoint.compare("")) {

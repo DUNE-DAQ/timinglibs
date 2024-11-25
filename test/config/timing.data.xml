@@ -115,31 +115,7 @@
  <attr name="offline_data_stream" type="string" val="cosmics"/>
 </obj>
 
-<obj class="EndpointLocation" id="dummy_endpoint1">
- <attr name="fanout_slot" type="s32" val="-1"/>
- <attr name="sfp_slot" type="s32" val="-1"/>
- <attr name="address" type="u32" val="1"/>
-</obj>
-
-<obj class="EndpointLocation" id="dummy_endpoint2">
- <attr name="fanout_slot" type="s32" val="-1"/>
- <attr name="sfp_slot" type="s32" val="-1"/>
- <attr name="address" type="u32" val="2"/>
-</obj>
-
-<obj class="EndpointLocation" id="dummy_endpoint3">
- <attr name="fanout_slot" type="s32" val="-1"/>
- <attr name="sfp_slot" type="s32" val="-1"/>
- <attr name="address" type="u32" val="3"/>
-</obj>
-
-<obj class="EndpointLocation" id="dummy_endpoint4">
- <attr name="fanout_slot" type="s32" val="-1"/>
- <attr name="sfp_slot" type="s32" val="-1"/>
- <attr name="address" type="u32" val="4"/>
-</obj>
-
-<obj class="NetworkConnection" id="FANOUT_2_info">
+<obj class="NetworkConnection" id="FANOUT_info">
  <attr name="data_type" type="string" val="JSON"/>
  <attr name="send_timeout_ms" type="u32" val="100"/>
  <attr name="recv_timeout_ms" type="u32" val="100"/>
@@ -165,7 +141,7 @@
 
 <obj class="Segment" id="generated-segment">
  <rel name="applications">
-  <!--<ref class="DaqApplication" id="tfc"/>-->
+  <ref class="DaqApplication" id="tfc"/>
   <ref class="DaqApplication" id="tmc"/>
   <ref class="DaqApplication" id="thi"/>
  </rel>
@@ -197,6 +173,11 @@
  <attr name="port" type="u16" val="0"/>
 </obj>
 
+<obj class="Variable" id="ers-debug">
+  <attr name="name" type="string" val="DUNEDAQ_ERS_DEBUG_LEVEL"/>
+  <attr name="value" type="string" val="4"/>
+</obj>
+
 <obj class="Session" id="test-session">
  <attr name="data_request_timeout_ms" type="u32" val="1000"/>
  <attr name="data_rate_slowdown_factor" type="u32" val="1"/>
@@ -208,6 +189,7 @@
   <ref class="Variable" id="local-env-ers-warning"/>
   <ref class="Variable" id="local-env-ers-error"/>
   <ref class="Variable" id="local-env-ers-fatal"/>
+  <!--<ref class="Variable" id="ers-debug"/>-->
  </rel>
  <rel name="segment" class="Segment" id="generated-segment"/>
  <rel name="infrastructure_applications">
@@ -219,7 +201,7 @@
 
 <obj class="TimingFanoutController" id="tfc">
  <rel name="inputs">
-  <ref class="NetworkConnection" id="FANOUT_2_info"/>
+  <ref class="NetworkConnection" id="FANOUT_info"/>
  </rel>
  <rel name="outputs">
   <ref class="NetworkConnection" id="timing_cmds"/>
@@ -228,22 +210,32 @@
 </obj>
 
 <obj class="TimingFanoutControllerConf" id="tfc-conf">
- <attr name="device" type="string" val="FANOUT_2"/>
+ <attr name="device" type="string" val="FANOUT"/>
  <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
  <attr name="clock_source" type="u32" val="1"/>
  <attr name="soft" type="bool" val="0"/>
  <attr name="device_ready_timeout" type="u32" val="20000"/>
 </obj>
 
+<obj class="TimingFanoutDevice" id="fanout8">
+ <attr name="fanout_slot" type="u32" val="7"/>
+ <attr name="device" type="string" val="FANOUT"/>
+</obj>
+
+<obj class="TimingFanoutDevice" id="fanout6">
+ <attr name="fanout_slot" type="u32" val="5"/>
+ <attr name="device" type="string" val="FANOUT"/>
+</obj>
+
 <obj class="TimingHardwareManagerConf" id="thi-conf">
  <attr name="uhal_log_level" type="enum" val="notice"/>
- <attr name="connections_file" type="string" val="connections.xml"/>
+ <attr name="connections_file" type="string" val="../connections.xml"/>
  <attr name="gather_interval" type="u32" val="500000"/>
  <attr name="gather_interval_debug" type="u32" val="10000000"/>
  <attr name="monitored_device_name_master" type="string" val="MASTER"/>
- <attr name="monitored_device_names_fanout" type="string">
-  <data val="FANOUT_2"/>
- </attr>
+ <rel name="monitored_device_names_fanout">
+  <ref class="TimingFanoutDevice" id="fanout6"/>
+ </rel>
 </obj>
 
 <obj class="TimingHardwareManagerPDII" id="thi">
@@ -252,9 +244,33 @@
  </rel>
  <rel name="outputs">
   <ref class="NetworkConnection" id="MASTER_info"/>
-  <ref class="NetworkConnection" id="FANOUT_2_info"/>
+  <ref class="NetworkConnection" id="FANOUT_info"/>
  </rel>
  <rel name="configuration" class="TimingHardwareManagerConf" id="thi-conf"/>
+</obj>
+
+<obj class="EndpointLocation" id="dummy_endpoint1">
+ <attr name="fanout_slot" type="s32" val="5"/>
+ <attr name="sfp_slot" type="s32" val="0"/>
+ <attr name="address" type="u32" val="30"/>
+</obj>
+
+<obj class="EndpointLocation" id="dummy_endpoint2">
+ <attr name="fanout_slot" type="s32" val="5"/>
+ <attr name="sfp_slot" type="s32" val="1"/>
+ <attr name="address" type="u32" val="31"/>
+</obj>
+
+<obj class="EndpointLocation" id="dummy_endpoint3">
+ <attr name="fanout_slot" type="s32" val="-1"/>
+ <attr name="sfp_slot" type="s32" val="2"/>
+ <attr name="address" type="u32" val="40"/>
+</obj>
+
+<obj class="EndpointLocation" id="dummy_endpoint4">
+ <attr name="fanout_slot" type="s32" val="-1"/>
+ <attr name="sfp_slot" type="s32" val="-1"/>
+ <attr name="address" type="u32" val="4"/>
 </obj>
 
 <obj class="TimingMasterControllerConf" id="tmc-conf">
@@ -263,12 +279,12 @@
  <attr name="soft" type="bool" val="0"/>
  <attr name="timestamp_source" type="u32" val="1"/>
  <attr name="clock_source" type="u32" val="255"/>
- <attr name="endpoint_scan_period" type="u32" val="1000"/>
+ <attr name="endpoint_scan_period" type="u32" val="2000"/>
  <rel name="monitored_endpoints">
   <ref class="EndpointLocation" id="dummy_endpoint1"/>
   <ref class="EndpointLocation" id="dummy_endpoint2"/>
   <ref class="EndpointLocation" id="dummy_endpoint3"/>
-  <ref class="EndpointLocation" id="dummy_endpoint4"/>
+  <!--<ref class="EndpointLocation" id="dummy_endpoint4"/>-->
  </rel>
 </obj>
 

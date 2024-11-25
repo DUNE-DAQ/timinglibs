@@ -9,14 +9,14 @@
 #include "TimingHardwareManagerBase.hpp"
 
 #include "timinglibs/dal/TimingHardwareManagerBase.hpp"
+#include "timinglibs/dal/TimingFanoutDevice.hpp"
 
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
 #include "timing/definitions.hpp"
 
 #include "timing/FanoutDesign.hpp"
-#include "timing/CDRMuxDesignInterface.hpp"
-#include "timing/MasterMuxDesign.hpp"
+#include "timing/MuxDesignInterface.hpp"
 
 #include "timing/timingfirmware/Nljs.hpp"
 #include "timing/timingfirmware/Structs.hpp"
@@ -43,7 +43,6 @@ TimingHardwareManagerBase::TimingHardwareManagerBase(const std::string& name)
   , m_gather_interval(1e6)
   , m_gather_interval_debug(10e6)
   , m_monitored_device_name_master("")
-  , m_monitored_device_names_fanout({})
   , m_monitored_device_name_endpoint("")
   , m_monitored_device_name_hsi("")
   , m_received_hw_commands_counter{ 0 }
@@ -94,7 +93,12 @@ TimingHardwareManagerBase::conf(const nlohmann::json& data)
   m_gather_interval_debug = m_params->get_gather_interval_debug();
 
   m_monitored_device_name_master = m_params->get_monitored_device_name_master();
-  m_monitored_device_names_fanout = m_params->get_monitored_device_names_fanout();
+  for (auto fanout : m_params->get_monitored_device_names_fanout())
+  {
+    TLOG_DEBUG(3) << fanout->get_device() << ": device, slot: " << fanout->get_fanout_slot() << std::endl;
+    m_monitored_device_names_fanout.emplace(fanout->get_fanout_slot(), fanout->get_device());
+  }
+
   m_monitored_device_name_endpoint = m_params->get_monitored_device_name_endpoint();
   m_monitored_device_name_hsi = m_params->get_monitored_device_name_hsi();
 
@@ -416,29 +420,53 @@ void TimingHardwareManagerBase::perform_endpoint_scan(const timingcmd::TimingHwC
     TLOG_DEBUG(1) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan starting: ept adr: " << endpoint_address << ", ept sfp: " << sfp_slot << ", fanout slot: " << fanout_slot;
 
     auto master_design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
-
     try
     {
-      master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, true);
+      //master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, true);
 
       if (sfp_slot >= 0)
       {
-        if (fanout_slot > 0)
+        if (fanout_slot >= 0)
         {
           // configure fanout/FIB
-          get_timing_device<const timing::CDRMuxDesignInterface*>(m_monitored_device_names_fanout.at(fanout_slot-1))->switch_cdr_mux(sfp_slot);
+          get_timing_device<const timing::MuxDesignInterface*>(m_monitored_device_names_fanout.at(fanout_slot))->switch_mux(sfp_slot);
 
-          // configure MIB
-          dynamic_cast<const timing::CDRMuxDesignInterface*>(master_design)->switch_cdr_mux(fanout_slot-1);
+          // configure GIB/MIB
+          dynamic_cast<const timing::MuxDesignInterface*>(master_design)->switch_mux(fanout_slot);
         }
         else
         {
-          dynamic_cast<const timing::MasterMuxDesign*>(master_design)->switch_downstream_mux_channel(sfp_slot, false);
+          dynamic_cast<const timing::MuxDesignInterface*>(master_design)->switch_mux(sfp_slot);
         }
       }
-      // configure any master mux, possibly
-      master_design->get_master_node_plain()->scan_endpoint(endpoint_address, false);
-      master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, false);
+
+      auto scan_result = master_design->get_master_node_plain()->scan_endpoint(endpoint_address, true);
+      if (scan_result.alive)
+      {
+        auto current_rtt = scan_result.round_trip_time;
+        ers::info(EndpointRTTMeasurement(ERS_HERE,fanout_slot,sfp_slot,endpoint_address,current_rtt));
+        if (m_monitored_endpoints_round_trip_times.count(endpoint_address))
+        {
+          auto previous_rtt = m_monitored_endpoints_round_trip_times[endpoint_address];
+          if (previous_rtt != current_rtt)
+          {
+            //TLOG() << "New round trip time for endpoint " << endpoint_address << " measured. Previous: "
+            //  << m_monitored_endpoints_round_trip_times[endpoint_address] << ", current: " << current_rtt;
+            ers::warning(ChangedEndpointRTTMeasurement(ERS_HERE,fanout_slot,sfp_slot,endpoint_address,current_rtt,previous_rtt));
+          }
+        }
+        else
+        {
+           //TLOG() << "First measured round trip time for endpoint " << endpoint_address << " is: " << current_rtt;
+        }
+        m_monitored_endpoints_round_trip_times[endpoint_address]=current_rtt;
+      }
+      else
+      {
+        ers::error(EndpointUnresponsive(ERS_HERE,fanout_slot,sfp_slot,endpoint_address));
+        //TLOG() << endpoint_address << " endpoint was not alive...";
+      }
+      //master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, false);
     }
     catch(std::exception& e)
     {
