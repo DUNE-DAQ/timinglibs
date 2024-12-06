@@ -429,10 +429,30 @@ void TimingHardwareManagerBase::perform_endpoint_scan(const timingcmd::TimingHwC
         if (fanout_slot >= 0)
         {
           // configure fanout/FIB
-          get_timing_device<const timing::MuxDesignInterface*>(m_monitored_device_names_fanout.at(fanout_slot))->switch_mux(sfp_slot);
+          try
+          {
+            get_timing_device<const timing::MuxDesignInterface*>(m_monitored_device_names_fanout.at(fanout_slot))->switch_mux(sfp_slot);
+          }
+          catch(const UHALDeviceClassIssue& e)
+          {
+            ers::error(e);
+            continue;
+          }
 
-          // configure GIB/MIB
-          dynamic_cast<const timing::MuxDesignInterface*>(master_design)->switch_mux(fanout_slot);
+          // slot 0 for board without multiple data tx paths, e.g. FMC, TLU
+          if (fanout_slot != 0)
+          {
+            // configure GIB/MIB
+            try
+            {
+              get_timing_device<const timing::MuxDesignInterface*>(hw_cmd.device)->switch_mux(fanout_slot-1);
+            }
+            catch(const UHALDeviceClassIssue& e)
+            {
+              ers::error(e);
+              continue;
+            }
+          }
         }
         else
         {
