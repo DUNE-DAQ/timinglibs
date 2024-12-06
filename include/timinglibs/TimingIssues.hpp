@@ -63,20 +63,18 @@ ERS_DECLARE_ISSUE_BASE(timinglibs,
                        ((std::string)message),
                        ERS_EMPTY)
 
-ERS_DECLARE_ISSUE_BASE(timinglibs,
+ERS_DECLARE_ISSUE(timinglibs,
                        UHALDeviceNodeIssue,
-                       timinglibs::UHALIssue,
-                       " UHAL node issue: " << message,
-                       ((std::string)message),
-                       ERS_EMPTY)
+                       " Issue with UHAL device: " << device,
+                       ((std::string)device))
 
 ERS_DECLARE_ISSUE_BASE(timinglibs,
                        UHALDeviceClassIssue,
                        timinglibs::UHALDeviceNodeIssue,
-                       " Failed to cast device " << device << " to type " << type << " where actual_type type is "
+                       " Failed to cast device " << device << " to type " << type << " where actual type type is "
                                                  << actual_type,
-                       ((std::string)message),
-                       ((std::string)device)((std::string)type)((std::string)actual_type))
+                       ((std::string)device),
+                       ((std::string)type)((std::string)actual_type))
 
 ERS_DECLARE_ISSUE(timinglibs,
                   FailedToCollectOpMonInfo,
