@@ -25,7 +25,7 @@
 #include "iomanager/Receiver.hpp"
 #include "utilities/WorkerThread.hpp"
 
-#include "appfwk/ModuleConfiguration.hpp"
+#include "appfwk/ConfigurationManager.hpp"
 #include "confmodel/Connection.hpp"
 
 #include <memory>
@@ -92,7 +92,7 @@ public:
   TimingController(TimingController&&) = delete;                 ///< TimingController is not move-constructible
   TimingController& operator=(TimingController&&) = delete;      ///< TimingController is not move-assignable
 
-  void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
+  void init(std::shared_ptr<appfwk::ConfigurationManager> mcfg) override;
 
 protected:
   // DAQModule commands

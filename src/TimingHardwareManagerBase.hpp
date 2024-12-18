@@ -65,7 +65,7 @@ public:
   TimingHardwareManagerBase& operator=(TimingHardwareManagerBase&&) = delete; ///< TimingHardwareManagerBase is not move-assignable
   virtual ~TimingHardwareManagerBase() {}
   
-  void init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg) override;
+  void init(std::shared_ptr<appfwk::ConfigurationManager> mcfg) override;
   virtual void conf(const nlohmann::json& data);
 
 protected:

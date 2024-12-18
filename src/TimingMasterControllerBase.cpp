@@ -14,7 +14,7 @@
 
 #include "appfwk/cmd/Nljs.hpp"
 #include "ers/Issue.hpp"
-#include "appfwk/ModuleConfiguration.hpp"
+#include "appfwk/ConfigurationManager.hpp"
 #include "appfwk/DAQModule.hpp"
 
 #include <chrono>
