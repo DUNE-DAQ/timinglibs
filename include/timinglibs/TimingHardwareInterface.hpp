@@ -16,10 +16,12 @@
 #include "uhal/log/exception.hpp"
 #include "uhal/utilities/files.hpp"
 #include <ers/Issue.hpp>
+#include "timinglibs/TimingIssues.hpp"
 
 #include <memory>
 #include <string>
 #include <vector>
+
 
 namespace dunedaq {
 namespace timinglibs {
@@ -42,6 +44,8 @@ public:
   TimingHardwareInterface& operator=(TimingHardwareInterface&&) = delete;      ///< TimingHardwareInterface is not move-assignable
 
 protected:
+
+  template<class T> T  cast_timing_device(const uhal::Node* device_node);
   void configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareInterfaceConf* mdal);
   void configure_uhal(const std::string& uhal_log_level, const std::string& connections_file);
 
@@ -52,6 +56,8 @@ protected:
 };
 } // namespace timinglibs
 } // namespace dunedaq
+
+#include "detail/TimingHardwareInterface.hxx"
 
 #endif // TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGHARDWAREINTERFACE_HPP_
 
