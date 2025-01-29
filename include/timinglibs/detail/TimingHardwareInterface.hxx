@@ -3,12 +3,12 @@ namespace dunedaq::timinglibs {
 
 template<class TIMING_DEV>
 TIMING_DEV
-TimingHardwareInterface::cast_timing_device(const uhal::Node* device_node)
+TimingHardwareInterface::cast_timing_device(const uhal::Node* device_node, std::string timing_device_name)
 {
   auto timing_device = dynamic_cast<TIMING_DEV>(device_node);
   if (!timing_device)
   {
-    throw UHALDeviceClassIssue(ERS_HERE, "", typeid(TIMING_DEV).name(), typeid(*device_node).name());
+    throw UHALDeviceClassIssue(ERS_HERE, timing_device_name, typeid(TIMING_DEV).name(), typeid(*device_node).name());
   }
   return timing_device;
 }

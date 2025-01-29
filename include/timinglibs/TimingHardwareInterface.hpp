@@ -45,7 +45,7 @@ public:
 
 protected:
 
-  template<class T> T  cast_timing_device(const uhal::Node* device_node);
+  template<class TIMING_DEV> TIMING_DEV  cast_timing_device(const uhal::Node* device_node, std::string timing_device_name);
   void configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareInterfaceConf* mdal);
   void configure_uhal(const std::string& uhal_log_level, const std::string& connections_file);
 
