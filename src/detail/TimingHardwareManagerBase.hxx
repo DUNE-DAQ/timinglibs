@@ -22,11 +22,7 @@ TIMING_DEV
 TimingHardwareManagerBase::get_timing_device(const std::string& device_name)
 {
   auto device = get_timing_device_plain(device_name);
-  auto timing_device = dynamic_cast<TIMING_DEV>(device);
-  if (!timing_device)
-  {
-    throw UHALDeviceClassIssue(ERS_HERE, device_name, typeid(TIMING_DEV).name(), typeid(*device).name());
-  }
+  auto timing_device = cast_timing_device<TIMING_DEV>(device, device_name);
   return timing_device;
 }
 
