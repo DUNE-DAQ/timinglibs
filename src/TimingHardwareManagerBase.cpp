@@ -20,7 +20,7 @@
 
 #include "timing/timingfirmware/Nljs.hpp"
 #include "timing/timingfirmware/Structs.hpp"
-#include "appfwk/ModuleConfiguration.hpp"
+#include "appfwk/ConfigurationManager.hpp"
 
 #include <memory>
 #include <string>
@@ -57,9 +57,9 @@ TimingHardwareManagerBase::TimingHardwareManagerBase(const std::string& name)
 }
 
 void
-TimingHardwareManagerBase::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
+TimingHardwareManagerBase::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
 {
-  auto mod_config = mcfg->module<timinglibs::dal::TimingHardwareManagerBase>(get_name());
+  auto mod_config = mcfg->get_dal<timinglibs::dal::TimingHardwareManagerBase>(get_name());
   m_params = mod_config->get_configuration();
 
   // set up queues

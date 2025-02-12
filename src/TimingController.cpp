@@ -56,9 +56,9 @@ TimingController::TimingController(const std::string& name, uint number_hw_comma
 }
 
 void
-TimingController::init(std::shared_ptr<appfwk::ModuleConfiguration> mcfg)
+TimingController::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
 {
-  auto mod_config = mcfg->module<dal::TimingController>(get_name());
+  auto mod_config = mcfg->get_dal<dal::TimingController>(get_name());
   m_params = mod_config->get_configuration();
 }
 
