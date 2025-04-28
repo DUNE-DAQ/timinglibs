@@ -63,7 +63,7 @@ TimingController::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
 }
 
 void
-TimingController::do_configure(const nlohmann::json& data)
+TimingController::do_configure(const nlohmann::json& /*data*/)
 {
   m_timing_device = m_params->get_device();
   m_hardware_state_recovery_enabled = m_params->get_hardware_state_recovery_enabled();
