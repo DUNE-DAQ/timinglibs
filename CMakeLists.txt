@@ -22,7 +22,7 @@ find_package(oks REQUIRED)
 find_package(oksdalgen REQUIRED)
 find_package(conffwk REQUIRED)
 
-add_dal_library(timing.schema.xml NAMESPACE dunedaq::timinglibs::dal DALDIR dal DEP_PKGS confmodel)
+daq_add_dal_library(timing.schema.xml NAMESPACE dunedaq::timinglibs::dal DALDIR dal DEP_PKGS confmodel)
 
 daq_codegen( timingcmd.jsonnet TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 msgp.hpp.j2 )
 
@@ -47,10 +47,10 @@ daq_add_library(TimingController.cpp TimingEndpointControllerBase.cpp TimingHard
 logging::logging confmodel::confmodel oks::oks ers::ers appfwk::appfwk)
 
 ##############################################################################
-daq_add_plugin(TimingHardwareManagerPDII duneDAQModule LINK_LIBRARIES timing::timing timinglibs dal_timinglibs uhal::uhal pugixml::pugixml)
-daq_add_plugin(TimingMasterControllerPDII duneDAQModule LINK_LIBRARIES timinglibs dal_timinglibs)
-daq_add_plugin(TimingEndpointController duneDAQModule LINK_LIBRARIES timinglibs dal_timinglibs)
-daq_add_plugin(TimingFanoutController duneDAQModule LINK_LIBRARIES timinglibs dal_timinglibs)
+daq_add_plugin(TimingHardwareManagerPDII duneDAQModule LINK_LIBRARIES timing::timing timinglibs timinglibs_dal uhal::uhal pugixml::pugixml)
+daq_add_plugin(TimingMasterControllerPDII duneDAQModule LINK_LIBRARIES timinglibs timinglibs_dal)
+daq_add_plugin(TimingEndpointController duneDAQModule LINK_LIBRARIES timinglibs timinglibs_dal)
+daq_add_plugin(TimingFanoutController duneDAQModule LINK_LIBRARIES timinglibs timinglibs_dal)
 
 ##############################################################################
 
