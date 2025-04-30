@@ -82,7 +82,7 @@ TimingHardwareManagerBase::init(std::shared_ptr<appfwk::ConfigurationManager> mc
 }
 
 void
-TimingHardwareManagerBase::conf(const nlohmann::json& data)
+TimingHardwareManagerBase::conf(const nlohmann::json& /*data*/)
 {
   m_received_hw_commands_counter = 0;
   m_accepted_hw_commands_counter = 0;
@@ -110,7 +110,7 @@ TimingHardwareManagerBase::conf(const nlohmann::json& data)
   m_endpoint_scan_threads_clean_up_thread->set_work(&TimingHardwareManagerBase::clean_endpoint_scan_threads, this);
 }
 
-void TimingHardwareManagerBase::do_scrap(const nlohmann::json& data)
+void TimingHardwareManagerBase::do_scrap(const nlohmann::json& /*data*/)
 {
   m_hw_command_receiver->remove_callback();
 

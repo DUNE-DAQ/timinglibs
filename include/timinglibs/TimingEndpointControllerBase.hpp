@@ -66,7 +66,7 @@ protected:
 
   // pass op mon info
   void process_device_info(nlohmann::json info) override;
-  uint32_t m_endpoint_state;
+  std::atomic<uint> m_endpoint_state;
 };
 } // namespace timinglibs
 } // namespace dunedaq

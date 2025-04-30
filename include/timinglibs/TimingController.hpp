@@ -102,7 +102,7 @@ protected:
   virtual void do_scrap(const nlohmann::json&);
 
   template<class T, class... Vs>
-  void configure_hardware_or_recover_state(const nlohmann::json& data, std::string timing_entity_description, Vs... args);
+  void configure_hardware_or_recover_state(const nlohmann::json& data, std::string timing_entity_description, const Vs& ... args);
 
   // Configuration
   std::string m_hw_command_out_connection;
