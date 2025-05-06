@@ -1,7 +1,7 @@
 namespace dunedaq::timinglibs {
 template<class T, class... Vs>
 void 
-TimingController::configure_hardware_or_recover_state(const nlohmann::json& data, std::string timing_entity_description, Vs... args)
+TimingController::configure_hardware_or_recover_state(const nlohmann::json& data, std::string timing_entity_description, const Vs& ... args)
 {
   bool conf_commands_sent=false;
 
