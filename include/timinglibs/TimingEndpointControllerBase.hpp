@@ -54,15 +54,15 @@ protected:
   uint m_managed_endpoint_id;
 
   // Commands
-  void do_configure(const nlohmann::json& data) override;
-  void send_configure_hardware_commands(const nlohmann::json& data) override;
+  void do_configure(const CommandData_t& data) override;
+  void send_configure_hardware_commands(const CommandData_t& data) override;
 
   timingcmd::TimingHwCmd construct_endpoint_hw_cmd(const std::string& cmd_id, uint endpoint_id);
 
   // timinglibs endpoint commands
-  virtual void do_endpoint_enable(const nlohmann::json& data);
-  virtual void do_endpoint_disable(const nlohmann::json& data);
-  virtual void do_endpoint_reset(const nlohmann::json& data);
+  virtual void do_endpoint_enable(const CommandData_t& data);
+  virtual void do_endpoint_disable(const CommandData_t& data);
+  virtual void do_endpoint_reset(const CommandData_t& data);
 
   // pass op mon info
   void process_device_info(nlohmann::json info) override;

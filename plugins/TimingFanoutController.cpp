@@ -41,7 +41,7 @@ TimingFanoutController::TimingFanoutController(const std::string& name)
 }
 
 void
-TimingFanoutController::do_configure(const nlohmann::json& data)
+TimingFanoutController::do_configure(const CommandData_t& data)
 {
   auto mdal = m_params->cast<dal::TimingFanoutControllerConf>();
   
@@ -56,7 +56,7 @@ TimingFanoutController::do_configure(const nlohmann::json& data)
 
 // TODO: CHANGE
 void
-TimingFanoutController::send_configure_hardware_commands(const nlohmann::json& data)
+TimingFanoutController::send_configure_hardware_commands(const CommandData_t& data)
 {
   do_io_reset(data);
   std::this_thread::sleep_for(std::chrono::milliseconds(15000));

@@ -66,14 +66,14 @@ public:
   virtual ~TimingHardwareManagerBase() {}
   
   void init(std::shared_ptr<appfwk::ConfigurationManager> mcfg) override;
-  virtual void conf(const nlohmann::json& data);
+  virtual void conf(const CommandData_t& data);
 
 protected:
   // Commands
-  //  virtual void do_configure(const nlohmann::json&);
-  //  virtual void do_start(const nlohmann::json&);
-  //  virtual void do_stop(const nlohmann::json&);
-  virtual void do_scrap(const nlohmann::json&);
+  //  virtual void do_configure(const CommandData_t&);
+  //  virtual void do_start(const CommandData_t&);
+  //  virtual void do_stop(const CommandData_t&);
+  virtual void do_scrap(const CommandData_t&);
 
 
   virtual void process_hardware_command(timingcmd::TimingHwCmd& timing_hw_cmd);

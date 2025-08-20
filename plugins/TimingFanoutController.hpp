@@ -55,8 +55,8 @@ public:
 
 protected:
   // Commands
-  void do_configure(const nlohmann::json&) override;
-  void send_configure_hardware_commands(const nlohmann::json& data) override;
+  void do_configure(const CommandData_t&) override;
+  void send_configure_hardware_commands(const CommandData_t& data) override;
 
   timingcmd::TimingHwCmd construct_fanout_hw_cmd(const std::string& cmd_id);
 

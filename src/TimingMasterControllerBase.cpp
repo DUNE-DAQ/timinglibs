@@ -46,7 +46,7 @@ TimingMasterControllerBase::TimingMasterControllerBase(const std::string& name)
 }
 
 void
-TimingMasterControllerBase::do_configure(const nlohmann::json& data)
+TimingMasterControllerBase::do_configure(const CommandData_t& data)
 {
   auto mdal = m_params->cast<dal::TimingMasterControllerConf>();
 
@@ -78,7 +78,7 @@ TimingMasterControllerBase::do_configure(const nlohmann::json& data)
 }
 
 void
-TimingMasterControllerBase::do_start(const nlohmann::json& data)
+TimingMasterControllerBase::do_start(const CommandData_t& data)
 {
   TimingController::do_start(data); // set sent cmd counters to 0
   if (m_endpoint_scan_period) endpoint_scan_thread.start_working_thread();
@@ -86,21 +86,21 @@ TimingMasterControllerBase::do_start(const nlohmann::json& data)
 }
 
 void
-TimingMasterControllerBase::do_stop(const nlohmann::json& /*data*/)
+TimingMasterControllerBase::do_stop(const CommandData_t& /*data*/)
 {
   if (endpoint_scan_thread.thread_running()) endpoint_scan_thread.stop_working_thread();
   TLOG() << "Endpoint monitoring stopped";
 }
 
 void
-TimingMasterControllerBase::send_configure_hardware_commands(const nlohmann::json& data)
+TimingMasterControllerBase::send_configure_hardware_commands(const CommandData_t& data)
 {
   do_io_reset(data);
   do_master_set_timestamp(data);
 }
 
 void
-TimingMasterControllerBase::do_master_set_timestamp(const nlohmann::json&)
+TimingMasterControllerBase::do_master_set_timestamp(const CommandData_t&)
 {
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "set_timestamp");
@@ -113,7 +113,7 @@ TimingMasterControllerBase::do_master_set_timestamp(const nlohmann::json&)
 }
 
 void
-TimingMasterControllerBase::do_master_set_endpoint_delay(const nlohmann::json& data)
+TimingMasterControllerBase::do_master_set_endpoint_delay(const CommandData_t& data)
 {
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "set_endpoint_delay", data);
@@ -125,7 +125,7 @@ TimingMasterControllerBase::do_master_set_endpoint_delay(const nlohmann::json& d
 }
 
 void
-TimingMasterControllerBase::do_master_send_fl_command(const nlohmann::json& data)
+TimingMasterControllerBase::do_master_send_fl_command(const CommandData_t& data)
 {
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "send_fl_command", data);
@@ -137,7 +137,7 @@ TimingMasterControllerBase::do_master_send_fl_command(const nlohmann::json& data
 }
 
 void
-TimingMasterControllerBase::do_master_measure_endpoint_rtt(const nlohmann::json& data)
+TimingMasterControllerBase::do_master_measure_endpoint_rtt(const CommandData_t& data)
 {
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "master_measure_endpoint_rtt");
@@ -149,7 +149,7 @@ TimingMasterControllerBase::do_master_measure_endpoint_rtt(const nlohmann::json&
 }
 
 void
-TimingMasterControllerBase::do_master_endpoint_scan(const nlohmann::json& data)
+TimingMasterControllerBase::do_master_endpoint_scan(const CommandData_t& data)
 {
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "master_endpoint_scan");
