@@ -34,7 +34,7 @@
 #include "timing/TopDesignInterface.hpp"
 
 #include "uhal/ConnectionManager.hpp"
-#include "utilities/WorkerThread.hpp"
+#include "utilities/ReusableThread.hpp"
 
 #include <map>
 #include <memory>
