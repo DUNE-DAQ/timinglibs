@@ -63,7 +63,7 @@ TimingController::init(std::shared_ptr<appfwk::ConfigurationManager> mcfg)
 }
 
 void
-TimingController::do_configure(const nlohmann::json& /*data*/)
+TimingController::do_configure(const CommandData_t& /*data*/)
 {
   m_timing_device = m_params->get_device();
   m_hardware_state_recovery_enabled = m_params->get_hardware_state_recovery_enabled();
@@ -100,7 +100,7 @@ TimingController::do_configure(const nlohmann::json& /*data*/)
 }
 
 void
-TimingController::do_scrap(const nlohmann::json&)
+TimingController::do_scrap(const CommandData_t&)
 {
   if (m_device_info_receiver)
   {
@@ -153,7 +153,7 @@ TimingController::construct_hw_cmd( const std::string& cmd_id, const nlohmann::j
 }
 
 void
-TimingController::do_io_reset(const nlohmann::json& data)
+TimingController::do_io_reset(const CommandData_t& data)
 {
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "io_reset", data);
@@ -166,7 +166,7 @@ TimingController::do_io_reset(const nlohmann::json& data)
 }
 
 void
-TimingController::do_print_status(const nlohmann::json&)
+TimingController::do_print_status(const CommandData_t&)
 {
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "print_status");

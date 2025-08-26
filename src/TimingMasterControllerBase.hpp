@@ -61,17 +61,17 @@ public:
 
 protected:
   // Commands
-  void do_configure(const nlohmann::json&) override;
-  void do_start(const nlohmann::json& data) override;
-  void do_stop(const nlohmann::json& data) override;
-  void send_configure_hardware_commands(const nlohmann::json& data) override;
+  void do_configure(const CommandData_t&) override;
+  void do_start(const CommandData_t& data) override;
+  void do_stop(const CommandData_t& data) override;
+  void send_configure_hardware_commands(const CommandData_t& data) override;
 
   // timing master commands
-  void do_master_set_timestamp(const nlohmann::json&);
-  void do_master_set_endpoint_delay(const nlohmann::json& data);
-  void do_master_send_fl_command(const nlohmann::json& data);
-  void do_master_measure_endpoint_rtt(const nlohmann::json& data);
-  void do_master_endpoint_scan(const nlohmann::json& data);
+  void do_master_set_timestamp(const CommandData_t&);
+  void do_master_set_endpoint_delay(const CommandData_t& data);
+  void do_master_send_fl_command(const CommandData_t& data);
+  void do_master_measure_endpoint_rtt(const CommandData_t& data);
+  void do_master_endpoint_scan(const CommandData_t& data);
 
   // pass op mon info
   //  void get_info(opmonlib::InfoCollector& ci, int level) override;

@@ -41,7 +41,7 @@ TimingEndpointControllerBase::TimingEndpointControllerBase(const std::string& na
 }
 
 void
-TimingEndpointControllerBase::do_configure(const nlohmann::json& data)
+TimingEndpointControllerBase::do_configure(const CommandData_t& data)
 {
   auto mdal = m_params->cast<dal::TimingEndpointControllerConf>();
 
@@ -56,7 +56,7 @@ TimingEndpointControllerBase::do_configure(const nlohmann::json& data)
 }
 
 void
-TimingEndpointControllerBase::send_configure_hardware_commands(const nlohmann::json& data)
+TimingEndpointControllerBase::send_configure_hardware_commands(const CommandData_t& data)
 {
   do_io_reset(data);
   std::this_thread::sleep_for(std::chrono::microseconds(7000000));
@@ -78,7 +78,7 @@ TimingEndpointControllerBase::construct_endpoint_hw_cmd( const std::string& cmd_
 }
 
 void
-TimingEndpointControllerBase::do_endpoint_enable(const nlohmann::json& data)
+TimingEndpointControllerBase::do_endpoint_enable(const CommandData_t& data)
 {
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "endpoint_enable", data);
@@ -93,7 +93,7 @@ TimingEndpointControllerBase::do_endpoint_enable(const nlohmann::json& data)
 }
 
 void
-TimingEndpointControllerBase::do_endpoint_disable(const nlohmann::json& data)
+TimingEndpointControllerBase::do_endpoint_disable(const CommandData_t& data)
 {
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "endpoint_disable", data);
@@ -102,7 +102,7 @@ TimingEndpointControllerBase::do_endpoint_disable(const nlohmann::json& data)
 }
 
 void
-TimingEndpointControllerBase::do_endpoint_reset(const nlohmann::json& data)
+TimingEndpointControllerBase::do_endpoint_reset(const CommandData_t& data)
 {
   timingcmd::TimingHwCmd hw_cmd =
   construct_hw_cmd( "endpoint_reset", data);

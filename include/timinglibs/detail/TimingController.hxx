@@ -8,7 +8,7 @@ TimingController::configure_hardware_or_recover_state(const nlohmann::json& data
  	if (!m_hardware_state_recovery_enabled)
   {
     TLOG_DEBUG(3) << "State recovery not enabled. Sending configure commands...";
-    send_configure_hardware_commands(data);
+    send_configure_hardware_commands(static_cast<CommandData_t>(data));
     conf_commands_sent=true;
   }
 
@@ -38,7 +38,7 @@ TimingController::configure_hardware_or_recover_state(const nlohmann::json& data
       else
       {
         TLOG_DEBUG(3) << "State not recovered! Sending configure commands...";
-        send_configure_hardware_commands(data);
+        send_configure_hardware_commands(static_cast<CommandData_t>(data));
         time_of_conf = std::chrono::high_resolution_clock::now();
         conf_commands_sent=true;
       } 

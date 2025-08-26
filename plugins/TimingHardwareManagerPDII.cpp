@@ -39,7 +39,7 @@ TimingHardwareManagerPDII::TimingHardwareManagerPDII(const std::string& name)
 }
 
 void
-TimingHardwareManagerPDII::conf(const nlohmann::json& conf_data)
+TimingHardwareManagerPDII::conf(const CommandData_t& conf_data)
 {
   register_common_hw_commands_for_design();
   register_master_hw_commands_for_design();
@@ -74,11 +74,11 @@ TimingHardwareManagerPDII::conf(const nlohmann::json& conf_data)
 } // NOLINT
 
 void
-TimingHardwareManagerPDII::start(const nlohmann::json& /*data*/)
+TimingHardwareManagerPDII::start(const CommandData_t& /*data*/)
 {
 }
 void
-TimingHardwareManagerPDII::stop(const nlohmann::json& /*data*/)
+TimingHardwareManagerPDII::stop(const CommandData_t& /*data*/)
 {
 }
 

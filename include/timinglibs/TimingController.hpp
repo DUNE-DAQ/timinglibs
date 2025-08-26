@@ -96,10 +96,10 @@ public:
 
 protected:
   // DAQModule commands
-  virtual void do_configure(const nlohmann::json&);
-  virtual void do_start(const nlohmann::json&) {}
-  virtual void do_stop(const nlohmann::json&) {}
-  virtual void do_scrap(const nlohmann::json&);
+  virtual void do_configure(const CommandData_t&);
+  virtual void do_start(const CommandData_t&) {}
+  virtual void do_stop(const CommandData_t&) {}
+  virtual void do_scrap(const CommandData_t&);
 
   template<class T, class... Vs>
   void configure_hardware_or_recover_state(const nlohmann::json& data, std::string timing_entity_description, const Vs& ... args);
@@ -115,7 +115,7 @@ protected:
   std::shared_ptr<source_t> m_device_info_receiver;
 
   virtual void send_hw_cmd(timingcmd::TimingHwCmd&& hw_cmd);
-  virtual void send_configure_hardware_commands(const nlohmann::json& data) = 0;
+  virtual void send_configure_hardware_commands(const CommandData_t& data) = 0;
 
   // opmon
   uint m_number_hw_commands;
@@ -131,8 +131,8 @@ protected:
   //common commands
   timingcmd::TimingHwCmd construct_hw_cmd( const std::string& cmd_id);
   timingcmd::TimingHwCmd construct_hw_cmd( const std::string& cmd_id, const nlohmann::json& payload);
-  virtual void do_io_reset(const nlohmann::json& data);
-  virtual void do_print_status(const nlohmann::json& data);
+  virtual void do_io_reset(const CommandData_t& data);
+  virtual void do_print_status(const CommandData_t& data);
   const dal::TimingControllerConf* m_params;
 
 };
