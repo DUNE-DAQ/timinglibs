@@ -76,7 +76,7 @@ protected:
   virtual void do_scrap(const CommandData_t&);
 
 
-  virtual void process_hardware_command(timingcmd::TimingHwCmd& timing_hw_cmd);
+  virtual void process_hardware_command(timingcmd::TimingHwCmd&& timing_hw_cmd);
 
   // Configuration
   std::string m_hw_cmd_connection;

@@ -283,7 +283,7 @@ TimingHardwareManagerBase::check_hw_mon_gatherer_is_running(const std::string& d
 // cmd stuff
 
 void
-TimingHardwareManagerBase::process_hardware_command(timingcmd::TimingHwCmd& timing_hw_cmd)
+TimingHardwareManagerBase::process_hardware_command(timingcmd::TimingHwCmd&& timing_hw_cmd)
 {
   std::ostringstream starting_stream;
   starting_stream << ": Executing process_hardware_command() callback.";
