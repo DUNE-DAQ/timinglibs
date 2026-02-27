@@ -24,7 +24,7 @@ find_package(conffwk REQUIRED)
 
 daq_add_dal_library(timing.schema.xml NAMESPACE dunedaq::timinglibs::dal DALDIR dal DEP_PKGS confmodel)
 
-daq_codegen( timingcmd.jsonnet TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 msgp.hpp.j2 )
+#daq_codegen( timingcmd.jsonnet TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 msgp.hpp.j2 )
 
 
 ##############################################################################
