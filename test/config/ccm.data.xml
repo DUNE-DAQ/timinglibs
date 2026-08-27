@@ -67,7 +67,7 @@
 
 <include>
  <file path="schema/confmodel/dunedaq.schema.xml"/>
- <file path="fsm-timing.data.xml"/>
+ <file path="test/config/fsm-timing.data.xml"/>
  <file path="config/daqsystemtest/hosts.data.xml"/>
 </include>
 

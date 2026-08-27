@@ -63,12 +63,12 @@
 
 <oks-data>
 
-<info name="" type="" num-of-items="27" oks-format="data" oks-version="862f2957270" created-by="jr19588" created-on="kipper.phy.bris.ac.uk" creation-time="20240417T160310" last-modified-by="eflumerf" last-modified-on="ironvirt9.IRONDOMAIN.local" last-modification-time="20241023T204135"/>
+<info name="" type="" num-of-items="30" oks-format="data" oks-version="862f2957270" created-by="jr19588" created-on="kipper.phy.bris.ac.uk" creation-time="20240417T160310" last-modified-by="eflumerf" last-modified-on="ironvirt9.mshome.net" last-modification-time="20260827T192834"/>
 
 <include>
  <file path="schema/confmodel/dunedaq.schema.xml"/>
  <file path="schema/timinglibs/timing.schema.xml"/>
- <file path="ccm.data.xml"/>
+ <file path="test/config/ccm.data.xml"/>
 </include>
 
 
@@ -113,6 +113,30 @@
  <attr name="clock_speed_hz" type="u32" val="62500000"/>
  <attr name="op_env" type="string" val="test"/>
  <attr name="offline_data_stream" type="string" val="cosmics"/>
+</obj>
+
+<obj class="EndpointLocation" id="dummy_endpoint1">
+ <attr name="fanout_slot" type="s32" val="5"/>
+ <attr name="sfp_slot" type="s32" val="0"/>
+ <attr name="address" type="u32" val="30"/>
+</obj>
+
+<obj class="EndpointLocation" id="dummy_endpoint2">
+ <attr name="fanout_slot" type="s32" val="5"/>
+ <attr name="sfp_slot" type="s32" val="1"/>
+ <attr name="address" type="u32" val="31"/>
+</obj>
+
+<obj class="EndpointLocation" id="dummy_endpoint3">
+ <attr name="fanout_slot" type="s32" val="-1"/>
+ <attr name="sfp_slot" type="s32" val="2"/>
+ <attr name="address" type="u32" val="40"/>
+</obj>
+
+<obj class="EndpointLocation" id="dummy_endpoint4">
+ <attr name="fanout_slot" type="s32" val="-1"/>
+ <attr name="sfp_slot" type="s32" val="-1"/>
+ <attr name="address" type="u32" val="4"/>
 </obj>
 
 <obj class="NetworkConnection" id="FANOUT_info">
@@ -173,11 +197,6 @@
  <attr name="port" type="u16" val="0"/>
 </obj>
 
-<obj class="Variable" id="ers-debug">
-  <attr name="name" type="string" val="DUNEDAQ_ERS_DEBUG_LEVEL"/>
-  <attr name="value" type="string" val="4"/>
-</obj>
-
 <obj class="Session" id="test-session">
  <attr name="data_request_timeout_ms" type="u32" val="1000"/>
  <attr name="data_rate_slowdown_factor" type="u32" val="1"/>
@@ -189,7 +208,6 @@
   <ref class="Variable" id="local-env-ers-warning"/>
   <ref class="Variable" id="local-env-ers-error"/>
   <ref class="Variable" id="local-env-ers-fatal"/>
-  <!--<ref class="Variable" id="ers-debug"/>-->
  </rel>
  <rel name="segment" class="Segment" id="generated-segment"/>
  <rel name="infrastructure_applications">
@@ -217,13 +235,13 @@
  <attr name="device_ready_timeout" type="u32" val="20000"/>
 </obj>
 
-<obj class="TimingFanoutDevice" id="fanout8">
- <attr name="fanout_slot" type="u32" val="7"/>
+<obj class="TimingFanoutDevice" id="fanout6">
+ <attr name="fanout_slot" type="u32" val="5"/>
  <attr name="device" type="string" val="FANOUT"/>
 </obj>
 
-<obj class="TimingFanoutDevice" id="fanout6">
- <attr name="fanout_slot" type="u32" val="5"/>
+<obj class="TimingFanoutDevice" id="fanout8">
+ <attr name="fanout_slot" type="u32" val="7"/>
  <attr name="device" type="string" val="FANOUT"/>
 </obj>
 
@@ -249,42 +267,17 @@
  <rel name="configuration" class="TimingHardwareManagerConf" id="thi-conf"/>
 </obj>
 
-<obj class="EndpointLocation" id="dummy_endpoint1">
- <attr name="fanout_slot" type="s32" val="5"/>
- <attr name="sfp_slot" type="s32" val="0"/>
- <attr name="address" type="u32" val="30"/>
-</obj>
-
-<obj class="EndpointLocation" id="dummy_endpoint2">
- <attr name="fanout_slot" type="s32" val="5"/>
- <attr name="sfp_slot" type="s32" val="1"/>
- <attr name="address" type="u32" val="31"/>
-</obj>
-
-<obj class="EndpointLocation" id="dummy_endpoint3">
- <attr name="fanout_slot" type="s32" val="-1"/>
- <attr name="sfp_slot" type="s32" val="2"/>
- <attr name="address" type="u32" val="40"/>
-</obj>
-
-<obj class="EndpointLocation" id="dummy_endpoint4">
- <attr name="fanout_slot" type="s32" val="-1"/>
- <attr name="sfp_slot" type="s32" val="-1"/>
- <attr name="address" type="u32" val="4"/>
-</obj>
-
 <obj class="TimingMasterControllerConf" id="tmc-conf">
  <attr name="device" type="string" val="MASTER"/>
  <attr name="hardware_state_recovery_enabled" type="bool" val="1"/>
+ <attr name="clock_source" type="u32" val="255"/>
  <attr name="soft" type="bool" val="0"/>
  <attr name="timestamp_source" type="u32" val="1"/>
- <attr name="clock_source" type="u32" val="255"/>
  <attr name="endpoint_scan_period" type="u32" val="2000"/>
  <rel name="monitored_endpoints">
   <ref class="EndpointLocation" id="dummy_endpoint1"/>
   <ref class="EndpointLocation" id="dummy_endpoint2"/>
   <ref class="EndpointLocation" id="dummy_endpoint3"/>
-  <!--<ref class="EndpointLocation" id="dummy_endpoint4"/>-->
  </rel>
 </obj>
 
@@ -301,6 +294,11 @@
 <obj class="Variable" id="daqapp-cli-configuration">
  <attr name="name" type="string" val="DAQAPP_CLI_CONFIG_SVC"/>
  <attr name="value" type="string" val="oksconflibs:config/oks_configs/example-configs.data.xml"/>
+</obj>
+
+<obj class="Variable" id="ers-debug">
+ <attr name="name" type="string" val="DUNEDAQ_ERS_DEBUG_LEVEL"/>
+ <attr name="value" type="string" val="4"/>
 </obj>
 
 <obj class="Variable" id="session-env-session-name-0">
