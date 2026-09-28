@@ -24,13 +24,13 @@
 #include "iomanager/Receiver.hpp"
 #include "logging/Logging.hpp"
 
-#include "timinglibs/dal/TimingHardwareManagerConf.hpp"
 #include "confmodel/Connection.hpp"
+#include "timinglibs/dal/TimingHardwareManagerConf.hpp"
 
-#include "timing/TimingNode.hpp"
 #include "timing/EndpointDesignInterface.hpp"
 #include "timing/HSIDesignInterface.hpp"
 #include "timing/MasterDesignInterface.hpp"
+#include "timing/TimingNode.hpp"
 #include "timing/TopDesignInterface.hpp"
 
 #include "uhal/ConnectionManager.hpp"
@@ -49,7 +49,9 @@ namespace timinglibs {
  * @brief TimingHardwareManagerBase creates vectors of ints and writes
  * them to the configured output queues.
  */
-class TimingHardwareManagerBase : public dunedaq::appfwk::DAQModule, public timinglibs::TimingHardwareInterface
+class TimingHardwareManagerBase
+  : public dunedaq::appfwk::DAQModule
+  , public timinglibs::TimingHardwareInterface
 {
 public:
   /**
@@ -58,13 +60,16 @@ public:
    */
   explicit TimingHardwareManagerBase(const std::string& name);
 
-  TimingHardwareManagerBase(const TimingHardwareManagerBase&) = delete; ///< TimingHardwareManagerBase is not copy-constructible
+  TimingHardwareManagerBase(const TimingHardwareManagerBase&) =
+    delete; ///< TimingHardwareManagerBase is not copy-constructible
   TimingHardwareManagerBase& operator=(const TimingHardwareManagerBase&) =
-    delete;                                                ///< TimingHardwareManagerBase is not copy-assignable
-  TimingHardwareManagerBase(TimingHardwareManagerBase&&) = delete; ///< TimingHardwareManagerBase is not move-constructible
-  TimingHardwareManagerBase& operator=(TimingHardwareManagerBase&&) = delete; ///< TimingHardwareManagerBase is not move-assignable
+    delete; ///< TimingHardwareManagerBase is not copy-assignable
+  TimingHardwareManagerBase(TimingHardwareManagerBase&&) =
+    delete; ///< TimingHardwareManagerBase is not move-constructible
+  TimingHardwareManagerBase& operator=(TimingHardwareManagerBase&&) =
+    delete; ///< TimingHardwareManagerBase is not move-assignable
   virtual ~TimingHardwareManagerBase() {}
-  
+
   void init(std::shared_ptr<appfwk::ConfigurationManager> mcfg) override;
   virtual void conf(const CommandData_t& data);
 
@@ -74,7 +79,6 @@ protected:
   //  virtual void do_start(const CommandData_t&);
   //  virtual void do_stop(const CommandData_t&);
   virtual void do_scrap(const CommandData_t&);
-
 
   virtual void process_hardware_command(timingcmd::TimingHwCmd& timing_hw_cmd);
 
@@ -163,7 +167,7 @@ protected:
   std::unique_ptr<dunedaq::utilities::ReusableThread> m_endpoint_scan_threads_clean_up_thread;
   std::atomic<bool> m_run_endpoint_scan_cleanup_thread;
   const timinglibs::dal::TimingHardwareManagerConf* m_params;
-  std::map<uint,int> m_monitored_endpoints_round_trip_times;
+  std::map<uint, int> m_monitored_endpoints_round_trip_times;
 };
 
 } // namespace timinglibs

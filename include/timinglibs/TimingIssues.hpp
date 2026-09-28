@@ -64,10 +64,7 @@ ERS_DECLARE_ISSUE_BASE(timinglibs,
                        ((std::string)message),
                        ERS_EMPTY)
 
-ERS_DECLARE_ISSUE(timinglibs,
-                       UHALDeviceNodeIssue,
-                       " Issue with UHAL device: " << device,
-                       ((std::string)device))
+ERS_DECLARE_ISSUE(timinglibs, UHALDeviceNodeIssue, " Issue with UHAL device: " << device, ((std::string)device))
 
 ERS_DECLARE_ISSUE_BASE(timinglibs,
                        UHALDeviceClassIssue,
@@ -134,14 +131,16 @@ ERS_DECLARE_ISSUE(timinglibs,
                   " RTT for endpoint " << address << " is " << rtt << ", via fanout: " << fanout << ", sfp: " << sfp,
                   ((int)fanout)((int)sfp)((uint32_t)address)((uint32_t)rtt)) // NOLINT(build/unsigned)
 
-ERS_DECLARE_ISSUE(timinglibs,
-                  ChangedEndpointRTTMeasurement,
-                   " Changed RTT for endpoint " << address << ", old: " << rtt_old << ", new: " << rtt_new <<  ", via fanout: " << fanout << ", sfp: " << sfp,
-                  ((int)fanout)((int)sfp)((uint32_t)address)((uint32_t)rtt_old)((uint32_t)rtt_new)) // NOLINT(build/unsigned)
+ERS_DECLARE_ISSUE(
+  timinglibs,
+  ChangedEndpointRTTMeasurement,
+  " Changed RTT for endpoint " << address << ", old: " << rtt_old << ", new: " << rtt_new << ", via fanout: " << fanout
+                               << ", sfp: " << sfp,
+  ((int)fanout)((int)sfp)((uint32_t)address)((uint32_t)rtt_old)((uint32_t)rtt_new)) // NOLINT(build/unsigned)
 
 ERS_DECLARE_ISSUE(timinglibs,
                   EndpointUnresponsive,
-                  " Endpoint unresponsive, address: " << address <<  ", via fanout: " << fanout << ", sfp: " << sfp,
+                  " Endpoint unresponsive, address: " << address << ", via fanout: " << fanout << ", sfp: " << sfp,
                   ((int)fanout)((int)sfp)((uint32_t)address)) // NOLINT(build/unsigned)
 } // namespace dunedaq
 

@@ -28,10 +28,10 @@
 #include <vector>
 
 namespace dunedaq {
-ERS_DECLARE_ISSUE(timinglibs,                                                                             ///< Namespace
-                  TimingMasterNotReady,                                                                   ///< Issue class name
+ERS_DECLARE_ISSUE(timinglibs,                                               ///< Namespace
+                  TimingMasterNotReady,                                     ///< Issue class name
                   master << " timing master did not become ready in time.", ///< Message
-                  ((std::string)master) )                                                                   ///< Message parameters
+                  ((std::string)master))                                    ///< Message parameters
 namespace timinglibs {
 
 /**
@@ -47,10 +47,12 @@ public:
    */
   explicit TimingMasterControllerBase(const std::string& name);
 
-  TimingMasterControllerBase(const TimingMasterControllerBase&) = delete; ///< TimingMasterControllerBase is not copy-constructible
+  TimingMasterControllerBase(const TimingMasterControllerBase&) =
+    delete; ///< TimingMasterControllerBase is not copy-constructible
   TimingMasterControllerBase& operator=(const TimingMasterControllerBase&) =
-    delete;                                                  ///< TimingMasterControllerBase is not copy-assignable
-  TimingMasterControllerBase(TimingMasterControllerBase&&) = delete; ///< TimingMasterControllerBase is not move-constructible
+    delete; ///< TimingMasterControllerBase is not copy-assignable
+  TimingMasterControllerBase(TimingMasterControllerBase&&) =
+    delete; ///< TimingMasterControllerBase is not move-constructible
   TimingMasterControllerBase& operator=(TimingMasterControllerBase&&) =
     delete; ///< TimingMasterControllerBase is not move-assignable
   virtual ~TimingMasterControllerBase()
@@ -75,7 +77,7 @@ protected:
 
   // pass op mon info
   //  void get_info(opmonlib::InfoCollector& ci, int level) override;
-  
+
   timingcmd::TimingEndpointLocations m_monitored_endpoint_locations;
   uint m_endpoint_scan_period; // NOLINT(build/unsigned)
   dunedaq::utilities::WorkerThread endpoint_scan_thread;

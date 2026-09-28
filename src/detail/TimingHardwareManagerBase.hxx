@@ -3,7 +3,7 @@ namespace dunedaq::timinglibs {
 template<class Child>
 void
 TimingHardwareManagerBase::register_timing_hw_command(const std::string& hw_cmd_id,
-                                                  void (Child::*f)(const timingcmd::TimingHwCmd&))
+                                                      void (Child::*f)(const timingcmd::TimingHwCmd&))
 {
   using namespace std::placeholders;
 

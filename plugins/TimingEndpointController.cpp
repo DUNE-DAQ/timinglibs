@@ -30,7 +30,8 @@ namespace timinglibs {
 
 TimingEndpointController::TimingEndpointController(const std::string& name)
   : dunedaq::timinglibs::TimingEndpointControllerBase(name, 6) // 2nd arg: how many hw commands can this module send?
-  {}
+{
+}
 
 } // namespace timinglibs
 } // namespace dunedaq

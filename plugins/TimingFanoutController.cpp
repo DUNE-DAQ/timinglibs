@@ -44,7 +44,7 @@ void
 TimingFanoutController::do_configure(const CommandData_t& data)
 {
   auto mdal = m_params->cast<dal::TimingFanoutControllerConf>();
-  
+
   m_device_ready_timeout = std::chrono::milliseconds(mdal->get_device_ready_timeout());
 
   TimingController::do_configure(data); // configure hw command connection
@@ -64,10 +64,10 @@ TimingFanoutController::send_configure_hardware_commands(const CommandData_t& da
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
-//void
-//TimingFanoutController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
+// void
+// TimingFanoutController::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 //{
-  // send counters internal to the module
+//  send counters internal to the module
 //  timingfanoutcontrollerinfo::Info module_info;
 
 //  module_info.sent_io_reset_cmds = m_sent_hw_command_counters.at(0).atomic.load();
@@ -91,20 +91,17 @@ TimingFanoutController::process_device_info(nlohmann::json info)
   uint32_t endpoint_state = ept_info.state;
   bool ready = ept_info.ready;
 
-  TLOG_DEBUG(3) << "state: 0x" << std::hex << endpoint_state << ", ready: " << ready << std::dec << ", infos received: " << m_device_infos_received_count;;
+  TLOG_DEBUG(3) << "state: 0x" << std::hex << endpoint_state << ", ready: " << ready << std::dec
+                << ", infos received: " << m_device_infos_received_count;
+  ;
 
-  if (endpoint_state > 0x5 && endpoint_state < 0x9)
-  {
-    if (!m_device_ready)
-    {
+  if (endpoint_state > 0x5 && endpoint_state < 0x9) {
+    if (!m_device_ready) {
       m_device_ready = true;
       TLOG_DEBUG(2) << "Timing fanout became ready";
     }
-  }
-  else
-  {
-    if (m_device_ready)
-    {
+  } else {
+    if (m_device_ready) {
       m_device_ready = false;
       TLOG_DEBUG(2) << "Timing fanout no longer ready";
     }

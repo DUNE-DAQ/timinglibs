@@ -8,8 +8,8 @@
  */
 
 #include "timinglibs/TimingEndpointControllerBase.hpp"
-#include "timinglibs/dal/TimingEndpointControllerConf.hpp"
 #include "timinglibs/dal/TimingEndpointControllerBase.hpp"
+#include "timinglibs/dal/TimingEndpointControllerConf.hpp"
 
 #include "timinglibs/TimingIssues.hpp"
 #include "timinglibs/timingcmd/Nljs.hpp"
@@ -32,7 +32,8 @@ namespace dunedaq {
 namespace timinglibs {
 
 TimingEndpointControllerBase::TimingEndpointControllerBase(const std::string& name, uint number_hw_commands)
-  : dunedaq::timinglibs::TimingController(name, number_hw_commands) // 2nd arg: how many hw commands can this module send?
+  : dunedaq::timinglibs::TimingController(name,
+                                          number_hw_commands) // 2nd arg: how many hw commands can this module send?
 {
   // timing endpoint hardware commands
   register_command("endpoint_enable", &TimingEndpointControllerBase::do_endpoint_enable);
@@ -48,7 +49,7 @@ TimingEndpointControllerBase::do_configure(const CommandData_t& data)
   TimingController::do_configure(data); // configure hw command connection
 
   // endpoint per device in config for now...
-  m_managed_endpoint_id = {mdal->get_endpoint_id()};
+  m_managed_endpoint_id = { mdal->get_endpoint_id() };
 
   configure_hardware_or_recover_state<TimingEndpointNotReady>(data, "Timing endpoint", m_endpoint_state);
 
@@ -64,7 +65,7 @@ TimingEndpointControllerBase::send_configure_hardware_commands(const CommandData
 }
 
 timingcmd::TimingHwCmd
-TimingEndpointControllerBase::construct_endpoint_hw_cmd( const std::string& cmd_id, uint endpoint_id)
+TimingEndpointControllerBase::construct_endpoint_hw_cmd(const std::string& cmd_id, uint endpoint_id)
 {
   timingcmd::TimingHwCmd hw_cmd;
   timingcmd::TimingEndpointCmdPayload cmd_payload;
@@ -80,8 +81,7 @@ TimingEndpointControllerBase::construct_endpoint_hw_cmd( const std::string& cmd_
 void
 TimingEndpointControllerBase::do_endpoint_enable(const CommandData_t& data)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_hw_cmd( "endpoint_enable", data);
+  timingcmd::TimingHwCmd hw_cmd = construct_hw_cmd("endpoint_enable", data);
 
   // print out some debug info
   timingcmd::TimingEndpointConfigureCmdPayload cmd_payload;
@@ -95,8 +95,7 @@ TimingEndpointControllerBase::do_endpoint_enable(const CommandData_t& data)
 void
 TimingEndpointControllerBase::do_endpoint_disable(const CommandData_t& data)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_hw_cmd( "endpoint_disable", data);
+  timingcmd::TimingHwCmd hw_cmd = construct_hw_cmd("endpoint_disable", data);
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(3).atomic);
 }
@@ -104,18 +103,17 @@ TimingEndpointControllerBase::do_endpoint_disable(const CommandData_t& data)
 void
 TimingEndpointControllerBase::do_endpoint_reset(const CommandData_t& data)
 {
-  timingcmd::TimingHwCmd hw_cmd =
-  construct_hw_cmd( "endpoint_reset", data);
+  timingcmd::TimingHwCmd hw_cmd = construct_hw_cmd("endpoint_reset", data);
 
   send_hw_cmd(std::move(hw_cmd));
   ++(m_sent_hw_command_counters.at(4).atomic);
 }
 
-//void
-//TimingEndpointControllerBase::get_info(opmonlib::InfoCollector& ci, int /*level*/)
+// void
+// TimingEndpointControllerBase::get_info(opmonlib::InfoCollector& ci, int /*level*/)
 //{
 
-  // send counters internal to the module
+// send counters internal to the module
 //  timingendpointcontrollerinfo::Info module_info;
 //  module_info.sent_endpoint_io_reset_cmds = m_sent_hw_command_counters.at(0).atomic.load();
 //  module_info.sent_endpoint_print_status_cmds = m_sent_hw_command_counters.at(1).atomic.load();
@@ -131,7 +129,7 @@ void
 TimingEndpointControllerBase::process_device_info(nlohmann::json info)
 {
   ++m_device_infos_received_count;
-  
+
   timing::timingfirmwareinfo::TimingDeviceInfo device_info;
   from_json(info, device_info);
 
@@ -140,20 +138,16 @@ TimingEndpointControllerBase::process_device_info(nlohmann::json info)
   m_endpoint_state = ept_info.state;
   bool ready = ept_info.ready;
 
-  TLOG_DEBUG(3) << "state: 0x" << std::hex << m_endpoint_state << ", ready: " << ready << std::dec << ", infos received: " << m_device_infos_received_count;
+  TLOG_DEBUG(3) << "state: 0x" << std::hex << m_endpoint_state << ", ready: " << ready << std::dec
+                << ", infos received: " << m_device_infos_received_count;
 
-  if (m_endpoint_state == 0x8 && ready)
-  {
-    if (!m_device_ready)
-    {
+  if (m_endpoint_state == 0x8 && ready) {
+    if (!m_device_ready) {
       m_device_ready = true;
       TLOG_DEBUG(2) << "Timing endpoint became ready";
     }
-  }
-  else
- {
-    if (m_device_ready)
-    {
+  } else {
+    if (m_device_ready) {
       m_device_ready = false;
       TLOG_DEBUG(2) << "Timing endpoint no longer ready";
     }
