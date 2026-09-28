@@ -11,17 +11,16 @@
 
 #include "nlohmann/json.hpp"
 
+#include "timinglibs/TimingIssues.hpp"
 #include "uhal/ConnectionManager.hpp"
 #include "uhal/ProtocolUDP.hpp"
 #include "uhal/log/exception.hpp"
 #include "uhal/utilities/files.hpp"
 #include <ers/Issue.hpp>
-#include "timinglibs/TimingIssues.hpp"
 
 #include <memory>
 #include <string>
 #include <vector>
-
 
 namespace dunedaq {
 namespace timinglibs {
@@ -38,18 +37,21 @@ public:
    */
   explicit TimingHardwareInterface();
 
-  TimingHardwareInterface(const TimingHardwareInterface&) = delete;            ///< TimingHardwareInterface is not copy-constructible
-  TimingHardwareInterface& operator=(const TimingHardwareInterface&) = delete; ///< TimingHardwareInterface is not copy-assignable
-  TimingHardwareInterface(TimingHardwareInterface&&) = delete;                 ///< TimingHardwareInterface is not move-constructible
-  TimingHardwareInterface& operator=(TimingHardwareInterface&&) = delete;      ///< TimingHardwareInterface is not move-assignable
+  TimingHardwareInterface(const TimingHardwareInterface&) =
+    delete; ///< TimingHardwareInterface is not copy-constructible
+  TimingHardwareInterface& operator=(const TimingHardwareInterface&) =
+    delete;                                                    ///< TimingHardwareInterface is not copy-assignable
+  TimingHardwareInterface(TimingHardwareInterface&&) = delete; ///< TimingHardwareInterface is not move-constructible
+  TimingHardwareInterface& operator=(TimingHardwareInterface&&) =
+    delete; ///< TimingHardwareInterface is not move-assignable
 
 protected:
-
-  template<class TIMING_DEV> TIMING_DEV  cast_timing_device(const uhal::Node* device_node, std::string timing_device_name);
+  template<class TIMING_DEV>
+  TIMING_DEV cast_timing_device(const uhal::Node* device_node, std::string timing_device_name);
   void configure_uhal(const dunedaq::timinglibs::dal::TimingHardwareInterfaceConf* mdal);
   void configure_uhal(const std::string& uhal_log_level, const std::string& connections_file);
 
-  void scrap_uhal ();
+  void scrap_uhal();
   std::string m_connections_file;
   std::string m_uhal_log_level;
   std::unique_ptr<uhal::ConnectionManager> m_connection_manager;

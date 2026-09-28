@@ -9,8 +9,8 @@
 
 #include "timinglibs/TimingHardwareInterface.hpp"
 
-#include "timinglibs/TimingIssues.hpp"
 #include "confmodel/Connection.hpp"
+#include "timinglibs/TimingIssues.hpp"
 
 #include "logging/Logging.hpp"
 #include "rcif/cmd/Nljs.hpp"
@@ -18,10 +18,10 @@
 #include <chrono>
 #include <cstdlib>
 #include <memory>
+#include <regex>
 #include <string>
 #include <thread>
 #include <vector>
-#include <regex>
 
 namespace dunedaq {
 namespace timinglibs {
@@ -85,7 +85,7 @@ void
 TimingHardwareInterface::scrap_uhal()
 {
   m_connection_manager.reset(nullptr);
-  m_connections_file="";
+  m_connections_file = "";
 }
 
 } // namespace timinglibs

@@ -45,8 +45,9 @@ public:
   TimingEndpointControllerBase(const TimingEndpointControllerBase&) =
     delete; ///< TimingEndpointControllerBase is not copy-constructible
   TimingEndpointControllerBase& operator=(const TimingEndpointControllerBase&) =
-    delete;                                                      ///< TimingEndpointControllerBase is not copy-assignable
-  TimingEndpointControllerBase(TimingEndpointControllerBase&&) = delete; ///< TimingEndpointControllerBase is not move-constructible
+    delete; ///< TimingEndpointControllerBase is not copy-assignable
+  TimingEndpointControllerBase(TimingEndpointControllerBase&&) =
+    delete; ///< TimingEndpointControllerBase is not move-constructible
   TimingEndpointControllerBase& operator=(TimingEndpointControllerBase&&) =
     delete; ///< TimingEndpointControllerBase is not move-assignable
 

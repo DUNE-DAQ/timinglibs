@@ -12,17 +12,17 @@
 #ifndef TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGCONTROLLER_HPP_
 #define TIMINGLIBS_INCLUDE_TIMINGLIBS_TIMINGCONTROLLER_HPP_
 
-#include "timinglibs/timingcmd/Structs.hpp"
 #include "timinglibs/TimingIssues.hpp"
+#include "timinglibs/timingcmd/Structs.hpp"
 
-#include "timinglibs/dal/TimingControllerConf.hpp"
 #include "timinglibs/dal/TimingController.hpp"
+#include "timinglibs/dal/TimingControllerConf.hpp"
 
 #include "appfwk/DAQModule.hpp"
 #include "ers/Issue.hpp"
-#include "logging/Logging.hpp" // NOTE: if ISSUES ARE DECLARED BEFORE include logging/Logging.hpp, TLOG_DEBUG<<issue wont work.
-#include "iomanager/Sender.hpp"
 #include "iomanager/Receiver.hpp"
+#include "iomanager/Sender.hpp"
+#include "logging/Logging.hpp" // NOTE: if ISSUES ARE DECLARED BEFORE include logging/Logging.hpp, TLOG_DEBUG<<issue wont work.
 #include "utilities/WorkerThread.hpp"
 
 #include "appfwk/ConfigurationManager.hpp"
@@ -33,10 +33,11 @@
 #include <vector>
 
 namespace dunedaq {
-ERS_DECLARE_ISSUE(timinglibs,                                                                                         ///< Namespace
-                  TimingEndpointNotReady,                                                                             ///< Issue class name
-                  endpoint << " timing endpoint did not become ready in time. State 0x" << std::hex << state, ///< Message
-                  ((std::string)endpoint)((uint)state)                                                                ///< Message parameters
+ERS_DECLARE_ISSUE(timinglibs,             ///< Namespace
+                  TimingEndpointNotReady, ///< Issue class name
+                  endpoint << " timing endpoint did not become ready in time. State 0x" << std::hex
+                           << state,                   ///< Message
+                  ((std::string)endpoint)((uint)state) ///< Message parameters
 )
 namespace timinglibs {
 
@@ -47,20 +48,24 @@ struct MobileAtomic
 
   MobileAtomic()
     : atomic(T())
-  {}
+  {
+  }
 
   explicit MobileAtomic(T const& v)
     : atomic(v)
-  {}
+  {
+  }
   explicit MobileAtomic(std::atomic<T> const& a)
     : atomic(a.load())
-  {}
+  {
+  }
 
   virtual ~MobileAtomic() = default;
 
   MobileAtomic(MobileAtomic const& other)
     : atomic(other.atomic.load())
-  {}
+  {
+  }
 
   MobileAtomic& operator=(MobileAtomic const& other)
   {
@@ -102,7 +107,9 @@ protected:
   virtual void do_scrap(const CommandData_t&);
 
   template<class T, class... Vs>
-  void configure_hardware_or_recover_state(const nlohmann::json& data, std::string timing_entity_description, const Vs& ... args);
+  void configure_hardware_or_recover_state(const nlohmann::json& data,
+                                           std::string timing_entity_description,
+                                           const Vs&... args);
 
   // Configuration
   std::string m_hw_command_out_connection;
@@ -128,13 +135,12 @@ protected:
   std::atomic<uint> m_device_infos_received_count;
   std::atomic<bool> m_hardware_state_recovery_enabled;
 
-  //common commands
-  timingcmd::TimingHwCmd construct_hw_cmd( const std::string& cmd_id);
-  timingcmd::TimingHwCmd construct_hw_cmd( const std::string& cmd_id, const nlohmann::json& payload);
+  // common commands
+  timingcmd::TimingHwCmd construct_hw_cmd(const std::string& cmd_id);
+  timingcmd::TimingHwCmd construct_hw_cmd(const std::string& cmd_id, const nlohmann::json& payload);
   virtual void do_io_reset(const CommandData_t& data);
   virtual void do_print_status(const CommandData_t& data);
   const dal::TimingControllerConf* m_params;
-
 };
 } // namespace timinglibs
 } // namespace dunedaq

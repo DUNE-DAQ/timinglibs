@@ -40,18 +40,22 @@ public:
    * @brief TimingMasterControllerPDII Constructor
    * @param name Instance name for this TimingMasterControllerPDII instance
    */
-  explicit TimingMasterControllerPDII(const std::string& name) 
-    : dunedaq::timinglibs::TimingMasterControllerBase(name) {}
+  explicit TimingMasterControllerPDII(const std::string& name)
+    : dunedaq::timinglibs::TimingMasterControllerBase(name)
+  {
+  }
 
-  TimingMasterControllerPDII(const TimingMasterControllerPDII&) = delete; ///< TimingMasterControllerPDII is not copy-constructible
+  TimingMasterControllerPDII(const TimingMasterControllerPDII&) =
+    delete; ///< TimingMasterControllerPDII is not copy-constructible
   TimingMasterControllerPDII& operator=(const TimingMasterControllerPDII&) =
-    delete;                                                  ///< TimingMasterControllerPDII is not copy-assignable
-  TimingMasterControllerPDII(TimingMasterControllerPDII&&) = delete; ///< TimingMasterControllerPDII is not move-constructible
+    delete; ///< TimingMasterControllerPDII is not copy-assignable
+  TimingMasterControllerPDII(TimingMasterControllerPDII&&) =
+    delete; ///< TimingMasterControllerPDII is not move-constructible
   TimingMasterControllerPDII& operator=(TimingMasterControllerPDII&&) =
     delete; ///< TimingMasterControllerPDII is not move-assignable
 
 protected:
-   void process_device_info(nlohmann::json info) override;
+  void process_device_info(nlohmann::json info) override;
 };
 } // namespace timinglibs
 } // namespace dunedaq

@@ -8,8 +8,8 @@
 
 #include "TimingHardwareManagerBase.hpp"
 
-#include "timinglibs/dal/TimingHardwareManagerBase.hpp"
 #include "timinglibs/dal/TimingFanoutDevice.hpp"
+#include "timinglibs/dal/TimingHardwareManagerBase.hpp"
 
 #include "iomanager/IOManager.hpp"
 #include "logging/Logging.hpp"
@@ -18,9 +18,9 @@
 #include "timing/FanoutDesign.hpp"
 #include "timing/MuxDesignInterface.hpp"
 
+#include "appfwk/ConfigurationManager.hpp"
 #include "timing/timingfirmware/Nljs.hpp"
 #include "timing/timingfirmware/Structs.hpp"
-#include "appfwk/ConfigurationManager.hpp"
 
 #include <memory>
 #include <string>
@@ -53,7 +53,7 @@ TimingHardwareManagerBase::TimingHardwareManagerBase(const std::string& name)
 {
   //  register_command("start", &TimingHardwareManagerBase::do_start);
   //  register_command("stop", &TimingHardwareManagerBase::do_stop);
-   register_command("scrap", &TimingHardwareManagerBase::do_scrap);
+  register_command("scrap", &TimingHardwareManagerBase::do_scrap);
 }
 
 void
@@ -63,16 +63,14 @@ TimingHardwareManagerBase::init(std::shared_ptr<appfwk::ConfigurationManager> mc
   m_params = mod_config->get_configuration();
 
   // set up queues
-  for (auto con : mod_config->get_inputs())
-  {
+  for (auto con : mod_config->get_inputs()) {
     if (con->get_data_type() == datatype_to_string<timingcmd::TimingHwCmd>()) {
       m_hw_cmd_connection = con->UID();
       TLOG() << "m_hw_cmd_connection: " << m_hw_cmd_connection;
     }
   }
 
-  try
-  {
+  try {
     m_hw_command_receiver = iomanager::IOManager::get()->get_receiver<timingcmd::TimingHwCmd>(m_hw_cmd_connection);
   } catch (const ers::Issue& excpt) {
     throw InvalidQueueFatalError(ERS_HERE, get_name(), "input", excpt);
@@ -93,8 +91,7 @@ TimingHardwareManagerBase::conf(const CommandData_t& /*data*/)
   m_gather_interval_debug = m_params->get_gather_interval_debug();
 
   m_monitored_device_name_master = m_params->get_monitored_device_name_master();
-  for (auto fanout : m_params->get_monitored_device_names_fanout())
-  {
+  for (auto fanout : m_params->get_monitored_device_names_fanout()) {
     TLOG_DEBUG(3) << fanout->get_device() << ": device, slot: " << fanout->get_fanout_slot() << std::endl;
     m_monitored_device_names_fanout.emplace(fanout->get_fanout_slot(), fanout->get_device());
   }
@@ -104,7 +101,8 @@ TimingHardwareManagerBase::conf(const CommandData_t& /*data*/)
 
   configure_uhal(m_params); // configure hw ipbus connection
 
-  m_hw_command_receiver->add_callback(std::bind(&TimingHardwareManagerBase::process_hardware_command, this, std::placeholders::_1));
+  m_hw_command_receiver->add_callback(
+    std::bind(&TimingHardwareManagerBase::process_hardware_command, this, std::placeholders::_1));
 
   m_run_endpoint_scan_cleanup_thread.store(true);
   m_endpoint_scan_threads_clean_up_thread->set_work(&TimingHardwareManagerBase::clean_endpoint_scan_threads, this);
@@ -116,20 +114,20 @@ TimingHardwareManagerBase::do_scrap(const CommandData_t& /*data*/)
   m_hw_command_receiver->remove_callback();
 
   auto time_of_scrap = std::chrono::high_resolution_clock::now();
-  while(m_command_threads.size())
-  {
+  while (m_command_threads.size()) {
     auto now = std::chrono::high_resolution_clock::now();
     auto ms_since_scrap = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_of_scrap);
-    TLOG_DEBUG(0) << "Have been waiting for " << ms_since_scrap.count() << " ms for " << m_command_threads.size() << " command threads to finish...";
+    TLOG_DEBUG(0) << "Have been waiting for " << ms_since_scrap.count() << " ms for " << m_command_threads.size()
+                  << " command threads to finish...";
     std::this_thread::sleep_for(std::chrono::microseconds(250000));
   }
   m_run_endpoint_scan_cleanup_thread.store(false);
-  
+
   stop_hw_mon_gathering();
-  
+
   scrap_uhal();
 
-  m_command_threads.clear(); 
+  m_command_threads.clear();
   m_info_gatherers.clear();
   m_timing_hw_cmd_map_.clear();
   m_hw_device_map.clear();
@@ -208,7 +206,9 @@ TimingHardwareManagerBase::gather_monitor_data(InfoGatherer& gatherer)
 }
 
 void
-TimingHardwareManagerBase::register_info_gatherer(uint gather_interval, const std::string& device_name, int op_mon_level)
+TimingHardwareManagerBase::register_info_gatherer(uint gather_interval,
+                                                  const std::string& device_name,
+                                                  int op_mon_level)
 {
   std::string gatherer_name = device_name + "_level_" + std::to_string(op_mon_level);
   if (m_info_gatherers.find(gatherer_name) == m_info_gatherers.end()) {
@@ -235,13 +235,14 @@ TimingHardwareManagerBase::start_hw_mon_gathering(const std::string& device_name
       it->second.get()->start_gathering_thread();
   } else {
     // find gatherer for suppled device name and start it
-    bool gatherer_found=false;
+    bool gatherer_found = false;
     for (auto it = m_info_gatherers.lower_bound(device_name); it != m_info_gatherers.end(); ++it) {
       TLOG_DEBUG(0) << get_name() << " Starting info gatherer: " << it->first;
       it->second.get()->start_gathering_thread();
-      gatherer_found=true;
-    } 
-    if (!gatherer_found) ers::warning(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "start", device_name));
+      gatherer_found = true;
+    }
+    if (!gatherer_found)
+      ers::warning(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "start", device_name));
   }
 }
 
@@ -255,13 +256,14 @@ TimingHardwareManagerBase::stop_hw_mon_gathering(const std::string& device_name)
       it->second.get()->stop_gathering_thread();
   } else {
     // find gatherer for suppled device name and stop it
-    bool gatherer_found=false;
+    bool gatherer_found = false;
     for (auto it = m_info_gatherers.lower_bound(device_name); it != m_info_gatherers.end(); ++it) {
       TLOG_DEBUG(0) << get_name() << " Stopping info gatherer: " << it->first;
       it->second.get()->stop_gathering_thread();
-      gatherer_found=true;
-    } 
-    if (!gatherer_found) ers::warning(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "stop", device_name));
+      gatherer_found = true;
+    }
+    if (!gatherer_found)
+      ers::warning(AttemptedToControlNonExantInfoGatherer(ERS_HERE, "stop", device_name));
   }
 }
 
@@ -269,15 +271,14 @@ std::vector<std::string>
 TimingHardwareManagerBase::check_hw_mon_gatherer_is_running(const std::string& device_name)
 {
   std::vector<std::string> running_gatherers;
-  for (auto it = m_info_gatherers.lower_bound(device_name); it != m_info_gatherers.end(); ++it)
-  {
-    TLOG_DEBUG(0) << get_name() << " Checking run state of info gatherer: " << it->first << ", and the state is " << it->second.get()->run_gathering();
-    if (it->second.get()->run_gathering())
-    {
+  for (auto it = m_info_gatherers.lower_bound(device_name); it != m_info_gatherers.end(); ++it) {
+    TLOG_DEBUG(0) << get_name() << " Checking run state of info gatherer: " << it->first << ", and the state is "
+                  << it->second.get()->run_gathering();
+    if (it->second.get()->run_gathering()) {
       running_gatherers.push_back(it->first);
     }
   }
-  return running_gatherers;  
+  return running_gatherers;
 }
 
 // cmd stuff
@@ -292,7 +293,8 @@ TimingHardwareManagerBase::process_hardware_command(timingcmd::TimingHwCmd& timi
   ++m_received_hw_commands_counter;
 
   TLOG_DEBUG(0) << get_name() << ": Received hardware command #" << m_received_hw_commands_counter.load()
-                  << ", it is of type: " << timing_hw_cmd.id << ", targeting device: " << timing_hw_cmd.device << ", with payload: " << timing_hw_cmd.payload.dump();
+                << ", it is of type: " << timing_hw_cmd.id << ", targeting device: " << timing_hw_cmd.device
+                << ", with payload: " << timing_hw_cmd.payload.dump();
 
   std::string hw_cmd_name = timing_hw_cmd.id;
   if (auto cmd = m_timing_hw_cmd_map_.find(hw_cmd_name); cmd != m_timing_hw_cmd_map_.end()) {
@@ -312,8 +314,8 @@ TimingHardwareManagerBase::process_hardware_command(timingcmd::TimingHwCmd& timi
   }
 
   std::ostringstream exiting_stream;
-  exiting_stream << ": Finished executing process_hardware_command() callback. Received " << m_received_hw_commands_counter.load()
-                 << " commands";
+  exiting_stream << ": Finished executing process_hardware_command() callback. Received "
+                 << m_received_hw_commands_counter.load() << " commands";
   TLOG_DEBUG(0) << get_name() << exiting_stream.str();
 }
 
@@ -323,13 +325,12 @@ TimingHardwareManagerBase::io_reset(const timingcmd::TimingHwCmd& hw_cmd)
 {
   timingcmd::IOResetCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
-  
+
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " io reset";
 
   // io reset disrupts hw mon gathering, so stop if running
   auto running_hw_gatherers = check_hw_mon_gatherer_is_running(hw_cmd.device);
-  for (auto& gatherer: running_hw_gatherers)
-  {
+  for (auto& gatherer : running_hw_gatherers) {
     stop_hw_mon_gathering(gatherer);
   }
 
@@ -342,17 +343,14 @@ TimingHardwareManagerBase::io_reset(const timingcmd::TimingHwCmd& hw_cmd)
     TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device
                   << " io reset, with supplied clk file: " << cmd_payload.clock_config;
     design->reset_io(cmd_payload.clock_config);
-  }
-  else
-  {
+  } else {
     TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device
                   << " io reset, with supplied clk source: " << cmd_payload.clock_source;
     design->reset_io(static_cast<timing::ClockSource>(cmd_payload.clock_source));
   }
 
   // if hw mon gathering was running previously, start it again
-  for (auto& gatherer: running_hw_gatherers)
-  {
+  for (auto& gatherer : running_hw_gatherers) {
     start_hw_mon_gathering(gatherer);
   }
 }
@@ -374,7 +372,7 @@ TimingHardwareManagerBase::set_timestamp(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device
-                              << " set timestamp, with supplied ts source: " << cmd_payload.timestamp_source;
+                << " set timestamp, with supplied ts source: " << cmd_payload.timestamp_source;
 
   auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
   design->sync_timestamp(static_cast<timing::TimestampSource>(cmd_payload.timestamp_source));
@@ -388,132 +386,113 @@ TimingHardwareManagerBase::master_endpoint_scan(const timingcmd::TimingHwCmd& hw
   std::stringstream command_thread_uid;
   auto t = std::time(nullptr);
   auto tm = *std::localtime(&t);
-  command_thread_uid << "enpoint_scan_cmd_at_" << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << "_cmd_num_" << m_accepted_hw_commands_counter.load();
-  
-  if (m_command_threads.size() > 5)
-  {
+  command_thread_uid << "enpoint_scan_cmd_at_" << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << "_cmd_num_"
+                     << m_accepted_hw_commands_counter.load();
+
+  if (m_command_threads.size() > 5) {
     ers::warning(TooManyEndpointScanThreadsQueued(ERS_HERE, m_command_threads.size()));
-  }
-  else
-  {
+  } else {
     TLOG_DEBUG(1) << "Queuing: " << command_thread_uid.str();
 
     auto thread_key = command_thread_uid.str();
     std::unique_lock map_lock(m_command_threads_map_mutex);
 
-    m_command_threads.emplace(thread_key, std::make_unique<std::thread>(std::bind(&TimingHardwareManagerBase::perform_endpoint_scan, this, hw_cmd)));
+    m_command_threads.emplace(
+      thread_key,
+      std::make_unique<std::thread>(std::bind(&TimingHardwareManagerBase::perform_endpoint_scan, this, hw_cmd)));
   }
 }
 
-void TimingHardwareManagerBase::perform_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd)
+void
+TimingHardwareManagerBase::perform_endpoint_scan(const timingcmd::TimingHwCmd& hw_cmd)
 {
   timingcmd::TimingMasterEndpointScanPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
-  for (auto& endpoint_location : cmd_payload.endpoints)
-  {
+  for (auto& endpoint_location : cmd_payload.endpoints) {
     auto endpoint_address = endpoint_location.address;
     auto fanout_slot = endpoint_location.fanout_slot;
     auto sfp_slot = endpoint_location.sfp_slot;
 
     std::unique_lock<std::mutex> master_sfp_lock(master_sfp_mutex);
 
-    TLOG_DEBUG(1) << get_name() << ": " << hw_cmd.device << " master_endpoint_scan starting: ept adr: " << endpoint_address << ", ept sfp: " << sfp_slot << ", fanout slot: " << fanout_slot;
+    TLOG_DEBUG(1) << get_name() << ": " << hw_cmd.device
+                  << " master_endpoint_scan starting: ept adr: " << endpoint_address << ", ept sfp: " << sfp_slot
+                  << ", fanout slot: " << fanout_slot;
 
     auto master_design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
-    try
-    {
-      //master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, true);
+    try {
+      // master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, true);
 
-      if (sfp_slot >= 0)
-      {
-        if (fanout_slot >= 0)
-        {
+      if (sfp_slot >= 0) {
+        if (fanout_slot >= 0) {
           // configure fanout/FIB
-          try
-          {
-            get_timing_device<const timing::MuxDesignInterface*>(m_monitored_device_names_fanout.at(fanout_slot))->switch_mux(sfp_slot);
-          }
-          catch(const UHALDeviceClassIssue& e)
-          {
+          try {
+            get_timing_device<const timing::MuxDesignInterface*>(m_monitored_device_names_fanout.at(fanout_slot))
+              ->switch_mux(sfp_slot);
+          } catch (const UHALDeviceClassIssue& e) {
             ers::error(e);
             continue;
           }
 
           // slot 0 for board without multiple data tx paths, e.g. FMC, TLU
-          if (fanout_slot != 0)
-          {
+          if (fanout_slot != 0) {
             // configure GIB/MIB
-            try
-            {
-              get_timing_device<const timing::MuxDesignInterface*>(hw_cmd.device)->switch_mux(fanout_slot-1);
-            }
-            catch(const UHALDeviceClassIssue& e)
-            {
+            try {
+              get_timing_device<const timing::MuxDesignInterface*>(hw_cmd.device)->switch_mux(fanout_slot - 1);
+            } catch (const UHALDeviceClassIssue& e) {
               ers::error(e);
               continue;
             }
           }
-        }
-        else
-        {
+        } else {
           dynamic_cast<const timing::MuxDesignInterface*>(master_design)->switch_mux(sfp_slot);
         }
       }
 
       auto scan_result = master_design->get_master_node_plain()->scan_endpoint(endpoint_address, true);
-      if (scan_result.alive)
-      {
+      if (scan_result.alive) {
         auto current_rtt = scan_result.round_trip_time;
-        ers::info(EndpointRTTMeasurement(ERS_HERE,fanout_slot,sfp_slot,endpoint_address,current_rtt));
-        if (m_monitored_endpoints_round_trip_times.count(endpoint_address))
-        {
+        ers::info(EndpointRTTMeasurement(ERS_HERE, fanout_slot, sfp_slot, endpoint_address, current_rtt));
+        if (m_monitored_endpoints_round_trip_times.count(endpoint_address)) {
           auto previous_rtt = m_monitored_endpoints_round_trip_times[endpoint_address];
-          if (previous_rtt != current_rtt)
-          {
-            //TLOG() << "New round trip time for endpoint " << endpoint_address << " measured. Previous: "
-            //  << m_monitored_endpoints_round_trip_times[endpoint_address] << ", current: " << current_rtt;
-            ers::warning(ChangedEndpointRTTMeasurement(ERS_HERE,fanout_slot,sfp_slot,endpoint_address,current_rtt,previous_rtt));
+          if (previous_rtt != current_rtt) {
+            // TLOG() << "New round trip time for endpoint " << endpoint_address << " measured. Previous: "
+            //   << m_monitored_endpoints_round_trip_times[endpoint_address] << ", current: " << current_rtt;
+            ers::warning(ChangedEndpointRTTMeasurement(
+              ERS_HERE, fanout_slot, sfp_slot, endpoint_address, current_rtt, previous_rtt));
           }
+        } else {
+          // TLOG() << "First measured round trip time for endpoint " << endpoint_address << " is: " << current_rtt;
         }
-        else
-        {
-           //TLOG() << "First measured round trip time for endpoint " << endpoint_address << " is: " << current_rtt;
-        }
-        m_monitored_endpoints_round_trip_times[endpoint_address]=current_rtt;
+        m_monitored_endpoints_round_trip_times[endpoint_address] = current_rtt;
+      } else {
+        ers::error(EndpointUnresponsive(ERS_HERE, fanout_slot, sfp_slot, endpoint_address));
+        // TLOG() << endpoint_address << " endpoint was not alive...";
       }
-      else
-      {
-        ers::error(EndpointUnresponsive(ERS_HERE,fanout_slot,sfp_slot,endpoint_address));
-        //TLOG() << endpoint_address << " endpoint was not alive...";
-      }
-      //master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, false);
-    }
-    catch(std::exception& e)
-    {
-      ers::error(EndpointScanFailure(ERS_HERE,e));
+      // master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, false);
+    } catch (std::exception& e) {
+      ers::error(EndpointScanFailure(ERS_HERE, e));
       master_design->get_master_node_plain()->switch_endpoint_sfp(endpoint_address, false);
     }
   }
 }
 
-void TimingHardwareManagerBase::clean_endpoint_scan_threads()
+void
+TimingHardwareManagerBase::clean_endpoint_scan_threads()
 {
   TLOG_DEBUG(0) << "Entering clean_endpoint_scan_threads()";
   bool break_flag = false;
-  while (!break_flag)
-  {
-    for (auto& thread : m_command_threads)
-    {
-      if (thread.second->joinable())
-      {
+  while (!break_flag) {
+    for (auto& thread : m_command_threads) {
+      if (thread.second->joinable()) {
         std::unique_lock map_lock(m_command_threads_map_mutex);
         TLOG_DEBUG(2) << thread.first << " thread ready. Cleaning up.";
         thread.second->join();
         m_command_threads.erase(thread.first);
       }
     }
-    
+
     auto prev_clean_time = std::chrono::steady_clock::now();
     auto next_clean_time = prev_clean_time + std::chrono::milliseconds(30);
 
@@ -542,12 +521,18 @@ void
 TimingHardwareManagerBase::set_endpoint_delay(const timingcmd::TimingHwCmd& hw_cmd)
 {
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " set endpoint delay";
-  
+
   timingcmd::TimingMasterSetEndpointDelayCmdPayload cmd_payload;
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
   auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
-  design->apply_endpoint_delay(cmd_payload.address, cmd_payload.coarse_delay, cmd_payload.fine_delay, cmd_payload.phase_delay, cmd_payload.measure_rtt, cmd_payload.control_sfp, cmd_payload.sfp_mux);
+  design->apply_endpoint_delay(cmd_payload.address,
+                               cmd_payload.coarse_delay,
+                               cmd_payload.fine_delay,
+                               cmd_payload.phase_delay,
+                               cmd_payload.measure_rtt,
+                               cmd_payload.control_sfp,
+                               cmd_payload.sfp_mux);
 }
 
 void
@@ -557,12 +542,12 @@ TimingHardwareManagerBase::send_fl_cmd(const timingcmd::TimingHwCmd& hw_cmd)
   timingcmd::from_json(hw_cmd.payload, cmd_payload);
 
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " send fl cmd. Payload: " << hw_cmd.payload.dump()
-         << ", parsed data: " << cmd_payload.fl_cmd_id
-         << ", " << cmd_payload.channel
-         << ", " << cmd_payload.number_of_commands_to_send;
+                << ", parsed data: " << cmd_payload.fl_cmd_id << ", " << cmd_payload.channel << ", "
+                << cmd_payload.number_of_commands_to_send;
 
   auto design = get_timing_device<const timing::MasterDesignInterface*>(hw_cmd.device);
-  design->get_master_node_plain()->send_fl_cmd(cmd_payload.fl_cmd_id, cmd_payload.channel, cmd_payload.number_of_commands_to_send);
+  design->get_master_node_plain()->send_fl_cmd(
+    cmd_payload.fl_cmd_id, cmd_payload.channel, cmd_payload.number_of_commands_to_send);
 }
 
 // endpoint commands
@@ -623,8 +608,11 @@ TimingHardwareManagerBase::hsi_configure(const timingcmd::TimingHwCmd& hw_cmd)
   TLOG_DEBUG(0) << get_name() << ": " << hw_cmd.device << " hsi configure";
 
   auto design = get_timing_device<const timing::HSIDesignInterface*>(hw_cmd.device);
-  design->configure_hsi(
-    cmd_payload.data_source, cmd_payload.rising_edge_mask, cmd_payload.falling_edge_mask, cmd_payload.invert_edge_mask, cmd_payload.random_rate);
+  design->configure_hsi(cmd_payload.data_source,
+                        cmd_payload.rising_edge_mask,
+                        cmd_payload.falling_edge_mask,
+                        cmd_payload.invert_edge_mask,
+                        cmd_payload.random_rate);
 }
 
 void
